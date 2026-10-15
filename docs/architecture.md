@@ -4,7 +4,7 @@ This diagram describes the intended architecture; not all components are impleme
 
 ```mermaid
 flowchart LR
-  Buyer[Buyer] --> Mobile[Mobile app<br/>React Native + Expo, proposed]
+  Buyer[Buyer] --> Mobile[Mobile app<br/>React Native + Expo<br/>gluestack UI, RTK Query]
   Seller[Seller / cashier] --> Mobile
   Mobile --> API[NestJS API<br/>REST/JSON]
 
@@ -29,7 +29,7 @@ flowchart LR
   Chat --> Exchanges
   Search --> Parser[LLM parser<br/>text -> allowed criteria]
   Parser --> Search
-  Markets --> DB[(PostgreSQL + PostGIS)]
+  Markets --> DB[(PostgreSQL + PostGIS<br/>via Prisma ORM)]
   Search --> DB
   Identity --> DB
   Users --> DB
@@ -48,10 +48,10 @@ flowchart LR
 - Every offer belongs to one market. Searches require an active market context and apply both that market scope and the geographic filters; a location hint parsed from text does not silently switch markets.
 - Conversations and agreed exchange records inherit their market context from the originating offer. Create an exchange record only after both parties explicitly agree to the offer terms; it records coordination and does not settle or custody funds.
 - User identity, credentials, and sessions are global. Selecting a market is separate from signing in and is not an authorization grant; the API validates permissions and resource-market consistency on every operation.
-- PostgreSQL is the source of truth; PostGIS handles spatial queries. Versioned migrations are the only way to evolve a shared schema.
+- PostgreSQL is the source of truth; PostGIS handles spatial queries. Prisma owns the schema and the migrations in `apps/api/prisma/`, and versioned migrations are the only way to evolve a shared schema. Objects Prisma cannot model (the `CHECK` constraints, the PostGIS extension) are hand-written SQL inside a migration.
 - The LLM parses natural language into allowed JSON criteria. The backend validates and runs parameterized queries; the model cannot access the database, generate SQL, calculate monetary values, or determine ranking.
 - The marketplace coordinates contact and reputation but does not custody funds/crypto or settle exchanges.
 
 ## Current implementation status
 
-The API in `apps/api` exposes `GET /health` and the initial authentication slice, backed by PostgreSQL identity/session tables and migrations. E2E coverage exercises password registration/login/recovery, sessions, private profile output, phone verification, and passkey challenge/error handling. Production email/SMS providers and native mobile passkey associations are not configured. The mobile client, market management/service-area persistence, offers, search, chat, subscriptions, and exchange records are not implemented yet. See the root `README.md` for product context and `docs/flows/` for intended user flows.
+The API in `apps/api` exposes `GET /health` and the initial authentication slice, backed by PostgreSQL identity/session tables and Prisma migrations. E2E coverage exercises password registration/login/recovery, sessions, private profile output, phone verification, passkey challenge/error handling, and a real WebAuthn assertion. Production email/SMS providers and native mobile passkey associations are not configured. The mobile client, market management/service-area persistence, offers, search, chat, subscriptions, and exchange records are not implemented yet. See the root `README.md` for product context and `docs/flows/` for intended user flows.

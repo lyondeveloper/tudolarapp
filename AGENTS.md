@@ -10,16 +10,33 @@ A market is a geographic service scope, not just a city-name string. Each offer 
 
 The app connects people; it does not custody cash/crypto, settle exchanges, or provide escrow. In-person safety, public meeting places, reputation, reporting, and moderation are part of the product domain. Natural-language search may use an LLM only to parse text into typed criteria; never let the model generate/execute SQL or own monetary rules or deterministic ranking.
 
-The target architecture is a React Native + Expo mobile client and a modular/hexagonal NestJS API backed by PostgreSQL/PostGIS. The approved MVP design includes passkey or username/email + password sign-in, verified email for email sign-in/password recovery, and a verified phone number as contact only. These decisions describe the target, not necessarily implemented behavior. Read `README.md` and `docs/` for product context and Mermaid diagrams.
+The target architecture is a React Native + Expo mobile client (gluestack UI, RTK Query for server state, Redux Toolkit for client state, React Hook Form for forms) and a modular/hexagonal NestJS API backed by PostgreSQL/PostGIS through Prisma ORM. The approved MVP design includes passkey or username/email + password sign-in, verified email for email sign-in/password recovery, and a verified phone number as contact only. These decisions describe the target, not necessarily implemented behavior. Read `README.md` and `docs/` for product context and Mermaid diagrams.
 
 Before assuming a product capability exists, inspect the code and tests and distinguish implemented behavior from planned behavior. Do not imply that verification/KYC, meeting safety, or badges guarantee a safe exchange.
+
+## Spec-driven development
+
+Work is planned as OpenSpec changes. The backlog is authored in Notion; the durable plan lives in the repository.
+
+- **Requirement** — Do not write production code for a feature, bug, or behavior change until an approved change exists under `openspec/changes/<change-id>/`. A human reviews the planning artifacts before implementation starts.
+- **Requirement** — Run the loop as explore → propose → human review → apply → verify → archive. `openspec-propose` plans only and must not implement; start `/openspec-apply-change` in a fresh session once the plan is approved.
+- **Requirement** — Keep one change per backlog task. Do not batch several Notion tasks into one change, and do not start a task whose predecessor is not marked Done in the backlog.
+- **Requirement** — `tasks.md` is the progress source of truth; there is no hidden state. Each behavior task names its test file and the exact command that runs it, and the red phase from `tdd-red-first` is verified before implementing.
+- **Requirement** — Never hand-create a change folder or write artifacts from memory. Use `openspec new change` and `openspec instructions` so `.openspec.yaml`, the schema templates, and the rules in `openspec/config.yaml` apply.
+- **Requirement** — Validate before presenting a plan: `openspec validate <change-id> --strict`. A change with no spec delta must set `skip_specs: true` in `.openspec.yaml` instead of inventing a requirement.
+- **Requirement** — Archive with `/openspec-archive-change` when every task is checked. Archiving merges the change's deltas into `openspec/specs/`, which then describes what the system does; `openspec/changes/archive/` is the history. Update the Notion task state on propose, apply, and archive.
+- **Recommendation** — Use `/sdd-from-notion` to turn a backlog task into a change, and `/openspec-verify-change` to check the implementation against the artifacts before archiving. `.devin/plans/` is session scratch: if a decision must persist, it belongs in an OpenSpec change.
 
 ## PostgreSQL and PostGIS
 
 - **Requirement** — Treat PostgreSQL as the source of truth for persistent data and business invariants. Client validation does not replace server- or database-side validation.
 - **Requirement** — Change schemas only through explicit, reviewable migrations that work with existing environments. Include a deployment/recovery strategy when appropriate; do not edit production schemas manually.
-- **Initial recommendation** — While data access remains SQL-first and no ORM has been selected, use `node-pg-migrate` as the only PostgreSQL migration runner. It supports TypeScript/JavaScript or SQL migrations, suitable for PostgreSQL/PostGIS-specific objects. Confirm its Node.js requirements when bootstrapping the backend.
-- **Requirement** — Keep one migration system as the source of truth. If an ORM with its own migrations is selected later, explicitly decide whether to migrate to it; never run two migration runners against the same schema. Disable automatic schema synchronization in shared and production environments.
+- **Requirement** — Use **Prisma ORM as the single owner of the schema and of migrations** (`apps/api/prisma/`). `node-pg-migrate` was removed; never run a second migration runner against the same schema. Disable automatic schema synchronization in shared and production environments.
+- **Requirement** — Pin Prisma to a supported stable major (`^7`). Do not install `prisma@latest`: the `latest` tag resolves to a release candidate of the next major, and that CLI has no `generate`, `migrate dev`, or `db push`. Re-check the official release status before any major upgrade.
+- **Requirement** — Prisma cannot express `CHECK` constraints and does not introspect them. Keep them as hand-written SQL inside `--create-only` migrations and verify them against `pg_constraint`; a future `migrate dev` that proposes dropping one means the schema drifted. `CREATE EXTENSION postgis` is the same kind of unmodelled, privileged step.
+- **Requirement** — Declare partial indexes in `schema.prisma` through the `partialIndexes` preview feature (`@@unique(..., where: raw(...))`), never as hand-edited SQL: Prisma Migrate has emitted `DROP INDEX` for hand-written partial indexes.
+- **Requirement** — Keep raw SQL to a minimum, and where Prisma has no equivalent (`FOR UPDATE`, `GREATEST`, `RETURNING` used as a compare-and-swap), preserve the original atomicity with `$queryRaw`/`$executeRaw` or an `updateMany` compare-and-swap. Never downgrade an atomic guard into a read-then-write; session rotation and challenge consumption are security-critical.
+- **Requirement** — Prisma has no native geometry type. Keep spatial columns and `ST_DWITHIN` queries in migrations and `$queryRaw`, and decide the `Unsupported(...)` mapping when the first spatial table is introduced.
 - **Requirement** — Use appropriate types and database constraints (`NOT NULL`, `CHECK`, `FOREIGN KEY`, `UNIQUE`) where applicable. Do not rely only on application code for referential integrity, uniqueness, or invariants the database can enforce.
 - **Requirement** — Parameterize SQL values; never interpolate untrusted input into SQL. Use explicit allowlists for identifiers/options that cannot be parameterized.
 - **Requirement** — Store monetary amounts as `numeric`/decimal or integers in a domain-defined minor unit; never use binary floating point for monetary calculations. Define scale, rounding, and currency explicitly.
@@ -67,12 +84,17 @@ Before assuming a product capability exists, inspect the code and tests and dist
 - **Requirement** — Avoid redundant, duplicated, or contradictory state. Group values that change together and derive computable values instead of synchronizing extra state.
 - **Requirement** — Build accessible interfaces and represent loading, error, and empty states with recovery actions where appropriate. Preserve labels, semantics, focus, and nonvisual interaction alternatives.
 - **Recommendation** — Use TypeScript and reusable components when the project has adopted it and reuse is real. Prefer small explicit interfaces; avoid premature abstractions.
+- **Requirement** — Fetch server state through **RTK Query only**: one `createApi` slice per base URL. Do not add a second server-state cache (for example TanStack Query) next to it; two caches holding the same resource contradict the no-duplicated-state rule above.
+- **Requirement** — Use **Redux Toolkit** for app-wide client state. Keep server data out of hand-written slices: RTK Query owns that cache, and duplicating it in a slice is the redundant state the rules forbid.
+- **Requirement** — Build forms with **React Hook Form**. Keep the rules with the form and never treat client-side validation as the authority; the API validates again.
+- **Recommendation** — Compose UI from **gluestack-ui** components instead of ad-hoc styling, so the design system stays coherent.
 
-## React Native (planned mobile client)
+## React Native (Expo mobile client)
 
-- **Requirement** — Never store tokens, keys, or secrets in insecure storage or bundle them in the app. When sensitive persistence is selected, use an approved platform-secure solution; do not assume a library before it is selected.
+- **Requirement** — Never store tokens, keys, or secrets in insecure storage or bundle them in the app. Access and refresh tokens belong in `expo-secure-store` (platform keystore), never in AsyncStorage or another plaintext store.
 - **Requirement** — Request permissions only when a feature needs them, explain why, and handle denial/revocation without unnecessarily blocking the app.
 - **Requirement** — Make offline, pending-sync, and network-error states explicit. Do not present local writes as server-confirmed; define which data may persist offline and how retries/conflicts are handled.
+- **Requirement** — Wire RTK Query's `setupListeners` together with NetInfo for reconnect refetching. Do not assume browser online/focus events exist on device.
 
 ## Primary references
 
@@ -82,7 +104,10 @@ Use these references to verify or expand the conventions; they do not replace an
 - **Node.js:** [security best practices](https://nodejs.org/learn/getting-started/security-best-practices), [do not block the event loop](https://nodejs.org/en/learn/asynchronous-work/dont-block-the-event-loop).
 - **PostgreSQL:** [constraints](https://www.postgresql.org/docs/current/ddl-constraints.html), [EXPLAIN](https://www.postgresql.org/docs/current/using-explain.html), [indexes](https://www.postgresql.org/docs/current/indexes-intro.html), [examining index usage](https://www.postgresql.org/docs/current/indexes-examine.html).
 - **PostGIS:** [spatial queries](https://postgis.net/docs/using_postgis_query.html), [ST_DWithin](https://postgis.net/docs/ST_DWithin.html).
-- **Migrations:** [node-pg-migrate](https://salsita.github.io/node-pg-migrate/), [NestJS/TypeORM migrations](https://docs.nestjs.com/techniques/database).
+- **Migrations:** [Prisma Migrate](https://www.prisma.io/docs/orm/prisma-migrate), [Prisma config](https://www.prisma.io/docs/orm/reference/prisma-config-reference), [unsupported database features](https://www.prisma.io/docs/orm/prisma-schema/data-model/unsupported-database-features), [indexes and partial indexes](https://www.prisma.io/docs/orm/prisma-schema/data-model/indexes).
 - **OWASP:** [database security](https://cheatsheetseries.owasp.org/cheatsheets/Database_Security_Cheat_Sheet.html), [SQL injection prevention](https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html).
 - **React:** [rules](https://react.dev/reference/rules), [reusing logic with Hooks](https://react.dev/learn/reusing-logic-with-custom-hooks), [state structure](https://react.dev/learn/choosing-the-state-structure), [when an Effect is unnecessary](https://react.dev/learn/you-might-not-need-an-effect).
-- **React Native:** [security](https://reactnative.dev/docs/security).
+- **Redux Toolkit / RTK Query:** [RTK Query overview](https://redux.js.org/toolkit/rtk-query/overview), [comparison with other tools](https://redux.js.org/toolkit/rtk-query/comparison), [cache behaviour](https://redux.js.org/toolkit/rtk-query/usage/cache-behavior).
+- **Forms:** [React Hook Form](https://react-hook-form.com/docs).
+- **Spec-driven development:** [OpenSpec](https://openspec.dev/docs), [project configuration](https://openspec.dev/docs/project-config), [spec-driven schema](https://openspec.dev/docs/schemas/spec-driven), [Notion MCP](https://developers.notion.com/guides/mcp/get-started-with-mcp).
+- **React Native:** [security](https://reactnative.dev/docs/security), [gluestack-ui](https://gluestack.io/ui/docs/home/getting-started/installation).

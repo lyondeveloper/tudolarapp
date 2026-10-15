@@ -1,0 +1,27 @@
+services:
+  db:
+    # The official postgis/postgis image publishes amd64 only, so it runs under
+    # emulation on Apple Silicon. Keep the official image; do not swap in an
+    # unverified third-party arm64 build without a review.
+    image: postgis/postgis:17-3.5
+    platform: linux/amd64
+    container_name: tudolar-db
+    environment:
+      POSTGRES_USER: tudolar
+      POSTGRES_PASSWORD: tudolar
+      POSTGRES_DB: tudolar
+    ports:
+      # 5432 is commonly taken by other local Postgres instances, so TUDOLAR
+      # publishes on 5433 to avoid colliding with them.
+      - '5433:5432'
+    volumes:
+      - tudolar-db-data:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U tudolar -d tudolar']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  tudolar-db-data:

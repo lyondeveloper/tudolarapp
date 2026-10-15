@@ -38,7 +38,17 @@ Use this workflow before implementing every feature, bug fix, or behavior change
 - If the test unexpectedly passes before implementation, investigate whether it actually exercises the behavior; improve the assertion or test boundary and repeat the red phase.
 - If the test cannot be run in this environment, report the exact blocker and do not claim the red/green workflow is verified.
 
-## 5. Report evidence
+## 5. Architecture review
+
+Before completing a change that adds or moves responsibilities across layers, inspect the changed files and their imports against `AGENTS.md`:
+
+- HTTP DTOs and transport validation stay in inbound adapters. Map them to application input/command types at the adapter boundary; application/domain code must not import HTTP DTOs.
+- Application use-case input/output contracts and ports live in `application/`; domain rules and pure domain helpers live in `domain/`; adapters translate protocols and implement external boundaries.
+- Keep application services focused on coordinating use cases and ports. Move non-trivial pure helpers and unrelated contracts to the layer that owns them; do not move business logic into an adapter just to shorten a service file.
+- Avoid splitting code into empty or ceremonial files/layers; each extracted unit should have a clear responsibility.
+- For a behavior-preserving refactor, preserve existing behavior and run relevant existing tests; do not manufacture a new red test for a file move alone. If behavior changes, follow the full red-green steps above.
+
+## 6. Report evidence
 
 For each feature, report:
 

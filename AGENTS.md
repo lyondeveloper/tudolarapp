@@ -1,73 +1,88 @@
-# Convenciones de desarrollo — TUDOLAR
+# TUDOLAR Engineering Guidelines
 
-Estas convenciones orientan el desarrollo previsto de la app y su API. **Requisito** indica una regla que debe cumplirse; **Recomendación**, una práctica que se adopta salvo motivo documentado. No son una lista exhaustiva. Respeta las decisiones y herramientas que se incorporen al repositorio; no añadas dependencias sin necesidad.
+These guidelines shape the app and API. **Requirement** means a rule that must be followed; **Recommendation** means a preferred practice unless there is a documented reason to differ. They are not exhaustive. Respect tools and decisions already adopted by the repository; do not add dependencies without a need.
 
-## PostgreSQL y PostGIS
+## Product context
 
-- **Requisito** — Trata PostgreSQL como fuente de verdad para los datos persistentes y las invariantes del negocio. Las validaciones del cliente no sustituyen las validaciones del servidor ni las restricciones de base de datos.
-- **Requisito** — Cambia el esquema solo mediante migraciones explícitas, revisables y compatibles con los entornos existentes. Incluye una estrategia de despliegue/recuperación cuando corresponda; no edites manualmente el esquema de producción.
-- **Recomendación inicial** — Mientras el acceso a datos sea SQL-first y no se haya elegido ORM, usa `node-pg-migrate` como único runner de migraciones PostgreSQL. Permite migraciones TypeScript/JavaScript o SQL, lo que resulta adecuado para extensiones y objetos propios de PostgreSQL/PostGIS. Confirma su requisito de versión de Node.js al inicializar el backend.
-- **Requisito** — Mantén un solo sistema de migraciones como fuente de verdad. Si luego se elige un ORM con migraciones propias, decide explícitamente si se migra a ese sistema; no ejecutes dos runners que administren el mismo esquema. Desactiva la sincronización automática de esquema en entornos compartidos o de producción.
-- **Requisito** — Define tipos adecuados y restricciones `NOT NULL`, `CHECK`, `FOREIGN KEY` y `UNIQUE` donde correspondan. No dependas solo de la aplicación para integridad referencial, unicidad o invariantes que la base pueda garantizar.
-- **Requisito** — Usa consultas parametrizadas para valores SQL; nunca interpolar entradas no confiables en SQL. Para identificadores u opciones que no admitan parámetros, usa una lista permitida explícita.
-- **Requisito** — Guarda importes con `numeric`/decimal o enteros en la unidad menor definida por el dominio; nunca uses punto flotante binario para cálculos monetarios. Define escala, redondeo y moneda explícitamente.
-- **Requisito** — Mantén cada transacción acotada a una operación de negocio atómica; no la mantengas abierta durante llamadas de red o trabajo lento. Define límites e invariantes dentro de la transacción para prevenir escrituras parciales y carreras.
-- **Requisito** — Revisa los índices para cada patrón importante de consulta (filtros, joins, ordenamiento y restricciones de unicidad). Añade índices que apoyen consultas reales, frecuentes o críticas, y comprueba su utilidad con estadísticas y planes de consulta representativos. No indexes todas las columnas indiscriminadamente: los índices consumen almacenamiento y agregan coste de escritura; una lectura secuencial puede ser el plan correcto.
-- **Requisito** — Antes de dar por optimizada una consulta crítica, revisa su SQL, volumen esperado, cardinalidad y plan con `EXPLAIN`; usa `EXPLAIN ANALYZE` en datos de prueba representativos cuando sea seguro, recordando que ejecuta la consulta. No fuerces el uso de un índice sin evidencia.
-- **Requisito** — Pagina colecciones, limita el tamaño de página y aplica orden estable. Usa cursor cuando el volumen o la consistencia lo justifiquen. Evita consultas N+1 y lecturas ilimitadas; resuelve relaciones en lotes o con joins adecuados al caso.
-- **Requisito** — Para búsquedas de proximidad, mantén SRID coherentes y entiende las unidades: `geometry` usa las unidades de su referencia; `geography` expresa distancia en metros. Usa `ST_DWithin` para filtrar proximidad e índices espaciales GiST adecuados; confirma el plan con consultas representativas.
-- **Requisito** — Aplica mínimo privilegio por entorno y servicio; no uses credenciales administrativas desde la aplicación. Mantén secretos fuera del repositorio y usa el mecanismo aprobado para cada entorno.
-- **Requisito** — Define copias de seguridad, retención y restauración para datos relevantes; verifica periódicamente la restauración, no solo la creación del backup. Recoge datos personales con propósito, acceso y plazo de retención definidos; elimina o anonimiza cuando corresponda.
+TUDOLAR is a mobile P2P marketplace for discovering and coordinating in-person exchanges of cash and currencies (USD cash, USDT, Zelle, and Venezuelan bolivars). The initial market is Ciudad Ojeda; validate it before expanding. Buyers use the service for free; the proposed revenue model is seller subscriptions, not per-exchange commissions.
 
-## Node.js y NestJS — arquitectura hexagonal
+A market is a geographic service scope, not just a city-name string. Each offer belongs to one market; searches require a selected market and must validate that location filters stay within it. The LLM cannot switch markets. Conversations and agreed exchange records inherit market context from the offer. Identity/authentication are global, and market selection is not authorization; the API validates market scope and seller eligibility on every operation. Whether seller profiles and subscription billing are global or market-specific remains open.
 
-- **Requisito** — Mantén el dominio independiente de NestJS, HTTP, PostgreSQL/ORM y proveedores externos. Las dependencias apuntan hacia el dominio y la aplicación; los detalles de infraestructura implementan contratos definidos hacia adentro.
-- **Recomendación** — Organiza por módulos de negocio/contextos y, dentro de cada módulo, separa responsabilidades por capas. Estructura orientativa:
-  - `domain/`: modelos de dominio, value objects, invariantes y servicios de dominio; sin dependencias de infraestructura.
-  - `application/`: casos de uso/servicios de aplicación y puertos (interfaces) requeridos por esos casos.
-  - `adapters/in/`: controladores HTTP, DTOs y otros puntos de entrada; convierten protocolos y delegan en casos de uso.
-  - `adapters/out/` o `infrastructure/`: implementaciones de puertos, como repositorios PostgreSQL, mapas, mensajería y servicios externos.
-  - `module.ts`: composición de NestJS e inyección que conecta puertos con adaptadores.
-  Adapta nombres y granularidad al tamaño del módulo; evita crear capas vacías o ceremoniales.
-- **Requisito** — Define puertos de repositorio cerca de la aplicación/dominio que los necesita e implementaciones concretas en infraestructura. Los casos de uso dependen de interfaces, no de ORM, SQL, modelos de persistencia ni de repositorios concretos.
-- **Requisito** — Distingue modelos de dominio de entidades/modelos de persistencia y DTOs HTTP cuando sus responsabilidades o ciclos de cambio sean distintos. Usa mappers en los límites; no expongas entidades ORM directamente por la API.
-- **Requisito** — Los controladores son adaptadores delgados: validan/transforman la entrada de transporte, llaman un caso de uso y mapean su resultado a una respuesta. No contienen reglas de negocio ni acceden directamente a la base de datos.
-- **Requisito** — Los casos de uso coordinan una acción de aplicación y sus puertos. Mantén las invariantes de negocio en el dominio o en el caso de uso adecuado, no duplicadas entre controladores, repositorios y servicios.
-- **Requisito** — Usa DTOs de entrada y validación estricta de tipos, rangos y formatos. En NestJS configura `ValidationPipe` con `whitelist: true` y `forbidNonWhitelisted: true` cuando se use `class-validator`; no confíes en tipos declarados por el cliente.
-- **Requisito** — Autentica al usuario y autoriza cada operación sobre cada recurso, incluidos identificadores de URL/cuerpo. Comprueba propiedad, ámbito y permiso en servidor; autenticación no implica autorización.
-- **Requisito** — Valida la configuración al iniciar. Si faltan variables o son inválidas, falla el arranque con un error claro, sin imprimir secretos.
-- **Requisito** — Establece límites HTTP proporcionados al riesgo: tasa de solicitudes, tamaño de payload y tiempos de espera. Configura Helmet y CORS según clientes y orígenes realmente permitidos.
-- **Requisito** — Devuelve errores controlados que no expongan stack traces, consultas, secretos ni datos personales innecesarios. Registra información útil para diagnóstico con acceso y retención apropiados, evitando credenciales y tokens.
-- **Requisito** — No bloquees el event loop con cálculos, expresiones regulares o procesamiento síncrono costoso. Limita el coste por solicitud y delega trabajo pesado si el caso lo requiere.
-- **Recomendación** — Cubre reglas de dominio y casos de uso con pruebas unitarias; prueba adaptadores/repositorios con integración contra PostgreSQL; añade pruebas e2e para flujos HTTP, autorización y fallos críticos.
-- **Requisito** — Verifica dependencias y cambios de versión antes de incorporarlos; conserva y sincroniza el lockfile del gestor adoptado. No añadas gestores o librerías por convención.
+The app connects people; it does not custody cash/crypto, settle exchanges, or provide escrow. In-person safety, public meeting places, reputation, reporting, and moderation are part of the product domain. Natural-language search may use an LLM only to parse text into typed criteria; never let the model generate/execute SQL or own monetary rules or deterministic ranking.
+
+The target architecture is a React Native + Expo mobile client and a modular/hexagonal NestJS API backed by PostgreSQL/PostGIS. The approved MVP design includes passkey or username/email + password sign-in, verified email for email sign-in/password recovery, and a verified phone number as contact only. These decisions describe the target, not necessarily implemented behavior. Read `README.md` and `docs/` for product context and Mermaid diagrams.
+
+Before assuming a product capability exists, inspect the code and tests and distinguish implemented behavior from planned behavior. Do not imply that verification/KYC, meeting safety, or badges guarantee a safe exchange.
+
+## PostgreSQL and PostGIS
+
+- **Requirement** — Treat PostgreSQL as the source of truth for persistent data and business invariants. Client validation does not replace server- or database-side validation.
+- **Requirement** — Change schemas only through explicit, reviewable migrations that work with existing environments. Include a deployment/recovery strategy when appropriate; do not edit production schemas manually.
+- **Initial recommendation** — While data access remains SQL-first and no ORM has been selected, use `node-pg-migrate` as the only PostgreSQL migration runner. It supports TypeScript/JavaScript or SQL migrations, suitable for PostgreSQL/PostGIS-specific objects. Confirm its Node.js requirements when bootstrapping the backend.
+- **Requirement** — Keep one migration system as the source of truth. If an ORM with its own migrations is selected later, explicitly decide whether to migrate to it; never run two migration runners against the same schema. Disable automatic schema synchronization in shared and production environments.
+- **Requirement** — Use appropriate types and database constraints (`NOT NULL`, `CHECK`, `FOREIGN KEY`, `UNIQUE`) where applicable. Do not rely only on application code for referential integrity, uniqueness, or invariants the database can enforce.
+- **Requirement** — Parameterize SQL values; never interpolate untrusted input into SQL. Use explicit allowlists for identifiers/options that cannot be parameterized.
+- **Requirement** — Store monetary amounts as `numeric`/decimal or integers in a domain-defined minor unit; never use binary floating point for monetary calculations. Define scale, rounding, and currency explicitly.
+- **Requirement** — Keep each transaction scoped to one atomic business operation; do not hold it open during network calls or slow work. Keep invariants inside the transaction to prevent partial writes and races.
+- **Requirement** — Review indexes for important query patterns (filters, joins, ordering, and uniqueness). Add indexes that support real, frequent, or critical queries and validate them with representative statistics/query plans. Do not index every column indiscriminately: indexes use storage and add write overhead; a sequential scan can be the correct plan.
+- **Requirement** — Before calling a critical query optimized, review its SQL, expected volume, cardinality, and `EXPLAIN` plan. Use `EXPLAIN ANALYZE` on representative test data when safe, remembering it executes the query. Do not force index use without evidence.
+- **Requirement** — Paginate collections, cap page size, and use stable ordering. Use cursors when scale or consistency requires them. Avoid N+1 queries and unbounded reads; batch or join relations appropriately.
+- **Requirement** — For proximity searches, use consistent SRIDs and understand units: `geometry` uses the SRID's units; `geography` uses meters. Use `ST_DWithin` for proximity filters and appropriate GiST spatial indexes; validate the real query plan.
+- **Requirement** — Apply least privilege per environment/service; the application must not use database administrator credentials. Keep secrets out of the repository and use the approved secret mechanism for each environment.
+- **Requirement** — Define backups, retention, and restore procedures for relevant data; periodically test restores, not just backup creation. Collect personal data only for a defined purpose, with controlled access and retention; delete or anonymize it when appropriate.
+
+## Node.js and NestJS — hexagonal architecture
+
+- **Requirement** — Keep the domain independent of NestJS, HTTP, PostgreSQL/ORM, and external providers. Dependencies point inward to domain/application; infrastructure implements contracts defined inward.
+- **Recommendation** — Organize by business module/context and separate responsibilities within each module. Suggested structure:
+  - `domain/`: domain models, value objects, invariants, and domain services; no infrastructure dependencies.
+  - `application/`: use cases/application services and the ports (interfaces) they need.
+  - `adapters/in/`: HTTP controllers, DTOs, and other inbound adapters; translate protocols and delegate to use cases.
+  - `adapters/out/` or `infrastructure/`: port implementations such as PostgreSQL repositories, maps, messaging, and external services.
+  - `module.ts`: NestJS composition and dependency injection wiring.
+    Adapt names and granularity to module size; do not create empty or ceremonial layers.
+- **Requirement** — Define repository ports near the application/domain that needs them and concrete implementations in infrastructure. Use cases depend on interfaces, not ORM, SQL, persistence models, or concrete repositories.
+- **Requirement** — Separate domain models from ORM/persistence models and HTTP DTOs when their responsibilities or change cycles differ. Map at boundaries; never expose ORM entities directly through the API.
+- **Requirement** — Keep controllers thin: validate/translate transport input, call a use case, and map results to responses. Controllers must not contain business rules or access the database directly.
+- **Requirement** — Keep HTTP DTOs inside inbound adapters. Define application use-case input/output contracts in `application/` and map DTOs to those contracts at the inbound boundary; application/domain code must not import HTTP DTOs.
+- **Recommendation** — Keep pure helpers in the layer that owns their rules: domain normalization/invariants in `domain/`, application-specific validation in `application/`, and protocol translation in adapters. Avoid accumulating unrelated helpers or use-case contracts inside a service file; split by responsibility when it improves clarity, without adding ceremonial layers.
+- **Requirement** — Before completing a feature or refactor, review changed-file responsibilities and dependency direction against this architecture, in addition to checking behavior and tests.
+- **Requirement** — Use cases coordinate application operations and ports. Keep business invariants in the domain or appropriate use case; do not duplicate them across controllers, repositories, and services.
+- **Requirement** — Define input DTOs and strictly validate types, ranges, and formats. When using NestJS `ValidationPipe` with `class-validator`, enable `whitelist: true` and `forbidNonWhitelisted: true`; never trust client-declared types.
+- **Requirement** — Authenticate users and authorize every operation on every resource, including IDs from URLs/bodies. Check ownership, scope, and permissions on the server; authentication does not imply authorization.
+- **Requirement** — Validate required configuration at startup. If variables are missing or invalid, fail clearly without printing secrets.
+- **Requirement** — Set HTTP limits appropriate to risk: request rate, payload size, and timeouts. Configure Helmet and CORS for the actual clients and allowed origins.
+- **Requirement** — Return controlled errors that do not expose stack traces, SQL, secrets, or unnecessary personal data. Log useful diagnostics with appropriate access/retention, excluding credentials and tokens.
+- **Requirement** — Do not block the event loop with expensive calculations, regular expressions, or synchronous processing. Bound per-request work and delegate heavy work when needed.
+- **Recommendation** — Unit-test domain rules/use cases; integration-test adapters/repositories against PostgreSQL; add e2e tests for critical HTTP flows, authorization, and failures.
+- **Requirement** — Verify dependencies and version changes before adding them; keep the adopted package-manager lockfile in sync. Do not add tools/libraries by convention alone.
 
 ## React
 
-- **Requisito** — Mantén los componentes de presentación enfocados en representar UI, componer componentes y conectar eventos con acciones. No coloques reglas de negocio ni cálculos de dominio dentro del cuerpo del componente o del JSX.
-- **Requisito** — Extrae la lógica de negocio requerida por la UI en funciones puras/utilidades de dominio o en casos de uso de frontend, fuera de los componentes. Los componentes consumen resultados y delegan acciones; no reimplementan reglas del backend como autoridad.
-- **Requisito** — Usa Hooks personalizados para lógica que necesita capacidades de React (estado, contexto, ciclo de sincronización o composición de Hooks). No conviertas automáticamente toda lógica de negocio en un Hook: las funciones puras deben seguir siendo independientes de React y fáciles de probar.
-- **Requisito** — Sigue las reglas de React: render puro, props/estado inmutables y Hooks llamados solo al nivel superior de componentes u otros Hooks. No llames componentes como funciones ordinarias.
-- **Requisito** — No uses Effects para calcular datos derivados ni para ejecutar acciones causadas por un evento del usuario. Calcula datos de vista derivados de forma pura y maneja acciones en sus handlers/casos de uso; reserva Effects para sincronizar con sistemas externos.
-- **Requisito** — Evita estado redundante, duplicado o contradictorio. Mantén juntas las piezas que cambian como unidad y deriva valores calculables en vez de sincronizarlos con estado adicional.
-- **Requisito** — Diseña interfaces accesibles y comunica estados de carga, error y ausencia de resultados; ofrece acciones de recuperación. Conserva etiquetas, semántica, foco y alternativas para interacción no visual.
-- **Recomendación** — Usa TypeScript y componentes reutilizables cuando el proyecto lo haya adoptado y la reutilización sea real. Prefiere interfaces pequeñas; no abstraigas prematuramente.
+- **Requirement** — Keep presentation components focused on rendering UI, composing components, and connecting events to actions. Do not put business rules or domain calculations in a component body or JSX.
+- **Requirement** — Extract business logic needed by the UI into pure domain utilities/functions or frontend use cases outside components. Components consume results and delegate actions; they do not reimplement backend rules as the authority.
+- **Requirement** — Use custom Hooks for logic that needs React capabilities (state, context, synchronization lifecycle, or Hook composition). Do not automatically turn all business logic into Hooks; keep pure functions independent of React and easy to test.
+- **Requirement** — Follow React rules: keep rendering pure, treat props/state as immutable, and call Hooks only at the top level of components or other Hooks. Do not call components as ordinary functions.
+- **Requirement** — Do not use Effects to calculate derived data or perform actions caused by user events. Derive view data with pure calculations and handle actions in event handlers/use cases; reserve Effects for synchronizing with external systems.
+- **Requirement** — Avoid redundant, duplicated, or contradictory state. Group values that change together and derive computable values instead of synchronizing extra state.
+- **Requirement** — Build accessible interfaces and represent loading, error, and empty states with recovery actions where appropriate. Preserve labels, semantics, focus, and nonvisual interaction alternatives.
+- **Recommendation** — Use TypeScript and reusable components when the project has adopted it and reuse is real. Prefer small explicit interfaces; avoid premature abstractions.
 
-## React Native (producto móvil previsto)
+## React Native (planned mobile client)
 
-- **Requisito** — No guardes tokens, claves ni secretos en almacenamiento no seguro ni los incluyas en el bundle. Al elegir persistencia sensible, usa una solución segura aprobada para las plataformas y el proyecto; no presupongas una librería antes de seleccionarla.
-- **Requisito** — Solicita permisos solo cuando una función los necesite, explica su uso y contempla denegación o revocación sin bloquear innecesariamente la app.
-- **Requisito** — Haz explícitos los estados sin conexión, sincronización pendiente y error de red. No presentes escrituras locales como confirmadas por el servidor; define qué datos persisten offline y cómo se resuelven reintentos o conflictos.
+- **Requirement** — Never store tokens, keys, or secrets in insecure storage or bundle them in the app. When sensitive persistence is selected, use an approved platform-secure solution; do not assume a library before it is selected.
+- **Requirement** — Request permissions only when a feature needs them, explain why, and handle denial/revocation without unnecessarily blocking the app.
+- **Requirement** — Make offline, pending-sync, and network-error states explicit. Do not present local writes as server-confirmed; define which data may persist offline and how retries/conflicts are handled.
 
-## Fuentes primarias
+## Primary references
 
-Consulta estas referencias para ampliar o verificar las convenciones; no reemplazan el análisis de cada cambio.
+Use these references to verify or expand the conventions; they do not replace analysis of each change.
 
-- **NestJS:** [validación](https://docs.nestjs.com/application/validation), [configuración](https://docs.nestjs.com/application/configuration), [autenticación](https://docs.nestjs.com/security/authentication), [autorización](https://docs.nestjs.com/security/authorization), [limitación de tasa](https://docs.nestjs.com/security/rate-limiting), [pruebas](https://docs.nestjs.com/fundamentals/testing).
-- **Node.js:** [prácticas de seguridad](https://nodejs.org/learn/getting-started/security-best-practices), [no bloquear el event loop](https://nodejs.org/en/learn/asynchronous-work/dont-block-the-event-loop).
-- **PostgreSQL:** [restricciones](https://www.postgresql.org/docs/current/ddl-constraints.html), [EXPLAIN](https://www.postgresql.org/docs/current/using-explain.html), [índices](https://www.postgresql.org/docs/current/indexes-intro.html), [examinar uso de índices](https://www.postgresql.org/docs/current/indexes-examine.html).
-- **PostGIS:** [consultas espaciales](https://postgis.net/docs/using_postgis_query.html), [ST_DWithin](https://postgis.net/docs/ST_DWithin.html).
-- **Migraciones:** [node-pg-migrate](https://salsita.github.io/node-pg-migrate/), [migraciones en NestJS/TypeORM](https://docs.nestjs.com/techniques/database).
-- **OWASP:** [seguridad de bases de datos](https://cheatsheetseries.owasp.org/cheatsheets/Database_Security_Cheat_Sheet.html), [prevención de inyección SQL](https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html).
-- **React:** [reglas de React](https://react.dev/reference/rules), [reutilizar lógica con Hooks](https://react.dev/learn/reusing-logic-with-custom-hooks), [estructura del estado](https://react.dev/learn/choosing-the-state-structure), [cuándo no hace falta un Effect](https://react.dev/learn/you-might-not-need-an-effect).
-- **React Native:** [seguridad](https://reactnative.dev/docs/security).
+- **NestJS:** [validation](https://docs.nestjs.com/application/validation), [configuration](https://docs.nestjs.com/application/configuration), [authentication](https://docs.nestjs.com/security/authentication), [authorization](https://docs.nestjs.com/security/authorization), [rate limiting](https://docs.nestjs.com/security/rate-limiting), [testing](https://docs.nestjs.com/fundamentals/testing).
+- **Node.js:** [security best practices](https://nodejs.org/learn/getting-started/security-best-practices), [do not block the event loop](https://nodejs.org/en/learn/asynchronous-work/dont-block-the-event-loop).
+- **PostgreSQL:** [constraints](https://www.postgresql.org/docs/current/ddl-constraints.html), [EXPLAIN](https://www.postgresql.org/docs/current/using-explain.html), [indexes](https://www.postgresql.org/docs/current/indexes-intro.html), [examining index usage](https://www.postgresql.org/docs/current/indexes-examine.html).
+- **PostGIS:** [spatial queries](https://postgis.net/docs/using_postgis_query.html), [ST_DWithin](https://postgis.net/docs/ST_DWithin.html).
+- **Migrations:** [node-pg-migrate](https://salsita.github.io/node-pg-migrate/), [NestJS/TypeORM migrations](https://docs.nestjs.com/techniques/database).
+- **OWASP:** [database security](https://cheatsheetseries.owasp.org/cheatsheets/Database_Security_Cheat_Sheet.html), [SQL injection prevention](https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html).
+- **React:** [rules](https://react.dev/reference/rules), [reusing logic with Hooks](https://react.dev/learn/reusing-logic-with-custom-hooks), [state structure](https://react.dev/learn/choosing-the-state-structure), [when an Effect is unnecessary](https://react.dev/learn/you-might-not-need-an-effect).
+- **React Native:** [security](https://reactnative.dev/docs/security).

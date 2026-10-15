@@ -1,14 +1,20 @@
 # Tasks
 
-## 1. Establish the baseline revision
+> **Note (pre-apply sync):** section 1 was completed *before* this change was applied. The working
+> tree held roughly 1700 uncommitted lines from an earlier agent, and they had to be committed
+> before the audit could describe a fixed revision. The commits are recorded below as evidence.
+> Everything from section 2 onward is the remaining work.
 
-- [ ] 1.1 Confirm the current branch and record `git log --oneline -5` as the pre-audit state.
-- [ ] 1.2 Verify `git status` matches the expected pending set and note anything unexpected.
-- [ ] 1.3 Confirm no secret is staged: check `apps/mobile/.npmrc` and any `.env*` before committing.
-- [ ] 1.4 Commit the Prisma persistence port (schema, migrations, repository, service, module, tests, scripts).
-- [ ] 1.5 Commit the `apps/mobile/` Expo scaffold, excluding `node_modules/`, `.expo/`, and `dist/`.
-- [ ] 1.6 Commit the local environment files (`docker/`, `docker-compose.yml`) and the documentation updates.
-- [ ] 1.7 Record the resulting commit SHAs in the audit report as the baseline revision.
+## 1. Establish the baseline revision — done before apply
+
+- [x] 1.1 Confirm the current branch and record `git log --oneline -5` as the pre-audit state. Branch `main`.
+- [x] 1.2 Verify `git status` matches the expected pending set and note anything unexpected. 15 modified, 5 deleted, 9 new.
+- [x] 1.3 Confirm no secret is staged: `apps/mobile/.npmrc` holds only `legacy-peer-deps=true`, and no secret pattern matched any pending file.
+- [x] 1.4 Commit the Prisma persistence port — `26c39ea`.
+- [x] 1.5 Commit the `apps/mobile/` Expo scaffold — `e60946a`.
+- [x] 1.6 Commit the local environment files and the documentation updates — `f918287`, `2bb5b62`.
+- [x] 1.7 Commit this change proposal itself — `6c9b582`.
+- [ ] 1.8 Record the baseline revision (`6c9b582`, working tree clean, pushed to `origin/main`) in the audit report.
 
 ## 2. Inventory the repository
 
@@ -19,6 +25,7 @@
 - [ ] 2.5 List the required environment variables from `apps/api/.env.example` by name only, plus the external services referenced.
 - [ ] 2.6 Inventory `apps/mobile/src/` by feature and mark which screens are scaffold only.
 - [ ] 2.7 Note the documented WebAuthn RP domain and email/SMS provider status as configured or unconfigured.
+- [ ] 2.8 Confirm which backlog tasks the existing implementation already covers, and record the out-of-sequence execution as a finding.
 
 ## 3. Run the available checks
 
@@ -39,7 +46,7 @@
 ## 5. Classify failures and set the baseline
 
 - [ ] 5.1 Classify every failure as reproducible, flaky, or environmental, each with the command and error that reproduces it.
-- [ ] 5.2 Write `docs/audit/t00-baseline.md` with the inventory, the recorded commands and results, the failure classification, and the WebAuthn finding.
+- [ ] 5.2 Write `docs/audit/t00-baseline.md` with the inventory, the recorded commands and results, the failure classification, the WebAuthn finding, and the backlog coverage map.
 - [ ] 5.3 Propose the baseline test set that must stay green, and the known-failing set that later tasks inherit.
 - [ ] 5.4 Run `openspec validate t00-audit-repository-baseline --strict` and confirm it passes.
 - [ ] 5.5 Present the report for the product owner's approval and record the decision.

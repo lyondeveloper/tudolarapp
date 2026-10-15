@@ -1,0 +1,63 @@
+schema: spec-driven
+
+context: |
+  Language: en
+  All artifacts must be written in en.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  TUDOLAR is a mobile-first P2P marketplace for in-person exchanges of cash and currencies
+  (USD cash, USDT, Zelle, Venezuelan bolivars). It connects people; it does not custody funds,
+  settle exchanges, or provide escrow.
+
+  Read AGENTS.md and docs/ before planning. AGENTS.md is the authority on architecture,
+  PostgreSQL/PostGIS, NestJS hexagonal layers, and security rules.
+
+  Respect hexagonal boundaries inside each module of apps/api/src/<module>/:
+  domain/ holds models and invariants; application/ holds use cases and the ports they need;
+  adapters/in/ holds HTTP controllers and DTOs; adapters/out/ holds port implementations.
+  Dependencies point inward. Domain and application code must not import NestJS, HTTP DTOs,
+  or Prisma.
+
+  PostgreSQL is the source of truth for persistent data and business invariants. Schema changes
+  go through explicit Prisma migrations. Monetary amounts use numeric/decimal or integers in a
+  domain-defined minor unit, never binary floating point. Proximity search uses PostGIS with
+  consistent SRIDs, ST_DWithin, and GiST indexes.
+
+  A market is a geographic service scope, not a city-name string. Every offer belongs to one
+  market. Identity and authentication are global, and selecting a market is not authorization:
+  the API validates market scope and seller eligibility on every operation.
+
+  Natural-language search may use an LLM only to parse text into typed criteria. The model must
+  never generate or execute SQL, own monetary rules, or own deterministic ranking.
+
+  TDD is mandatory for behavior changes: follow .devin/skills/tdd-red-first. Every behavior task
+  names its test layer (unit for domain rules and use cases, integration for adapters and
+  persistence, e2e for HTTP contracts and critical flows) and the exact command that runs it.
+
+rules:
+  proposal:
+    - State what is out of scope.
+    - Name the affected module under apps/api/src/ (or apps/mobile/ once it exists).
+    - Cite the Notion source task when the change came from Notion.
+  specs:
+    - Write requirements as observable behavior with WHEN/THEN scenarios.
+    - Reuse an existing capability path from openspec/specs/ instead of inventing a near-duplicate.
+  design:
+    - State which hexagonal layer each new unit belongs to.
+    - Call out the migration and rollback when the change touches the schema.
+    - Name the port and the outbound adapter when the change crosses an external boundary.
+  tasks:
+    - For each behavior, put the failing test before the implementation.
+    - Name the exact test file and the command that runs it for each behavior task.
+    - Include the verification commands from apps/api (tests, e2e, build, eslint) before the last task.
+
+operations:
+  apply:
+    guidance:
+      - Follow .devin/skills/tdd-red-first and verify a real red failure before implementing each behavior.
+      - Run tests, e2e, build, and eslint from apps/api before marking a task complete.
+      - Keep one migration runner; Prisma owns migrations.
+  archive:
+    guidance:
+      - Update the source Notion task status and comment with the archive path.
+      - Summarize what shipped before finishing.

@@ -1,0 +1,17 @@
+{
+  "//": "Configuration for the /sdd-from-notion bridge skill. No secrets live here: Notion access uses the Notion MCP OAuth session stored by the Devin CLI, not this file.",
+  "//backlogPageUrl": "The Notion page that holds the sequential TUDOLAR backlog. Tasks are '### Tnn - Title' headings in the page body, each with its own acceptance criteria.",
+  "backlogPageUrl": "https://app.notion.com/p/d358155c3492473581e0c058e08e3b36",
+  "//changeIdPrefix": "Prefix for derived OpenSpec change ids. The task number is appended, e.g. t03-integrate-prisma.",
+  "changeIdPrefix": "t",
+  "//sddMarker": "Line the skill writes directly under a task heading to record its SDD state. Used to detect an existing marker so re-runs update instead of duplicating.",
+  "sddMarker": "**SDD:**",
+  "//doneMarker": "The handoff convention marks a task Done in the backlog. A task whose predecessor is not Done is not eligible.",
+  "doneMarker": "Done",
+  "//statuses": "Status labels the skill writes into the SDD marker line.",
+  "statuses": {
+    "planning": "Planning",
+    "implementing": "Implementing",
+    "archived": "Archived"
+  }
+}

@@ -39,7 +39,7 @@ import {
   UnavailableEmailDeliveryAdapter,
 } from './adapters/out/email/email-delivery.adapter';
 import { Argon2PasswordHasher } from './adapters/out/password/argon2-password-hasher';
-import { PostgresIdentityRepository } from './adapters/out/persistence/postgres-identity.repository';
+import { PrismaIdentityRepository } from './adapters/out/persistence/prisma-identity.repository';
 import {
   InMemorySmsDeliveryAdapter,
   UnavailableSmsDeliveryAdapter,
@@ -79,7 +79,7 @@ import { JwtAccessTokenAdapter } from './adapters/out/tokens/jwt-access-token.ad
   ],
   controllers: [AuthController, PhoneVerificationController],
   providers: [
-    { provide: IDENTITY_REPOSITORY, useClass: PostgresIdentityRepository },
+    { provide: IDENTITY_REPOSITORY, useClass: PrismaIdentityRepository },
     { provide: PASSWORD_HASHER, useClass: Argon2PasswordHasher },
     {
       provide: EMAIL_DELIVERY,

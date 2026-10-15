@@ -1,11 +1,11 @@
 import { INestApplication } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { Pool } from 'pg';
 import { Test, TestingModule } from '@nestjs/testing';
 import { App } from 'supertest/types';
 import request from 'supertest';
 import { createTestAuthenticator } from './support/webauthn-test-client';
 import { AppModule } from './../src/app.module';
+import { PrismaService } from './../src/database/prisma.service';
 
 interface JsonResponse {
   body: unknown;
@@ -317,14 +317,19 @@ describe('Authentication (e2e)', () => {
     );
     const authentication = await request(app.getHttpServer())
       .post('/auth/passkeys/authentication/verify')
-      .send({ operationId: authenticationOptions.operationId, response: assertion })
+      .send({
+        operationId: authenticationOptions.operationId,
+        response: assertion,
+      })
       .expect(200);
     const authenticationTokens = responseBody<AuthTokens>(authentication);
     const authenticatedUser = await request(app.getHttpServer())
       .get('/users/me')
       .set('Authorization', `Bearer ${authenticationTokens.accessToken}`)
       .expect(200);
-    expect(responseBody<CurrentUser>(authenticatedUser).id).toBe(registeredProfile.id);
+    expect(responseBody<CurrentUser>(authenticatedUser).id).toBe(
+      registeredProfile.id,
+    );
   });
 
   it('rejects malformed passkey registration data and consumes its one-time challenge', async () => {
@@ -393,35 +398,34 @@ describe('Authentication (e2e)', () => {
   });
 
   it('rejects negative WebAuthn signature counters at the database boundary', async () => {
-    const databaseUrl = process.env.DATABASE_URL;
-    if (!databaseUrl)
-      throw new Error('DATABASE_URL was not configured for the e2e test');
-
-    const pool = new Pool({ connectionString: databaseUrl });
-    const client = await pool.connect();
-    const userId = randomUUID();
+    const prisma = app.get(PrismaService);
     let failure: unknown;
     try {
-      await client.query('BEGIN');
-      await client.query(
-        'INSERT INTO users (id, display_name) VALUES ($1, $2)',
-        [userId, 'Constraint test user'],
-      );
-      try {
-        await client.query(
-          `INSERT INTO passkey_credentials (
-            user_id, credential_id, public_key, signature_counter
-          ) VALUES ($1, $2, $3, -1)`,
-          [userId, `invalid-counter-${randomUUID()}`, Buffer.from([1])],
-        );
-      } catch (error) {
-        failure = error;
-      }
-      expect(failure).toMatchObject({ code: '23514' });
-    } finally {
-      await client.query('ROLLBACK');
-      client.release();
-      await pool.end();
+      await prisma.$transaction(async (tx) => {
+        const user = await tx.user.create({
+          data: { displayName: 'Constraint test user' },
+        });
+        await tx.passkeyCredential.create({
+          data: {
+            userId: user.id,
+            credentialId: `invalid-counter-${randomUUID()}`,
+            publicKey: Buffer.from([1]),
+            signatureCounter: BigInt(-1),
+          },
+        });
+      });
+    } catch (error) {
+      failure = error;
     }
+
+    // Prisma wraps driver errors, so the assertion targets the Postgres
+    // SQLSTATE for a CHECK violation rather than Prisma's own error code.
+    // The constraint is hand-written in the migration; Prisma cannot model it.
+    const prismaFailure = failure as {
+      meta?: { driverAdapterError?: { cause?: { originalCode?: string } } };
+    };
+    expect(prismaFailure.meta?.driverAdapterError?.cause?.originalCode).toBe(
+      '23514',
+    );
   });
 });

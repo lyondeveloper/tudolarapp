@@ -1,4 +1,9 @@
-import { createHash, generateKeyPairSync, randomBytes, sign } from 'node:crypto';
+import {
+  createHash,
+  generateKeyPairSync,
+  randomBytes,
+  sign,
+} from 'node:crypto';
 import { isoCBOR } from '@simplewebauthn/server/helpers';
 
 type CborValue = Parameters<typeof isoCBOR.encode>[0];
@@ -6,8 +11,16 @@ type WebAuthnJson = Record<string, unknown>;
 
 export function createTestAuthenticator(): {
   credentialId: string;
-  registrationResponse(challenge: string, origin: string, rpId: string): WebAuthnJson;
-  authenticationResponse(challenge: string, origin: string, rpId: string): WebAuthnJson;
+  registrationResponse(
+    challenge: string,
+    origin: string,
+    rpId: string,
+  ): WebAuthnJson;
+  authenticationResponse(
+    challenge: string,
+    origin: string,
+    rpId: string,
+  ): WebAuthnJson;
 } {
   const { privateKey, publicKey } = generateKeyPairSync('ec', {
     namedCurve: 'prime256v1',
@@ -26,7 +39,7 @@ export function createTestAuthenticator(): {
       [-1, 1],
       [-2, Buffer.from(publicJwk.x, 'base64url')],
       [-3, Buffer.from(publicJwk.y, 'base64url')],
-    ]) as CborValue,
+    ]),
   );
 
   return {
@@ -48,7 +61,7 @@ export function createTestAuthenticator(): {
           ['fmt', 'none'],
           ['attStmt', new Map<string, CborValue>()],
           ['authData', new Uint8Array(authenticatorData)],
-        ]) as CborValue,
+        ]),
       );
       return {
         id: credentialId,
@@ -58,7 +71,8 @@ export function createTestAuthenticator(): {
         clientExtensionResults: {},
         response: {
           clientDataJSON: clientData('webauthn.create', challenge, origin),
-          attestationObject: Buffer.from(attestationObject).toString('base64url'),
+          attestationObject:
+            Buffer.from(attestationObject).toString('base64url'),
           transports: ['internal'],
         },
       };
@@ -76,7 +90,9 @@ export function createTestAuthenticator(): {
           .update(Buffer.from(clientDataJSON, 'base64url'))
           .digest(),
       ]);
-      const signature = sign('sha256', signedData, privateKey).toString('base64url');
+      const signature = sign('sha256', signedData, privateKey).toString(
+        'base64url',
+      );
 
       return {
         id: credentialId,

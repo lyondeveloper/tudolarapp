@@ -148,6 +148,7 @@ Recorded here so they do not evaporate; they belong in the **T01** artifact once
 | **Quote and terms-version ownership** | Assigned to T02's contract list, so T09 and T13 have something to build on. |
 | **Decisions live as ADRs** | Product and technical decisions are recorded one per ADR under `docs/adr/`, so implementers have a current contract to read rather than archived history. T01 produces the product ones; T02 the technical ones. |
 | **The Ciudad Ojeda boundary is the official limit of Municipio Lagunillas, Zulia** | Decided and confirmed 2026-10-17 by the product owner. This is the blocker that gated every geospatial task (T04, T05, T10, and SP05's geofence design). Two consequences worth stating: the municipal limit is **larger than the city of Ciudad Ojeda**, which sits inside it, so the market covers more than the city; and the boundary must be **stored as data**, not inferred from a name. Still to pick before T04 starts: the source dataset, and its licence plus any attribution it requires. |
+| **The boundary source is OpenStreetMap** | OSM's Municipio Lagunillas administrative boundary. **ODbL**: free for commercial use, requires the attribution "© OpenStreetMap contributors" to appear in the app — a product requirement, not a nicety — and its share-alike clause does not trigger, because the boundary is used internally rather than redistributed as a derived database. Recorded as evidence for the legal review, not as a clearance. Reconcile against official INE or Zulia state data if it becomes obtainable. |
 
 ### Avoiding counter drift
 

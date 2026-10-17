@@ -1,0 +1,14 @@
+-- Enable PostGIS.
+--
+-- Hand-written, the same `--create-only` class as the CHECK constraints in the
+-- identity migration: Prisma cannot model an extension, and installing it needs a
+-- role with the right privilege. ADR-0019 makes Prisma Migrate the single
+-- authority for the schema and the migrations, so the extension is provisioned
+-- here instead of by docker/initdb/01-create-databases.sql (kept as a local
+-- convenience only) or by the E2E provisioning script.
+--
+-- `IF NOT EXISTS` keeps this idempotent: a database that already has PostGIS —
+-- for example one bootstrapped by docker/initdb — applies it as a no-op. The
+-- application role only ever *verifies* the extension at startup
+-- (src/database/postgis-extension.ts) and never creates it.
+CREATE EXTENSION IF NOT EXISTS postgis;

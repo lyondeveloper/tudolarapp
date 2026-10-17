@@ -13,9 +13,9 @@
 
 ## 2. The migration authority
 
-- [ ] 2.1 Add a `--create-only` migration under `apps/api/prisma/migrations/` containing `CREATE EXTENSION IF NOT EXISTS postgis`, and verify it applies on a database created without the init script: drop the extension, run `npm run test:e2e -- --runInBand` from `apps/api`, and confirm the extension is present afterwards.
-- [ ] 2.2 Add a startup assertion that fails loudly when PostGIS is absent, with a message naming the migration; verify by dropping the extension and confirming startup fails with that message rather than a query error.
-- [ ] 2.3 Verify the E2E provisioning path still works with the migration as the authority: run the suite in a worktree whose database does not exist and confirm it is created, migrated, and passes.
+- [x] 2.1 Add a `--create-only` migration under `apps/api/prisma/migrations/` containing `CREATE EXTENSION IF NOT EXISTS postgis`, and verify it applies on a database created without the init script: drop the extension, run `npm run test:e2e -- --runInBand` from `apps/api`, and confirm the extension is present afterwards.
+- [x] 2.2 Add a startup assertion that fails loudly when PostGIS is absent, with a message naming the migration; verify by dropping the extension and confirming startup fails with that message rather than a query error.
+- [x] 2.3 Verify the E2E provisioning path still works with the migration as the authority: run the suite in a worktree whose database does not exist and confirm it is created, migrated, and passes.
 
 ## 3. The API contract
 

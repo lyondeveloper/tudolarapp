@@ -47,8 +47,16 @@ and PostGIS"):
 - The extension is created by the migration authority (ADR-0019) and verified against `pg_extension`;
   the app role only ever *verifies* it, never creates it, preserving least privilege
   (`openspec/changes/t02-technical-contracts/design.md:144-146`).
-- `docker/initdb` and the E2E provisioning script stay as local conveniences; the migration is the
-  authority (`openspec/changes/t02-technical-contracts/design.md:58-59`).
+- `docker/initdb` stays as a local convenience and may still create the extension for a fresh local
+  database, where `CREATE EXTENSION IF NOT EXISTS` then makes the migration a harmless no-op. The E2E
+  provisioning script does **not** create it, so a worktree database genuinely depends on the
+  migration. The migration is the authority
+  (`openspec/changes/t02-technical-contracts/design.md:58-59`).
+- Because a **recorded migration never re-runs**, `CREATE EXTENSION IF NOT EXISTS` inside one is not
+  self-healing: if the extension is ever dropped, or a database is restored without it, `prisma
+  migrate deploy` reports "no pending migrations" and changes nothing. The startup assertion detects
+  it and the remedy is a privileged `CREATE EXTENSION postgis;`. The assertion's message says exactly
+  that, rather than pointing at `migrate deploy`, which would not help.
 - A missing extension surfaces as a clear startup error rather than a confusing query failure later
   (`openspec/changes/t02-technical-contracts/design.md:56-57`).
 - Left open (unchanged): group **G** (the legal review) and group **I** (pilot) remain open

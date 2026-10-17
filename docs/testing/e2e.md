@@ -38,17 +38,20 @@ Parallel worktrees must not observe each other's rows, so each gets its own disp
 
 - The name is derived from the worktree path: `tudolar_e2e_<slug>_<hash>_test`. It is stable for a
   given worktree, different for another, and always ends in `_test`, which the harness requires.
-- The harness creates the database if it is missing, installs PostGIS in it, applies migrations,
-  and **truncates the data before running** so a result never depends on a previous run. It excludes
-  `_prisma_migrations` (the migration ledger) and `spatial_ref_sys` (PostGIS reference data).
+- The harness creates the database if it is missing, applies migrations (the
+  `--create-only` migration that installs PostGIS among them), and **truncates the data before
+  running** so a result never depends on a previous run. It excludes `_prisma_migrations` (the
+  migration ledger) and `spatial_ref_sys` (PostGIS reference data).
 - `npm run test:e2e:teardown` drops only this worktree's own database — the name is recomputed, never
   accepted as an argument — and the next suite run recreates it.
 - An explicit `TUDOLAR_TEST_DATABASE_URL` is still honoured exactly as before, and the harness still
   refuses a non-local host or a database whose name does not end in `_test`.
 
-Installing the PostGIS extension needs a privileged role. The local container provides one because
-the PostGIS image's `POSTGRES_USER` is the cluster superuser; a shared environment will not, so the
-harness reports that as a concrete blocker rather than a confusing test failure.
+Installing the PostGIS extension needs a privileged role, so it is done by the Prisma migration
+that `prisma migrate deploy` applies, not by the harness. The local container provides the
+privilege because the PostGIS image's `POSTGRES_USER` is the cluster superuser; a shared environment
+will not, so the migration fails loudly at deploy time rather than leaving the suite to fail with a
+confusing query error.
 
 The API suite drives the real application in-process with `supertest`, so it binds no port and
 parallel worktrees cannot collide on one. The mobile flows exercise the real over-the-wire path.

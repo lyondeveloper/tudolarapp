@@ -5,14 +5,18 @@ const { Client } = require('pg');
 const { SAFE_IDENTIFIER, databaseNameOf } = require('./e2e-environment.cjs');
 
 /**
- * Creates this worktree's disposable database if it is missing and installs
- * PostGIS in it.
+ * Creates this worktree's disposable database if it is missing.
  *
- * PostGIS has to be installed per database — the extension is not inherited —
- * and it needs a role with the right privilege, which the local container
- * provides because the PostGIS image's `POSTGRES_USER` is the cluster superuser.
- * A shared environment will not have that, so the failure is reported as a
- * concrete blocker instead of surfacing as a confusing test error.
+ * PostGIS is *not* installed here: the Prisma migration
+ * `20261017190000_add_postgis_extension` installs it when the runner applies
+ * migrations with `prisma migrate deploy`, because Prisma Migrate is the single
+ * migration authority (ADR-0019, ADR-0023). Installing the extension here would
+ * make that migration a no-op and hide a database that has no PostGIS.
+ *
+ * Creating the database still needs a role with the right privilege, which the
+ * local container provides because the PostGIS image's `POSTGRES_USER` is the
+ * cluster superuser. A shared environment will not have that, so the failure is
+ * reported as a concrete blocker instead of surfacing as a confusing test error.
  */
 async function provisionDatabase(adminUrl, url) {
   const name = databaseNameOf(url);
@@ -38,20 +42,6 @@ async function provisionDatabase(adminUrl, url) {
     }
   } finally {
     await admin.end();
-  }
-
-  const target = new Client({ connectionString: url });
-  await target.connect();
-  try {
-    await target.query('create extension if not exists postgis');
-  } catch (error) {
-    throw new Error(
-      `Could not install PostGIS in ${name}: ${error.message}\n` +
-        'Creating the extension needs a role with the right privilege. ' +
-        'See docs/testing/e2e.md for the local prerequisite.',
-    );
-  } finally {
-    await target.end();
   }
 }
 

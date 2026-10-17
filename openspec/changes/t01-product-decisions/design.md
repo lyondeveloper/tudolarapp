@@ -32,15 +32,16 @@ step by step from them. Each becomes an ADR; any of them can be overruled, and o
 editing its ADR rather than adding a second.
 
 **MVP shape.** The MVP is the **both-sides loop**: a seller publishes an offer and a buyer finds it in
-search, on the real mobile app, against the real API and database. Accounts are separated by purpose
-through an **`accountType` of `seller` or `buyer` on the user model**, so a demo can hand one phone to
-each side.
+search, on the real mobile app, against the real API and database.
 
-> **Flagged tension, deliberately accepted for the MVP.** An account *type* of "seller" collides with
-> ADR-0006, where selling is a **state** (`SellerEligibility` plus entitlement), not an account kind —
-> in the real product one person may both buy and sell. For the MVP, `accountType` is a convenience
-> that seeds `SellerEligibility`; it is not a new authorization axis, and no permission may be granted
-> from `accountType` alone. Revisit when subscriptions land.
+**Accounts are not separated by type.** An earlier proposal added an `accountType` of `seller` or
+`buyer` to the user model; the product owner reconsidered and rejected it. **Selling is a state, not an
+account kind** (ADR-0016): a user's ability to publish comes from `SellerEligibility` plus entitlement,
+composed in the publish use case per ADR-0006, and no permission is ever granted from a user
+attribute. The two demo accounts differ by **seeded eligibility** — the seller account has an eligible
+`SellerEligibility` row, the buyer account does not — which gives the demonstration its two phones
+without adding a concept. A buyer who becomes a seller needs no new account; eligibility changes and
+nothing else does.
 
 ### A — pair and rail
 

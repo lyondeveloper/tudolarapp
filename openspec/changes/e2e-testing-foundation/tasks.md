@@ -27,10 +27,10 @@
 
 ## 5. Integration verification
 
-- [ ] 5.1 Prove isolation: run the API suite in two worktrees at the same time and confirm both are green, each against its own database, with no row visible across them.
-- [ ] 5.2 Run the API unit suite and the E2E suite from `apps/api` and record the counts.
-- [ ] 5.3 Confirm the mobile side is unchanged: `npm test`, `npx tsc --noEmit`, and `npx expo lint` from `apps/mobile`, with lint still at the 16-warning baseline.
-- [ ] 5.4 Run `openspec validate e2e-testing-foundation --strict` and confirm it passes.
+- [x] 5.1 Prove isolation: run the API suite in two worktrees at the same time and confirm both are green, each against its own database, with no row visible across them. Proved with a second worktree (`git worktree add --detach /tmp/tudolar-sp01 HEAD`) run concurrently with the primary one: the primary **reused** `tudolar_e2e_tudolarapp_8178e09f_test` and the second **created** `tudolar_e2e_tudolar_sp01_d545cf6d_test`, each reporting 13 passed and exit 0. A probe row inserted into the primary was absent from the second (`1` vs `0`), and each held only its own rows. **Lesson worth recording:** a worktree checks out a commit, so the first attempt ran the *old* runner because the changes were still uncommitted — parallel worktrees only see committed state. The worktree was removed afterwards and its database dropped.
+- [x] 5.2 Run the API unit suite and the E2E suite from `apps/api` and record the counts. Unit: **5 suites / 11 tests** (up from 6 tests, because `test/**` is now collected and the derivation spec adds 5). E2E: **2 suites / 13 tests**, against `tudolar_e2e_tudolarapp_8178e09f_test`.
+- [x] 5.3 Confirm the mobile side is unchanged: `npm test`, `npx tsc --noEmit`, and `npx expo lint` from `apps/mobile`, with lint still at the 16-warning baseline. **10 suites / 29 tests**, `tsc` exit 0, lint 0 errors / 16 warnings — all unchanged from before this change.
+- [x] 5.4 Run `openspec validate e2e-testing-foundation --strict` and confirm it passes. Valid.
 
 ## Workflow follow-up
 

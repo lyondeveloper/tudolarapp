@@ -19,6 +19,7 @@
 - [ ] 2.4 Correct `docs/spikes/SP04-agreement-cancellation-incidents.md` and `docs/spikes/SP09-technical-feasibility-test-architecture.md` so both point at ADR-0001 for the terms-version parent; verify neither still claims the other's parent.
 - [ ] 2.5 Correct `docs/spikes/SP01-exchange-pairs.md`, `SP02-pricing-quotes-limits.md` and `SP07-seller-eligibility-trust-safety.md` for the pair/rail shape and the publish-gate composition, with pointers to ADR-0005 and ADR-0006; verify each report's shape now matches the ADR.
 - [ ] 2.6 Correct `docs/spikes/SP08-subscription-compliance-launch.md` to name the entitlement's role in the publish gate (ADR-0006) and to record that Zelle's removal narrows but does not close its legal exposure; verify the remaining exposure is named.
+- [ ] 2.7 Correct `docs/flows/search-and-contact.md`, whose worked example carries the superseded criteria field names, to ADR-0003's schema and remove the note that currently marks it superseded; verify no old field name remains and that the example still parses under the new schema.
 
 ## 3. Synthesis
 

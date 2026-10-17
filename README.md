@@ -4,7 +4,7 @@ TUDOLAR is a mobile-first P2P marketplace that connects people who want to buy o
 
 ## Problem and purpose
 
-Zulia has recurring demand for USD cash and exchanges involving USD cash, USDT, Zelle, and Venezuelan bolivars. The MVP starts in **Ciudad Ojeda**. Cabimas and Maracaibo are potential expansion areas after activity, safety, and support have been validated in the first market.
+Zulia has recurring demand for USD cash and exchanges involving USD cash, USDT, and Venezuelan bolivars. Zelle was removed from the MVP by product decision to avoid unresolved legal terms, leaving five directional pairs. The MVP starts in **Ciudad Ojeda**. Cabimas and Maracaibo are potential expansion areas after activity, safety, and support have been validated in the first market.
 
 TUDOLAR helps users discover offers and contact each other. **It does not custody cash or crypto, settle exchanges, or provide escrow.** The parties coordinate and complete the exchange in person, with recommendations for public meeting places.
 

@@ -147,6 +147,7 @@ Recorded here so they do not evaporate; they belong in the **T01** artifact once
 | **Daily earnings use market-local time** | Bucketed server-side on the market's civil day (`America/Caracas`, UTC−4, no DST) rather than the device's timezone, so the same exchanges always produce the same totals and SP10's funnel metrics are comparable across sellers. Revisit per-user timezones only when there is more than one market. |
 | **Quote and terms-version ownership** | Assigned to T02's contract list, so T09 and T13 have something to build on. |
 | **Decisions live as ADRs** | Product and technical decisions are recorded one per ADR under `docs/adr/`, so implementers have a current contract to read rather than archived history. T01 produces the product ones; T02 the technical ones. |
+| **The Ciudad Ojeda boundary is the official municipal limit** | Decided 2026-10-17, and this is the blocker that gated every geospatial task (T04, T05, T10, and SP05's geofence design). Two details remain before T04 starts: **which municipality** the limit belongs to, and the exact source dataset and its licence. Note that the repository does not mention any municipality by name — it only says Ciudad Ojeda and, for expansion, Cabimas and Maracaibo — so the municipality must be confirmed from an official source rather than assumed. Both details are mechanical once confirmed, not product calls. |
 
 ### Avoiding counter drift
 

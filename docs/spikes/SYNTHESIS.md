@@ -134,6 +134,56 @@ Grouped by what they block, with the consuming task. No spike decided any of the
   mechanically; the parent agent verified all twelve centrally: every report has the eight protocol
   sections, and only `docs/spikes/` was written.
 
+## Decisions taken by the product owner
+
+Recorded here so they do not evaporate; they belong in the **T01** artifact once that exists.
+
+| Decision | Effect |
+| --- | --- |
+| **Zelle is out of the MVP** | The catalog drops from ten pairs to five: VES → USDT, VES (bank) → VES cash, VES → USD cash, USDT → VES, USDT → USD cash. Removes most of SP08's legal blocker, since the Zelle terms were the main one — OFAC on USDT and app-store billing remain. It also removes SP01's hardest normalization call, because Zelle was a *USD rail* rather than an asset. Follow-through is needed in T01's catalog text, SP01's matrix, SP02's per-pair pricing, and the SP06/SP12 enums, all of which name Zelle today; `AGENTS.md`'s product context lists it too. |
+| **E2E stays local-only for now** | The mobile suite does not join a launch gate, which closes SP10's open question and needs no macOS CI runner. |
+| **Stored counters for inventory** | SP03's recommendation is adopted: `initial_amount` immutable, `reserved`/`completed` stored, `available` derived. See the drift note below. |
+| **Test convention** | End-to-end scenarios get their own folder (`apps/api/test/e2e/`, `apps/mobile/e2e/`). Everything testable gets its own test beside it — feature file, utility, service, controller, adapter, port, component, hook — with no test folder mirroring `src/`. Recorded in `AGENTS.md`. |
+| **Daily earnings use market-local time** | Bucketed server-side on the market's civil day (`America/Caracas`, UTC−4, no DST) rather than the device's timezone, so the same exchanges always produce the same totals and SP10's funnel metrics are comparable across sellers. Revisit per-user timezones only when there is more than one market. |
+| **Quote and terms-version ownership** | Assigned to T02's contract list, so T09 and T13 have something to build on. |
+| **Decisions live as ADRs** | Product and technical decisions are recorded one per ADR under `docs/adr/`, so implementers have a current contract to read rather than archived history. T01 produces the product ones; T02 the technical ones. |
+
+### Avoiding counter drift
+
+Stored counters duplicate a number that the agreement rows already imply, so they can disagree. Four
+defences, in order of strength — the first three are cheap and should all be used:
+
+1. **One writer, same transaction.** The counters are mutated *only* inside the transaction that
+   changes the agreement, with the compare-and-swap guard. This makes drift impossible on every path
+   the application can take, which is the real fix; the others catch mistakes in that discipline.
+2. **Database CHECK constraints** — `reserved_amount >= 0`, `completed_amount >= 0`, and
+   `reserved_amount + completed_amount <= initial_amount`. These catch arithmetic corruption and
+   oversell, and they are the same class of hand-written object the schema already carries.
+3. **An asserted reconciliation.** A test (and ideally a startup or scheduled check) asserting
+   `reserved_amount = SUM(agreements in a reserved state)` and the same for `completed`. This is the
+   only defence that detects *disagreement* rather than corruption, and it belongs in the integration
+   layer SP09 asks for.
+4. **A database trigger** maintaining the counters on agreement insert/update would make the
+   database itself the guarantor, but it hides logic, is unmodelled by Prisma, and needs the same
+   hand-written-SQL care as CHECKs. Recorded as an option, not the recommendation.
+
+One simplification worth considering in T02: if `completed_amount` is only ever used for reporting
+and not for the guard, it need not be stored at all — fewer stored counters means fewer ways to
+drift.
+
+## Cross-checks
+
+The spikes ran in parallel and never read each other, so three cross-checks were run over the
+clusters: `CROSS-A-transaction-lifecycle.md`, `CROSS-B-discovery.md`, and
+`CROSS-C-commercial-trust.md`. Each found real interface problems the individual reports could not
+see.
+
+| Cross-check | Most important finding |
+| --- | --- |
+| **A — transaction lifecycle** | The immutable terms version has **two incompatible parents**: SP04 scopes it to the agreement, SP09 to the offer. SP09 is correct, because T13 requires the record to capture the same version of the offer's terms. SP11 also assumed status labels ("mutually cancelled", "disputed") that do not match SP04's actual enum (`cancelled`, `incident_open`, plus `awaiting_confirmation` and `expired`). |
+| **B — discovery** | **A direct contradiction:** SP06 makes a location *required* when GPS is unavailable, while SP05, SP12 and the backlog all say search the whole active node — and SP06 contradicts its own test case. Separately, SP12's parser still emits SP06's *old* field names. |
+| **C — commercial and trust** | SP01 gives each direction a seller-set rate while SP02 keeps a platform reference rate with only a margin on top — a product call about whether a platform reference exists at all. The pair/rail enum also has **four incompatible shapes** across SP01, SP02, SP06 and SP12, and nobody owns composing SP08's entitlement with SP07's eligibility into the publish gate. |
+
 ## Next step
 
 You review this set. The accepted decisions then go into the **T01** (product decisions) and **T02**

@@ -4,8 +4,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { App } from 'supertest/types';
 import request from 'supertest';
 import { createTestAuthenticator } from './support/webauthn-test-client';
-import { AppModule } from './../src/app.module';
-import { PrismaService } from './../src/database/prisma.service';
+import { AppModule } from './../../src/app.module';
+import { PrismaService } from './../../src/database/prisma.service';
 
 interface JsonResponse {
   body: unknown;

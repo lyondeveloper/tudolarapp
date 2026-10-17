@@ -55,7 +55,8 @@ parallel worktrees cannot collide on one. The mobile flows exercise the real ove
 
 ## Adding a scenario for an acceptance criterion
 
-**API.** Add it to `apps/api/test/<area>.e2e-spec.ts`, following `auth.e2e-spec.ts`. Assert the
+**API.** Add it to `apps/api/test/e2e/<area>.e2e-spec.ts`, following `auth.e2e-spec.ts`. End-to-end
+scenarios live in their own folder, separate from the shared helpers in `apps/api/test/`. Assert the
 observable contract — status code, response shape, and what the database then holds — not internal
 calls. Prefer a fresh identifier per scenario so scenarios cannot depend on each other's rows.
 

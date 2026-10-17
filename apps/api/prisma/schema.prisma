@@ -1,11 +1,14 @@
 // Prisma ORM 7 is the single owner of the database schema and of migrations.
 // node-pg-migrate was removed; do not reintroduce a second migration runner.
 //
-// Two classes of object cannot be expressed in this file and are therefore
-// appended by hand to the generated migration SQL:
-//   * CHECK constraints (Prisma Migrate does not support them yet)
-//   * the PostGIS extension (an operational, privileged step; see README.md)
-// Every future `prisma migrate dev` must preserve them.
+// Two classes of object cannot be expressed in this file:
+//   * CHECK constraints (Prisma Migrate does not support them yet) — appended by
+//     hand to the generated migration SQL; every future `prisma migrate dev`
+//     must preserve them.
+//   * the PostGIS extension — NOT in these migrations. It is installed by
+//     docker/initdb/01-create-databases.sql for local development and by
+//     test/provision-e2e-database.cjs for each disposable test database, and it
+//     needs a privileged role. Verify it before adding the first spatial table.
 
 generator client {
   provider     = "prisma-client"

@@ -6,7 +6,11 @@ import {
   readRefreshToken,
   writeRefreshToken,
 } from './secure-session-storage';
-import { sessionCleared, sessionEstablished } from './session-slice';
+import {
+  sessionCleared,
+  sessionEstablished,
+  sessionRestoreStarted,
+} from './session-slice';
 
 /**
  * Restores a session at launch by exchanging the stored refresh token. This is
@@ -19,6 +23,8 @@ export function useRestoreSession(): void {
 
   useEffect(() => {
     let cancelled = false;
+
+    dispatch(sessionRestoreStarted());
 
     const restore = async () => {
       const refreshToken = await readRefreshToken();

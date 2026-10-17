@@ -2,13 +2,15 @@
 
 ## Context
 
-See proposal.md — Why. Two constraints shape how the baseline is established:
+See proposal.md — Why. Two constraints shaped how the baseline was established:
 
-- The working tree holds a large uncommitted body of work: the Prisma persistence port, the
-  `apps/mobile/` Expo client, `docker/`, and documentation updates. Until that is committed, "the
-  state of the repository" has no single revision to point at.
-- The tree now holds two applications with different toolchains. The audit must not assume one
-  package manager or one command set for both.
+- The working tree held a large uncommitted body of work: the Prisma persistence port, the
+  `apps/mobile/` Expo client, `docker/`, and documentation updates. Until that was committed, "the
+  state of the repository" had no single revision to point at. It is now committed as `26c39ea`
+  (Prisma port), `e60946a` (mobile scaffold), `f918287` (local environment), and `2bb5b62`
+  (documentation), with this proposal in `6c9b582`. The working tree is clean and pushed.
+- The tree holds two applications with different toolchains. The audit must not assume one package
+  manager or one command set for both.
 
 ## Goals / Non-Goals
 
@@ -25,10 +27,12 @@ See proposal.md — Why. Two constraints shape how the baseline is established:
 
 ## Decisions
 
-**Commit the pending work as the baseline, in concern-sized groups.** A single squashed commit of
-roughly 1700 lines across a new mobile app and a persistence rewrite would be unreviewable and would
-mix unrelated concerns. Grouping by concern (Prisma port, mobile scaffold, docker, documentation)
-keeps each commit explainable and makes a later `git bisect` meaningful.
+**Commit the pending work as the baseline, in concern-sized groups.** Carried out before apply: a
+single squashed commit of roughly 1700 lines across a new mobile app and a persistence rewrite
+would have been unreviewable and would have mixed unrelated concerns. The work went in as five
+commits grouped by concern (Prisma port, mobile scaffold, local environment, documentation, this
+proposal), so each can be reverted independently and a later `git bisect` stays meaningful. The
+author metadata was normalised to the repository's `lyondeveloper` identity before pushing.
 - Alternative considered: commit everything at once. Rejected: the audit's value depends on the
   baseline being reviewable.
 
@@ -52,8 +56,9 @@ requirement the system must satisfy, so it does not belong in the spec tree.
 - [The uncommitted work may be unfinished or incorrect] → The audit reports it as the baseline
   without vouching for it. T03 owns the Prisma port's correctness and T06 owns auth coverage;
   findings are recorded, never silently fixed.
-- [Committing another agent's work could freeze a half-finished state] → Commit in concern-sized
-  groups so any group can be reverted independently, and record the exact commits in the report.
+- [Committing another agent's work froze a state nobody has verified] → The commits are grouped by
+  concern, so any group can be reverted independently, and section 3 of the task list verifies the
+  behaviour rather than trusting the commits. The report records the exact SHAs.
 - [Passkey/WebAuthn coverage may not be exercisable locally] → If the positive ceremony cannot run
   here, record the blocker and classify the test as unverified rather than claiming coverage.
 - [The audit could quietly become an implementation task] → Every task in `tasks.md` is read-only

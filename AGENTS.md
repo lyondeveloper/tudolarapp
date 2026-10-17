@@ -4,7 +4,7 @@ These guidelines shape the app and API. **Requirement** means a rule that must b
 
 ## Product context
 
-TUDOLAR is a mobile P2P marketplace for discovering and coordinating in-person exchanges of cash and currencies (USD cash, USDT, Zelle, and Venezuelan bolivars). The initial market is Ciudad Ojeda; validate it before expanding. Buyers use the service for free; the proposed revenue model is seller subscriptions, not per-exchange commissions.
+TUDOLAR is a mobile P2P marketplace for discovering and coordinating in-person exchanges of cash and currencies (USD cash, USDT, and Venezuelan bolivars). The initial market is Ciudad Ojeda; validate it before expanding. Buyers use the service for free; the proposed revenue model is seller subscriptions, not per-exchange commissions. Zelle was removed from the MVP by product decision to avoid unresolved legal terms; the MVP catalog is five directional pairs (VES → USDT, VES in a bank account → physical VES cash, VES → USD cash, USDT → VES, USDT → USD cash), and no pair may be added without a new decision.
 
 A market is a geographic service scope, not just a city-name string. Each offer belongs to one market; searches require a selected market and must validate that location filters stay within it. The LLM cannot switch markets. Conversations and agreed exchange records inherit market context from the offer. Identity/authentication are global, and market selection is not authorization; the API validates market scope and seller eligibility on every operation. Whether seller profiles and subscription billing are global or market-specific remains open.
 

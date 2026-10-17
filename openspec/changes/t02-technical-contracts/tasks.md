@@ -2,14 +2,14 @@
 
 ## 1. Stack and boundary ADRs
 
-- [ ] 1.1 Write `docs/adr/0019-prisma-owns-the-schema-and-migrations.md`, recording the decision and its rationale and citing `AGENTS.md` rather than restating it; verify it names the single authority and that no second runner is permitted.
-- [ ] 1.2 Write `docs/adr/0020-hexagonal-architecture-in-the-api.md`: the layer names, the dependency direction, and the rule that `domain/` imports nothing infrastructural. Verify against the existing `auth/` shape.
-- [ ] 1.3 Write `docs/adr/0021-rtk-query-owns-remote-state.md`: RTK Query as the sole remote-state layer and Redux Toolkit for client state only. Verify it forbids a second server-state cache.
-- [ ] 1.4 Write `docs/adr/0022-gluestack-is-the-design-system.md`, pointing at the existing design-system spec rather than duplicating its tokens.
-- [ ] 1.5 Write `docs/adr/0023-postgis-through-prisma.md`: the `Unsupported("geometry")` mapping, raw SQL confined to `adapters/out/`, and the SRID/GiST expectations. Verify it matches `AGENTS.md`'s PostGIS rules.
-- [ ] 1.6 Write `docs/adr/0024-react-native-expo-mobile-client.md`, citing the mobile `AGENTS.md` for its own conventions.
-- [ ] 1.7 Write `docs/adr/0025-api-module-boundaries.md`: the module table from `design.md`, naming which module owns each contract and the rule that `catalog` alone declares pair, asset, rail, and money types.
-- [ ] 1.8 Extend `docs/adr/README.md` so its index lists 0019–0025 in the existing format; verify no row is missing and the scoped intro still reads correctly.
+- [x] 1.1 Write `docs/adr/0019-prisma-owns-the-schema-and-migrations.md`, recording the decision and its rationale and citing `AGENTS.md` rather than restating it; verify it names the single authority and that no second runner is permitted.
+- [x] 1.2 Write `docs/adr/0020-hexagonal-architecture-in-the-api.md`: the layer names, the dependency direction, and the rule that `domain/` imports nothing infrastructural. Verify against the existing `auth/` shape.
+- [x] 1.3 Write `docs/adr/0021-rtk-query-owns-remote-state.md`: RTK Query as the sole remote-state layer and Redux Toolkit for client state only. Verify it forbids a second server-state cache.
+- [x] 1.4 Write `docs/adr/0022-gluestack-is-the-design-system.md`, pointing at the existing design-system spec rather than duplicating its tokens.
+- [x] 1.5 Write `docs/adr/0023-postgis-through-prisma.md`: the `Unsupported("geometry")` mapping, raw SQL confined to `adapters/out/`, and the SRID/GiST expectations. Verify it matches `AGENTS.md`'s PostGIS rules.
+- [x] 1.6 Write `docs/adr/0024-react-native-expo-mobile-client.md`, citing the mobile `AGENTS.md` for its own conventions.
+- [x] 1.7 Write `docs/adr/0025-api-module-boundaries.md`: the module table from `design.md`, naming which module owns each contract and the rule that `catalog` alone declares pair, asset, rail, and money types.
+- [x] 1.8 Extend `docs/adr/README.md` so its index lists 0019–0025 in the existing format; verify no row is missing and the scoped intro still reads correctly.
 
 ## 2. The migration authority
 

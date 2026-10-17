@@ -504,3 +504,65 @@ registry) must be resolved outside the repository before publishing or dependenc
 relied on, and the device-level passkey gap in §4 remains a T01/T06 item.
 
 T01 is unblocked.
+
+## 8. Addendum — what the mobile checks missed
+
+Added while implementing `openspec/changes/mobile-auth-first-screen`. T00 verified `apps/mobile`
+with `tsc --noEmit` and `expo lint` only, and **both passed while the app could not run at all**.
+This section records the two defects that finding hid, because it is the concrete justification
+for the mobile test runner that change introduces.
+
+Both defects were in the baseline revision `c9b1225`; neither was introduced by the change.
+
+### F-9 — the app could not bundle: the `@/assets/*` alias existed only for TypeScript
+
+`apps/mobile/tsconfig.json` declares `"@/assets/*": ["./assets/*"]`, but
+`apps/mobile/babel.config.js` aliased only `@` → `./src`. TypeScript therefore accepted
+`@/assets/images/...` while Metro resolved it into `src/assets/...`, which does not exist.
+`tsc --noEmit` and `expo lint` both passed.
+
+Reproduce:
+
+```bash
+# from apps/mobile, with Metro running
+npx expo start
+```
+
+```
+iOS Bundling failed 17230ms node_modules/expo-router/entry.js (2320 modules)
+Unable to resolve "../assets/images/tutorial-web.png" from "src/app/explore.tsx"
+```
+
+Fixed by adding `'@/assets': './assets'` ahead of `'@'` in the resolver alias, because the
+resolver applies the first alias that matches.
+
+### F-10 — the root layout crashed at render: the session hook ran above its own provider
+
+`apps/mobile/src/app/_layout.tsx` called `useRestoreSession()` in the layout body while rendering
+`<Provider store={store}>` as a descendant. React context flows downward, so the hook's
+`useAppDispatch()` found no store.
+
+Reproduce: any render of the root layout.
+
+```
+ERROR  [Error: could not find react-redux context value; please ensure the component is wrapped in a <Provider>]
+Code: use-restore-session.ts
+  useRestoreSession (src/features/session/use-restore-session.ts:17:34)
+  TabLayout (src/app/_layout.tsx:21:20)
+```
+
+Fixed by moving the call into a child component rendered inside the provider.
+
+### Consequence for §3.7 and §6
+
+The §3.7 mobile result ("typecheck clean, lint 0 errors / 16 warnings") remains accurate, but it
+was not evidence that the app worked, and §6's baseline test set did not cover it either. §6 gains
+`npm test` from `apps/mobile`; at the time of writing it runs 5 suites and 11 tests, all passing,
+and a render test fails on both F-9's and F-10's class of defect.
+
+### Update to F-2
+
+F-2's dependency-audit half is now resolved inside the repository: `.npmrc` files at the root and
+in both applications pin `registry=https://registry.npmjs.org/`, so `npm audit` runs without a
+`--registry` override and no longer inherits the unreachable machine-level mirror. F-2's other
+half — F-1's GitHub write access — is unchanged and still open.

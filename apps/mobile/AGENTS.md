@@ -15,13 +15,28 @@ Use `bunx` instead of `npx` if the project uses bun (`bun.lock` present).
 ```bash
 npx expo install <package>  # ALWAYS use instead of npm/yarn/pnpm/bun add — resolves SDK-compatible versions
 npx expo start              # start the dev server
+npm test                    # unit and render tests (jest-expo + @testing-library/react-native)
+npm test -- <path>          # run one test file, e.g. npm test -- session-slice
 npx expo lint               # lint
 npx tsc --noEmit            # typecheck
 npx expo-doctor             # diagnose dependency and config issues
 npx expo install --fix      # fix incompatible package versions
 ```
 
-Run lint and typecheck before declaring any task done.
+Run lint, typecheck, and tests before declaring any task done.
+
+### Jest preset version pin
+
+`jest-expo` loads the React Native Jest preset from the separate
+`@react-native/jest-preset` package, and `npx expo install` resolves that package to the latest
+release rather than to the installed React Native version. A mismatch fails every suite with
+`Could not locate module react-native/setup-env`. Keep `@react-native/jest-preset` pinned to the
+exact `react-native` version in `package.json` (for example `0.86.3`), and re-pin it whenever
+React Native is upgraded.
+
+`react-test-renderer` is deprecated and does not support React 19, so it must not be added as a
+direct dependency; `@testing-library/react-native` replaces it. `jest-expo` still pulls it in
+transitively, which is why it appears in the tree.
 
 ## Navigation & Routing
 

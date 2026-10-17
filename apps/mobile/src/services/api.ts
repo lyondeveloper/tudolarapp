@@ -7,12 +7,16 @@ export interface AuthTokens {
   refreshToken: string;
 }
 
+/** Mirrors the API's private current-user DTO; it never carries secrets. */
 export interface CurrentUser {
   id: string;
+  displayName: string;
   username: string | null;
   email: string | null;
+  emailVerified: boolean;
   phoneNumber: string | null;
   phoneVerified: boolean;
+  accountStatus: string;
   authMethods: string[];
 }
 

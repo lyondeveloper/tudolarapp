@@ -3,9 +3,14 @@ const { URL } = require('node:url');
 
 process.env.NODE_ENV = 'test';
 
-const testDatabaseUrl = process.env.TUDOLAR_TEST_DATABASE_URL;
+// `npm run test:e2e` derives a disposable database per worktree and points
+// DATABASE_URL at it; an explicit TUDOLAR_TEST_DATABASE_URL still wins.
+const testDatabaseUrl =
+  process.env.TUDOLAR_TEST_DATABASE_URL ?? process.env.DATABASE_URL;
 if (!testDatabaseUrl) {
-  throw new Error('TUDOLAR_TEST_DATABASE_URL must point to a disposable local test database');
+  throw new Error(
+    'TUDOLAR_TEST_DATABASE_URL must point to a disposable local test database, or run through `npm run test:e2e`, which derives one per worktree',
+  );
 }
 
 const parsedDatabaseUrl = new URL(testDatabaseUrl);

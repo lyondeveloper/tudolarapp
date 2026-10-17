@@ -1,3 +1,9 @@
+import {
+  PlusJakartaSans_400Regular,
+  PlusJakartaSans_600SemiBold,
+  PlusJakartaSans_700Bold,
+  useFonts,
+} from '@expo-google-fonts/plus-jakarta-sans';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
@@ -13,8 +19,8 @@ import { useRestoreSession } from '@/features/session/use-restore-session';
 import { store } from '@/store';
 import { useAppSelector } from '@/store/hooks';
 
-// Held until the session status is known, so the app never flashes the wrong
-// screen while the stored refresh token is being exchanged.
+// Held until the typeface is loaded and the session status is known, so no
+// screen is ever painted with a fallback face or the wrong state.
 SplashScreen.preventAutoHideAsync();
 
 /**
@@ -22,22 +28,30 @@ SplashScreen.preventAutoHideAsync();
  * `Provider` below. Calling the hook in the layout itself would run it above
  * the provider, where no store context exists.
  *
- * The native splash is hidden here, once the session status has resolved,
- * because the shell renders nothing meaningful while it is still `restoring`.
+ * The native splash is hidden here, once both the typeface and the session
+ * status have resolved, because the shell renders nothing meaningful while the
+ * session is still `restoring`. A font that fails to load still releases the
+ * splash, so a missing asset cannot strand the app on it.
  */
-function SessionRestore() {
+function AppReady({ fontsReady }: { fontsReady: boolean }) {
   const status = useAppSelector((state) => state.session.status);
   useRestoreSession();
 
   useEffect(() => {
-    if (status !== 'restoring') void SplashScreen.hideAsync();
-  }, [status]);
+    if (fontsReady && status !== 'restoring') void SplashScreen.hideAsync();
+  }, [fontsReady, status]);
 
   return null;
 }
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const [fontsLoaded, fontError] = useFonts({
+    PlusJakartaSans_400Regular,
+    PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_700Bold,
+  });
+  const fontsReady = fontsLoaded || Boolean(fontError);
 
   return (
     <SafeAreaListener
@@ -47,11 +61,11 @@ export default function RootLayout() {
     >
       <GestureHandlerRootView style={{ flex: 1 }}>
         <Provider store={store}>
-          <GluestackUIProvider mode="dark">
+          <GluestackUIProvider>
             <ThemeProvider
               value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
             >
-              <SessionRestore />
+              <AppReady fontsReady={fontsReady} />
               <Stack screenOptions={{ headerShown: false }} />
             </ThemeProvider>
           </GluestackUIProvider>

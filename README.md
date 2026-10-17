@@ -118,11 +118,22 @@ Available test commands:
 
 ```bash
 npm test -- --runInBand
-TUDOLAR_TEST_DATABASE_URL=postgresql://tudolar:tudolar@127.0.0.1:5433/tudolar_test npm run test:e2e -- --runInBand
+npm run test:e2e -- --runInBand
 npm run build
 npm exec -- eslint "src/**/*.ts" "test/**/*.ts"
 ```
 
-The e2e command applies migrations to a disposable local PostgreSQL database. It rejects database hosts other than localhost and database names not ending in `_test`. Jest runs with `--experimental-vm-modules` because the Prisma 7 client loads its WASM query compiler through a dynamic import.
+The e2e command gives each worktree its own disposable database, created on demand and reset before
+every run, so worktrees running in parallel cannot observe each other's data. Setting
+`TUDOLAR_TEST_DATABASE_URL` explicitly still works; either way it rejects database hosts other than
+localhost and database names not ending in `_test`. Jest runs with `--experimental-vm-modules`
+because the Prisma 7 client loads its WASM query compiler through a dynamic import.
+
+Mobile flows run against a booted simulator from `apps/mobile` with `npm run e2e`, after
+`npm run test:e2e:api` has started the API against the same worktree database.
+
+End-to-end coverage is required before implementing a feature's behavior, and a task cannot be
+marked Done until its scenarios pass. See [`docs/testing/e2e.md`](docs/testing/e2e.md) for the entry
+points, the isolation guarantees, how to add a scenario, and how to diagnose a failure.
 
 Read [`AGENTS.md`](AGENTS.md) before making changes. It contains project context and engineering conventions; the TDD workflow is provided by the [`tdd-red-first` skill](.devin/skills/tdd-red-first/SKILL.md) and the planning workflow by the [`sdd-from-notion` skill](.devin/skills/sdd-from-notion/SKILL.md) on top of the OpenSpec skills in `.devin/skills/openspec-*`.

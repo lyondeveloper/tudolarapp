@@ -38,6 +38,36 @@ React Native is upgraded.
 direct dependency; `@testing-library/react-native` replaces it. `jest-expo` still pulls it in
 transitively, which is why it appears in the tree.
 
+## Design system
+
+The approved design system is **Civic Trust Exchange** (the Stitch project "TUDOLAR P2P
+Marketplace Prototype"). The client renders from it and does not carry colours of its own.
+
+- **Colour lives in one file: `src/global.css`.** It declares the tokens as CSS variables and maps
+  them to Tailwind utilities. No other file defines a colour, and there is no `tailwind.config.*`
+  or nativewind config to keep in step.
+- **Values are space-separated RGB triplets, not hex**, because the `@theme inline` block consumes
+  them as `rgb(var(--token))`. Write `--primary: 15 76 129;`, never `--primary: #0F4C81;`.
+- **Components consume roles through class names**, via `tva` in `src/components/ui/*`: use
+  `bg-primary`, `text-primary-foreground`, `border-border`, `bg-surface`, `text-muted-foreground`,
+  and the `warning` / `warning-border` / `warning-foreground` trio for notices. Never write a
+  literal colour in a component or a screen.
+- **Never rename an existing token.** The gluestack variants resolve these names by class name, so
+  renaming one silently breaks a variant. Add a new role instead.
+- **Light is the default presentation.** The `@variant dark` block is a seam: it keeps the dark
+  presentation rendering, but no dark palette has been authored, so its brand roles mirror the
+  light values. `GluestackUIProvider` drives the switch through `Uniwind.setTheme`.
+- **Typography lives in `src/theme/typography.ts`.** Use `textStyle('<level>')` rather than ad-hoc
+  sizes or weights. Each weight is loaded as its own family, so a level resolves to the family
+  matching its weight; `code-num` additionally renders tabular figures for money.
+- Note gluestack's `Heading` types its `style` prop through `@expo/html-elements`, whose web style
+  clashes with React Native's `TextStyle`; the call site needs a narrow cast.
+
+`npm test` covers the token contract in `src/theme/design-tokens.spec.ts`, which reads
+`global.css` and asserts the approved values. Jest stubs stylesheets, so a rendered
+`className="bg-primary"` carries no `backgroundColor` in a test — assert at the token source or on
+role usage, never on resolved colours.
+
 ## Navigation & Routing
 
 - Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.

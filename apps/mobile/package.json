@@ -3,6 +3,7 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
+    "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
     "@expo/html-elements": "^0.12.5",
     "@expo/ui": "~57.0.25",
     "@gluestack-ui/core": "^5.0.15",
@@ -45,6 +46,7 @@
     "@react-native/jest-preset": "0.86.3",
     "@testing-library/react-native": "^14.1.0",
     "@types/jest": "29.5.14",
+    "@types/node": "^26.6.5",
     "@types/react": "~19.2.2",
     "babel-plugin-module-resolver": "^5.0.3",
     "eslint": "^9.0.0",
@@ -61,7 +63,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "test": "jest"
+    "test": "jest",
+    "e2e": "MAESTRO_CLI_NO_ANALYTICS=1 maestro test e2e"
   },
   "private": true
 }

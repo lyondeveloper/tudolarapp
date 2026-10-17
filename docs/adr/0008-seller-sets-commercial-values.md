@@ -31,6 +31,11 @@ Consequences for the models the spikes proposed:
   the product owner's.
 - **The seller margin stays a first-class field**, distinct from the platform's zero per-exchange
   commission, because it is now the *only* commercial lever the platform models.
+- **The rate is a structured, normalized field the seller sets**, not free text, and search **filters
+  and orders by it**. A rate that cannot be compared across offers cannot be filtered, so it must be a
+  single canonical scalar per direction — with a defined denominator and unit — rather than two raw
+  amounts or a description. The normalization convention is a T02 contract detail; the field itself is
+  not optional.
 - **Nothing in the system computes a rate.** The backend validates that a submitted rate is
   well-formed and within any bounds the product owner sets; it never computes or corrects one. This is
   consistent with the existing rule that the LLM and the client may never own monetary calculation.
@@ -44,10 +49,15 @@ product that explicitly does not custody, settle, or escrow.
 
 **What it costs, and the product owner should own these deliberately:**
 
-- **Listings are no longer comparable by rate.** Without a reference, the app cannot show whether a
-  rate is fair, cannot compute a "good deal" signal, and cannot sort by value. Sorting must be by
-  something the platform does own — recency, distance, amount — and the UI must not imply a rate is
-  good or bad.
+- **A rate is filterable and sortable, but never judged.** Because the rate is a structured field the
+  seller sets, search **may filter and order by it as a number**. What the platform cannot do without
+  a reference is say whether a rate is *good*: no "fair rate" badge, no "best offer" claim, and no
+  implied comparison against a market price. Ordering by the seller's stated rate is honest; calling
+  the top result the best is not.
+- **Filtering is what forces the rate to be normalized.** Two offers are comparable as numbers only if
+  the rate is one canonical scalar per direction, which is the same normalization SP02's
+  "direction-specific offer rate" implies. Without it, "50 USD for 2,000 VES" and "1 USD for 40 VES"
+  cannot be ranged or ordered together, so the filter would silently compare incomparable values.
 - **Rate staleness becomes the seller's risk, silently.** An offer published at one rate and left
   open drifts out of date with no system-level signal. The offer's expiry is now the only mitigation,
   which raises the weight of the expiry decision (SP02 U7).

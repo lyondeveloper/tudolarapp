@@ -117,6 +117,14 @@ Hard exclusions (the closed-schema invariant): **no** `price`/`rate`, **no** `ma
 
 - The parser returns `unresolved[]` and per-field `confidence`.
 - The app **must** ask for clarification when a **required** field is unresolved. Required = direction. When GPS is unavailable, a location or an explicit in-market hint is required (see SP05, `/tmp/backlog2.md:62`).
+
+> **Correction — `docs/adr/0002-search-location-is-optional.md` (spike-interface-reconciliation).** The
+> sentence above is wrong and is corrected here rather than rewritten. **Location is optional**, and it
+> is **not** required when GPS is unavailable. When GPS is unavailable, denied, or outside the node,
+> the search runs against the **whole active market** with no proximity filter — matching SP05, SP12,
+> the backlog, and this report's own test #7 (§7 below), which already asserts it. Only `direction` is
+> required; a location hint, when present, may only **narrow** results inside the active market. The
+> original text is left visible above as evidence.
 - When the direction resolves but `amount`, `location`, or `radius` is low-confidence, the app **must** show the interpreted criteria for correction/confirmation (`docs/flows/search-and-contact.md:11`) before querying.
 - Direct query without a confirmation step is allowed only when every present field is high-confidence. The threshold value is a product decision (§5).
 - Clarification is a question with tappable options (e.g. "Did you mean Zelle → USD cash, or Zelle → VES?"), never an open re-prompt loop.

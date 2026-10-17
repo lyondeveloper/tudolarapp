@@ -127,6 +127,17 @@ Whatever is chosen, already-confirmed transactions must be unaffected (`backlog2
 | U10 | Production email/SMS providers and the WebAuthn RP domain + app associations | Product owner + technical lead (`README.md:54`; `docs/audit/t00-baseline.md:188–195`) |
 | U11 | Billing support workflow: who handles a failed renewal, a disputed charge, or an incorrect expiry, and the response expectation | Operations + trust & safety (SP07 owns the general workflow) |
 
+> **Correction — `docs/adr/0006-publish-authorization-composition.md` (spike-interface-reconciliation).**
+> (1) Entitlement's role in the publish gate is settled: publishing requires **seller eligibility AND
+> subscription entitlement**, and the gate is **composed in the offer-publish use case from those two
+> ports** — not in the controller and not inside either module. Entitlement remains the pure function
+> of stored state plus the server clock described in §4.2; it is **one of the two gate inputs**, not
+> the whole gate.
+> (2) Removing Zelle from the MVP **narrows but does not close** this report's legal exposure. What
+> remains: **USDT / OFAC sanctions screening** (U8), **app-store billing** for the seller subscription
+> (U6), and the **privacy and retention** obligations for billing records, report evidence, and any
+> stored location (U7). The Zelle-specific review scope is moot; these three are not.
+
 ## 6. Product and technical impact
 
 - **Product.** The publishing gate becomes the seller's contract: the offer form must surface entitlement and expiry clearly (T17 already requires displaying subscription status and expiry, `backlog2.md:232`), and must fail with an actionable message rather than a generic error. Subscription priority, if any, must be labelled as paid promotion and never presented as neutral ranking (`docs/flows/search-and-contact.md:55`). Subscription status must never read as a trust or safety guarantee (`AGENTS.md:15`).

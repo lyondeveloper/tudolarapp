@@ -70,6 +70,15 @@ The question this spike must answer is how to normalize the ten pairs so that a 
 
 Normalize each leg of a pair as **(asset, rail, delivery)** and keep the pair as an ordered `(give, receive)` tuple drawn from the closed catalog of ten. The following matrix is the recommendation for the product owner's approval; it adds no directions.
 
+> **Correction — `docs/adr/0005-pair-and-rail-representation.md` (spike-interface-reconciliation).** The
+> two-axis leg is confirmed as the **internal** model, but the ADR adds the external boundary: the API
+> and the search criteria expose a single **closed pair id** derived from `{asset, rail, delivery}` /
+> `(give, receive)`, because validation needs a flat allowlist. So U6 is settled in shape (two axes
+> inside, one closed pair id out); only the enum **members** remain the product owner's. The companion
+> resolution for the gate that publishes an offer is
+> `docs/adr/0006-publish-authorization-composition.md`. The original text is left visible above as
+> evidence.
+
 Legend — **Assets:** `USD`, `VES`, `USDT`. **Rails:** `USD cash` and `VES cash` are physical forms; `VES bank transfer` and `Zelle` are digital bank rails; `USDT transfer` is a digital on-chain rail. **Delivery:** physical (in-person handover) or digital (remote transfer).
 
 | # | Pair (buyer gives → buyer receives) | Buyer gives: asset / rail / delivery | Buyer receives: asset / rail / delivery | Fulfillment |

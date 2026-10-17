@@ -61,6 +61,13 @@ The adjacent task that consumes this design is T13 (`/tmp/backlog2.md`, lines 19
 - **A single `Json` snapshot column on the agreement, overwritten on change.** Rejected — overwriting destroys the audit trail and lets a change silently alter confirmed terms (forbidden by SP02).
 - **Snapshot only the offer's fields at confirmation time.** Kept as a refinement: the snapshot should capture **pair, amount, rate, seller margin/commission, and agreed conditions** (T13 line 201) — the exact field list is SP02's, not this spike's.
 
+> **Correction — `docs/adr/0001-terms-versions-belong-to-the-offer.md` (spike-interface-reconciliation).**
+> The immutable terms version belongs to the **OFFER**, not the agreement. This report's
+> agreement-scoped `agreement_terms_version` is superseded: the source of truth is the offer's
+> `offer_terms_versions` (the design SP09 recommends), and the agreement references an offer version id
+> rather than owning the snapshot. A denormalized copy of the referenced version on the agreement is
+> allowed, but it is not the source. The original recommendation above is left visible as evidence.
+
 ### 3.5 Reconfirmation after a terms change
 
 - **Same agreement returns to `awaiting_confirmation` with version N+1; both confirmations reset.** **Recommended** — one record, clear audit chain.

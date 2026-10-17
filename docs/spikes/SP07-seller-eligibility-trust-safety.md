@@ -87,6 +87,15 @@ Each option lists pros, cons, and why it was kept or rejected. Options marked **
 - **Define report/block/no-show/incident/moderation/appeal as one support workflow** with named roles, evidence retained, user-visible outcomes, escalation, and response expectations (table below), reusing the incident concept from SP04.
 - **Keep the platform's user actions to discovery, contact, coordination, reporting, blocking, and moderation**; no action should imply the platform can compel or enforce an offline exchange.
 
+> **Correction — `docs/adr/0006-publish-authorization-composition.md` (spike-interface-reconciliation).**
+> The publish gate is composed in the **offer-publish use case** from **two ports** — seller
+> eligibility **AND** subscription entitlement — not from eligibility alone, and not in the controller
+> or inside either module. The three concepts keep three distinct names: `AccountStatus` (may sign in),
+> `SellerEligibility` (may publish), and entitlement (subscription active); **"suspended" must not be
+> reused across them**, so the `SellerEligibility` state set in §3 B must not reuse
+> `AccountStatus.suspended`. The companion pair/rail resolution is
+> `docs/adr/0005-pair-and-rail-representation.md`. The original text is left visible above as evidence.
+
 ### Proposed support workflow (roles, evidence, outcomes, escalation, response) — options for the owner
 
 Every column except the workflow name is a proposal to be confirmed; the **owner** column names who decides.

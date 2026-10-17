@@ -128,6 +128,27 @@ rate and `M` the seller margin:
 
 Concrete sources, margin bounds, and whether `M` may be zero/negative are §5.
 
+> **Correction — `docs/adr/0005-pair-and-rail-representation.md` (spike-interface-reconciliation).** The
+> rate rows above are keyed by display labels ("VES → USD cash / Zelle"); the ADR settles the external
+> representation as a single **closed pair id** derived from the two internal axes
+> (`{asset, rail, delivery}`, ordered `(give, receive)`). Read each row's key as that pair id — the
+> label text is not the contract. The companion resolution for the gate that publishes an offer is
+> `docs/adr/0006-publish-authorization-composition.md`. The original text is left visible above as
+> evidence.
+
+> **Correction — `docs/adr/0008-seller-sets-commercial-values.md` (spike-interface-reconciliation).**
+> The platform-reference-rate model in this report is **superseded**. The product owner has decided
+> that **the seller sets every commercial value**, and the platform publishes no reference rate and
+> derives none. This report's open decisions U1 and U2 (reference-rate **source** and **time**) are
+> therefore resolved as **not applicable** — there is no reference to source or timestamp — and `R_ref`
+> in the rows above should be read as *the seller's stated rate*, not a platform one. The quote becomes
+> the seller's stated terms frozen with a validity window, carrying no reference source and no
+> reference as-of time. U5–U8 (quote validity, rounding scale, min/max bounds, expiry) still stand and
+> remain the product owner's. The consequence to own deliberately: listings are no longer comparable by
+> rate, so no "good deal" signal or value sort is possible, and rate staleness becomes the seller's
+> silent risk with offer expiry as its only mitigation. The original text is left visible above as
+> evidence.
+
 ### 3.4 Quote validity and refresh
 
 - **A. Static offer, no separate quote.** *Rejected as the only mechanism* — no way to bound

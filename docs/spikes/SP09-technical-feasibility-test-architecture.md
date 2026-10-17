@@ -154,6 +154,12 @@ version rows can be enforced with a trigger or a revoked privilege, which is **u
 and therefore hand-written SQL in a `--create-only` migration — the same drift risk as CHECKs, so it
 must be verified against `pg_constraint`/`pg_trigger` (`AGENTS.md:39`).
 
+> **Correction — `docs/adr/0001-terms-versions-belong-to-the-offer.md` (spike-interface-reconciliation).**
+> This is the side the ADR chose: the immutable terms version belongs to the **OFFER**, so the
+> append-only `offer_terms_versions` table above is the source of truth and an agreement references a
+> version id. SP04's agreement-scoped `agreement_terms_version` (the competing design) is superseded by
+> this ADR. The original recommendation above is left visible as evidence.
+
 ### 3.4 Geospatial query safety
 
 - **A. `geography` + `ST_DWithin` (meters).** Pros: unit-correct distances, no SRID projection

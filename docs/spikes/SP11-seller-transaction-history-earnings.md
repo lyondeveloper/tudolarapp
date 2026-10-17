@@ -166,6 +166,14 @@ the summary. Mutually cancelled → shown with its timestamp, contributes 0, res
 Disputed/incident → flagged, excluded from totals until resolved; a completion disagreement is an
 incident, never a completion (T13).
 
+> **Correction — `docs/adr/0004-agreement-status-enum.md` (spike-interface-reconciliation).** This
+> report invented status labels. The authoritative agreement status enum is
+> `awaiting_confirmation`, `confirmed_by_both`, `completed`, `cancelled`, `incident_open`,
+> `expired`. Read "mutually cancelled" above as `cancelled` and "disputed/incident" as
+> `incident_open`; `awaiting_confirmation` and `expired` are states this report never named. F01
+> renders this report's approved statuses, so the labels must match the enum before either is built.
+> The original text is left visible above as evidence.
+
 **Daily summary.** Per asset bucket, for completed exchanges only, on the market-local civil day:
 completed count, total agreed volume, and — only if the product owner approves — the self-declared
 expected margin, labelled as unverified and never as profit or verified earnings. No cross-asset

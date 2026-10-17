@@ -69,6 +69,16 @@ Pros: reduces cost, latency, and PII exposure to only the hard cases; degrades g
 
 Adopt **Option D (rules-first with a hosted, schema-constrained LLM fallback)** behind a single port, and select the concrete provider by the scorecard below. Mark the framework/provider choice **unresolved** for product and security (§5): this spike recommends with trade-offs, it does not decide.
 
+> **Correction — `docs/adr/0003-search-criteria-schema-is-closed.md` (spike-interface-reconciliation).**
+> The criteria field names this report shows are stale. The closed schema (owned by SP06, adopted here)
+> uses `direction{give,receive}`, `amount{value,asset}` and `location{hint_text,radius_km}`, with the
+> top-level `intent` enum `search_offer | unsupported`. Read the older names below — `action`,
+> `payment_method_offered`, `payment_method_wanted`, `location_hint`, `max_distance_km`, and a
+> bare-number `amount` — as those current fields. The schema also gains an explicit
+> **unparsed / needs-clarification** outcome so the parser can say it **cannot parse** rather than
+> guess; this report's "explicit 'cannot parse'" output is that outcome. The original text is left
+> visible below as evidence.
+
 - **Port and placement.** Define an `IntentParserPort` (input: raw Spanish text + active-market context; output: the closed criteria object or an explicit "cannot parse"). Implement adapters under `adapters/out/` following `apps/api/src/auth/adapters/out/` and the `Unavailable`/config-selected pattern in `apps/api/src/auth/auth.module.ts` and `apps/api/src/config/env.validation.ts`. The key stays server-side; no provider secret is ever bundled in the app (`AGENTS.md:97`).
 - **Schema-constrained output.** Require the provider's structured-output/JSON-schema mode so the model cannot emit free-form text, extra fields, or enums outside the catalog. The schema is owned by SP06; the enum values by SP01.
 - **Same deterministic path as manual search.** The parsed criteria object is passed to the **same** search use case that manual filters use. There is no second query builder, no LLM-authored ordering. Ranking stays deterministic in PostgreSQL/PostGIS (`README.md:20`, `docs/architecture.md:52`).

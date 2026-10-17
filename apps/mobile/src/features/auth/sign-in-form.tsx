@@ -1,3 +1,4 @@
+import type { ComponentProps } from 'react';
 import { Controller } from 'react-hook-form';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import {
@@ -11,14 +12,24 @@ import { Heading } from '@/components/ui/heading';
 import { Input, InputField } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
+import { textStyle } from '@/theme/typography';
 import { useSignInForm } from './use-sign-in-form';
+
+/**
+ * gluestack's Heading types its `style` prop through `@expo/html-elements`,
+ * whose web style clashes with React Native's `TextStyle`. The value is a plain
+ * React Native text style, so the cast is only about the prop's declared type.
+ */
+const TITLE_STYLE = textStyle('headline-lg-mobile') as ComponentProps<
+  typeof Heading
+>['style'];
 
 export function SignInForm() {
   const { control, onSubmit, errors, isSubmitting } = useSignInForm();
 
   return (
     <VStack className="w-full gap-6">
-      <Heading size="xl">Sign in</Heading>
+      <Heading style={TITLE_STYLE}>Sign in</Heading>
 
       <Controller
         control={control}
@@ -27,7 +38,12 @@ export function SignInForm() {
         render={({ field: { onChange, onBlur, value } }) => (
           <FormControl isInvalid={Boolean(errors.identifier)}>
             <FormControlLabel>
-              <FormControlLabelText>Username or email</FormControlLabelText>
+              <FormControlLabelText
+                className="text-foreground"
+                style={textStyle('label-md')}
+              >
+                Username or email
+              </FormControlLabelText>
             </FormControlLabel>
             <Input>
               <InputField
@@ -35,11 +51,12 @@ export function SignInForm() {
                 autoComplete="username"
                 onBlur={onBlur}
                 onChangeText={onChange}
+                style={textStyle('body-md')}
                 value={value}
               />
             </Input>
             <FormControlError>
-              <FormControlErrorText>
+              <FormControlErrorText style={textStyle('body-sm')}>
                 {errors.identifier?.message}
               </FormControlErrorText>
             </FormControlError>
@@ -54,7 +71,12 @@ export function SignInForm() {
         render={({ field: { onChange, onBlur, value } }) => (
           <FormControl isInvalid={Boolean(errors.password)}>
             <FormControlLabel>
-              <FormControlLabelText>Password</FormControlLabelText>
+              <FormControlLabelText
+                className="text-foreground"
+                style={textStyle('label-md')}
+              >
+                Password
+              </FormControlLabelText>
             </FormControlLabel>
             <Input>
               <InputField
@@ -62,11 +84,12 @@ export function SignInForm() {
                 onBlur={onBlur}
                 onChangeText={onChange}
                 secureTextEntry
+                style={textStyle('body-md')}
                 value={value}
               />
             </Input>
             <FormControlError>
-              <FormControlErrorText>
+              <FormControlErrorText style={textStyle('body-sm')}>
                 {errors.password?.message}
               </FormControlErrorText>
             </FormControlError>
@@ -75,12 +98,14 @@ export function SignInForm() {
       />
 
       {errors.root ? (
-        <Text className="text-destructive">{errors.root.message}</Text>
+        <Text className="text-destructive" style={textStyle('body-md')}>
+          {errors.root.message}
+        </Text>
       ) : null}
 
       <Button onPress={onSubmit} isDisabled={isSubmitting}>
         {isSubmitting ? <ButtonSpinner /> : null}
-        <ButtonText>Sign in</ButtonText>
+        <ButtonText style={textStyle('label-lg')}>Sign in</ButtonText>
       </Button>
     </VStack>
   );

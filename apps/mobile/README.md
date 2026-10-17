@@ -34,6 +34,40 @@ The client reads its API base URL from `app.json` → `expo.extra.apiBaseUrl`, d
 `http://localhost:3000`. `localhost` only reaches the host from a simulator; a physical device
 needs the host's LAN address.
 
+## Design system
+
+The client renders from the approved **Civic Trust Exchange** design system (the Stitch project
+"TUDOLAR P2P Marketplace Prototype"). Two files carry it, and there is no `tailwind.config.*` or
+nativewind config:
+
+- **[`src/global.css`](src/global.css) — colour, radius, and spacing.** It declares the tokens as
+  CSS variables and maps them to Tailwind utilities. Values are space-separated RGB triplets, not
+  hex, because the mappings consume them as `rgb(var(--token))`.
+- **[`src/theme/typography.ts`](src/theme/typography.ts) — the type scale.** Sizes, line heights,
+  weights, and the families loaded through `expo-font`.
+
+Consume a role by naming it as a class, never by writing a value:
+
+```tsx
+<Box className="flex-1 bg-background">
+  <Text className="text-foreground" style={textStyle('body-lg')}>
+    {user.displayName}
+  </Text>
+  <Text className="text-muted-foreground" style={textStyle('body-md')}>
+    {identity}
+  </Text>
+</Box>
+```
+
+Roles in use: `primary` / `primary-foreground` for actions, `secondary` and `success` for
+affirmative states, `warning` / `warning-border` / `warning-foreground` for non-custody and safety
+notices, `background` / `surface` / `surface-muted` for surfaces, `outline` and `outline-variant`
+for borders, and `foreground` / `muted-foreground` for text.
+
+Light is the default presentation. The `@variant dark` block is a seam: it keeps the dark
+presentation rendering, but no dark palette has been authored. See [`AGENTS.md`](AGENTS.md) for the
+rules that keep the layer coherent.
+
 ## Checks
 
 ```bash
@@ -45,16 +79,23 @@ npx expo lint        # lint
 Run all three before declaring a task done. See [`AGENTS.md`](AGENTS.md) for the commands, the
 Expo-version caveats, and the `@react-native/jest-preset` version pin.
 
+Jest stubs stylesheets, so a class name does not resolve to a style in a test. Assert at the token
+source — [`src/theme/design-tokens.spec.ts`](src/theme/design-tokens.spec.ts) reads `global.css`
+and checks the approved values — or on the roles a screen names, never on resolved colours.
+
 ## Structure
 
 ```
 src/
   app/            expo-router routes; every file here is a screen
-  __tests__/      shell specs (one renderRouter scenario per file)
+  __tests__/      shell and screen specs
   components/ui/  gluestack-ui components
   features/       auth and session logic
   services/       the single RTK Query API slice
   store/          Redux store, typed hooks, connectivity wiring
+  theme/          the typographic scale and its contract test
+  test-support/   helpers shared by specs
+  global.css      colour, radius, and spacing tokens
 ```
 
 Tests must not live under `src/app`: expo-router registers every file there as a route.

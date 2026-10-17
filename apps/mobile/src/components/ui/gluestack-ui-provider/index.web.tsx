@@ -11,7 +11,7 @@ const useSafeLayoutEffect =
   typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 export function GluestackUIProvider({
-  mode = 'dark',
+  mode = 'light',
   ...props
 }: {
   mode?: ModeType;

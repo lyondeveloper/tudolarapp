@@ -1,3 +1,4 @@
+import type { ComponentProps } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Box } from '@/components/ui/box';
@@ -7,6 +8,15 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { RequireAuthenticated } from '@/features/session/session-gate';
 import { useCurrentUserQuery } from '@/services/api';
+import { textStyle } from '@/theme/typography';
+
+/**
+ * gluestack's Heading types its `style` prop through `@expo/html-elements`,
+ * whose web style clashes with React Native's `TextStyle`. See sign-in-form.tsx.
+ */
+const TITLE_STYLE = textStyle('headline-lg-mobile') as ComponentProps<
+  typeof Heading
+>['style'];
 
 /**
  * Temporary authenticated screen.
@@ -26,20 +36,29 @@ export default function HomeScreen() {
       <Box className="flex-1 bg-background">
         <SafeAreaView className="flex-1 justify-center px-6">
           <VStack className="w-full gap-4">
-            <Heading size="xl">Signed in</Heading>
+            <Heading style={TITLE_STYLE}>Signed in</Heading>
 
             {isLoading ? <Spinner /> : null}
 
             {isError ? (
-              <Text className="text-destructive">
+              <Text className="text-destructive" style={textStyle('body-md')}>
                 Could not load your profile.
               </Text>
             ) : null}
 
             {user ? (
               <>
-                <Text>{user.displayName}</Text>
-                {identity ? <Text>{identity}</Text> : null}
+                <Text className="text-foreground" style={textStyle('body-lg')}>
+                  {user.displayName}
+                </Text>
+                {identity ? (
+                  <Text
+                    className="text-muted-foreground"
+                    style={textStyle('body-md')}
+                  >
+                    {identity}
+                  </Text>
+                ) : null}
               </>
             ) : null}
           </VStack>

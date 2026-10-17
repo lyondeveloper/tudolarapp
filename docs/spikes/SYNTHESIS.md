@@ -183,9 +183,9 @@ see.
 
 | Cross-check | Most important finding |
 | --- | --- |
-| **A — transaction lifecycle** | The immutable terms version has **two incompatible parents**: SP04 scopes it to the agreement, SP09 to the offer. SP09 is correct, because T13 requires the record to capture the same version of the offer's terms. SP11 also assumed status labels ("mutually cancelled", "disputed") that do not match SP04's actual enum (`cancelled`, `incident_open`, plus `awaiting_confirmation` and `expired`). |
-| **B — discovery** | **A direct contradiction:** SP06 makes a location *required* when GPS is unavailable, while SP05, SP12 and the backlog all say search the whole active node — and SP06 contradicts its own test case. Separately, SP12's parser still emits SP06's *old* field names. |
-| **C — commercial and trust** | SP01 gives each direction a seller-set rate while SP02 keeps a platform reference rate with only a margin on top — a product call about whether a platform reference exists at all. The pair/rail enum also has **four incompatible shapes** across SP01, SP02, SP06 and SP12, and nobody owns composing SP08's entitlement with SP07's eligibility into the publish gate. |
+| **A — transaction lifecycle** | **Resolved.** The immutable terms version had two incompatible parents — SP04 scoped it to the agreement, SP09 to the offer — and **ADR-0001** puts it on the offer, because T13 requires the record to capture the offer's terms version. SP11's invented status labels ("mutually cancelled", "disputed") are superseded by **ADR-0004**, which adopts SP04's enum (`awaiting_confirmation`, `confirmed_by_both`, `completed`, `cancelled`, `incident_open`, `expired`). |
+| **B — discovery** | **Resolved.** SP06 made a location *required* when GPS is unavailable, contradicting SP05, SP12, the backlog and its own test case; **ADR-0002** makes location optional and searches the whole active market. SP12's stale field names and its missing "cannot parse" outcome are settled by **ADR-0003**, which puts the closed schema on SP06. |
+| **C — commercial and trust** | **Resolved.** SP01's seller-set rate versus SP02's platform reference is settled by **ADR-0008**: the seller sets every commercial value, no reference exists, and the rate remains a structured field search filters and orders by. The four incompatible pair/rail shapes are settled by **ADR-0005** (two axes internally, one closed pair id externally). The unowned publish gate is settled by **ADR-0006** (composed in the use case from two ports). |
 
 ## Next step
 

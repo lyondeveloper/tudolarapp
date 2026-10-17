@@ -55,9 +55,15 @@ describe('app shell for an anonymous session', () => {
   it('presents sign-in first and no starter-template screen', async () => {
     const router = renderRouter('src/app', { initialUrl: '/' });
 
-    await waitFor(() => {
-      expect(router.getPathname()).toBe('/sign-in');
-    });
+    // `renderRouter` turns on fake timers, so `waitFor` advances time in 50ms
+    // steps; the explicit budget keeps this deterministic under load.
+    await waitFor(
+      () => {
+        expect(store.getState().session.status).toBe('anonymous');
+        expect(router.getPathname()).toBe('/sign-in');
+      },
+      { timeout: 10_000 },
+    );
 
     // The sign-in screen is the one presented.
     expect(screen.getByText('Username or email')).toBeTruthy();

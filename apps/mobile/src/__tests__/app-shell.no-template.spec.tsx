@@ -53,10 +53,14 @@ describe('starter template removal', () => {
   it('has no starter-template explore screen', async () => {
     renderRouter('src/app', { initialUrl: '/explore' });
 
-    // Wait for the router to settle on something before asserting.
-    await waitFor(() => {
-      expect(screen.toJSON()).not.toBeNull();
-    });
+    // Wait for the router to settle on something before asserting. The explicit
+    // budget is needed because `renderRouter` turns on fake timers.
+    await waitFor(
+      () => {
+        expect(screen.toJSON()).not.toBeNull();
+      },
+      { timeout: 10_000 },
+    );
 
     expect(screen.queryByText('Expo documentation')).toBeNull();
     expect(screen.queryByText('Welcome to Expo')).toBeNull();

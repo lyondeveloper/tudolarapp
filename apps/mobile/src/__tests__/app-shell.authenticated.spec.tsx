@@ -95,12 +95,24 @@ describe('app shell for a restored session', () => {
     secureStore.__store.set(REFRESH_TOKEN_KEY, 'stored-refresh-token');
     const router = renderRouter('src/app', { initialUrl: '/' });
 
-    await waitFor(() => {
-      expect(router.getPathname()).toBe('/home');
-    });
-    await waitFor(() => {
-      expect(screen.getByText('Demo User')).toBeTruthy();
-    });
+    // The restore resolves through secure storage, RTK Query, and a mocked
+    // `fetch`. `renderRouter` turns on fake timers, so `waitFor` advances time in
+    // 50ms steps and the default 1s budget is only about twenty pumps — not
+    // enough for that chain when the machine is busy. The explicit budget keeps
+    // the spec deterministic under load.
+    await waitFor(
+      () => {
+        expect(store.getState().session.status).toBe('authenticated');
+        expect(router.getPathname()).toBe('/home');
+      },
+      { timeout: 10_000 },
+    );
+    await waitFor(
+      () => {
+        expect(screen.getByText('Demo User')).toBeTruthy();
+      },
+      { timeout: 10_000 },
+    );
 
     // The sign-in screen is not presented.
     expect(screen.queryByText('Username or email')).toBeNull();

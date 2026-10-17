@@ -37,8 +37,9 @@ leaving the entitlement **port** in place so ADR-0006's publish gate is real rat
 - The subscription decisions themselves are **deferred, not decided** — plans, prices, provider,
   expiry/grace, refunds, and app-store billing remain open for a later change
   (`docs/spikes/SYNTHESIS.md:106-107`).
-- Revisit when subscriptions land; this is the same trigger as the `accountType` revisit recorded in
-  ADR-0016 (`docs/adr/0016-mvp-account-type.md`).
+- Revisit when subscriptions land: entitlement then becomes the second input of the same publish gate
+  ADR-0006 defines, with no change to how eligibility is modelled
+  (`docs/adr/0016-mvp-account-type.md`).
 - Left open (unchanged): group **G** (the legal review, including app-store billing and privacy for
   billing) and group **I** (pilot) remain open
   (`openspec/changes/t01-product-decisions/design.md:99-115`).

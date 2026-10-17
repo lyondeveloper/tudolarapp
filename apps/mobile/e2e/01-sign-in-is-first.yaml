@@ -1,0 +1,17 @@
+# The app must present sign-in first when no session is stored, and must not
+# fall back to any starter-template screen.
+appId: com.lyondeveloper.mobile
+name: Sign-in is the first screen
+---
+- launchApp:
+    clearState: true
+    # The session refresh token lives in the iOS Keychain, which clearState does
+    # not touch; without this a previous flow's sign-in leaks into the next one.
+    clearKeychain: true
+- assertVisible:
+    id: 'sign-in-identifier'
+- assertVisible:
+    id: 'sign-in-password'
+- assertVisible:
+    id: 'sign-in-submit'
+- assertNotVisible: 'Welcome to Expo'

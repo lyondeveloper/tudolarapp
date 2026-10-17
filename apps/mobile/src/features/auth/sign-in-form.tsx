@@ -52,6 +52,7 @@ export function SignInForm() {
                 onBlur={onBlur}
                 onChangeText={onChange}
                 style={textStyle('body-md')}
+                testID="sign-in-identifier"
                 value={value}
               />
             </Input>
@@ -85,6 +86,7 @@ export function SignInForm() {
                 onChangeText={onChange}
                 secureTextEntry
                 style={textStyle('body-md')}
+                testID="sign-in-password"
                 value={value}
               />
             </Input>
@@ -103,7 +105,7 @@ export function SignInForm() {
         </Text>
       ) : null}
 
-      <Button onPress={onSubmit} isDisabled={isSubmitting}>
+      <Button onPress={onSubmit} isDisabled={isSubmitting} testID="sign-in-submit">
         {isSubmitting ? <ButtonSpinner /> : null}
         <ButtonText style={textStyle('label-lg')}>Sign in</ButtonText>
       </Button>

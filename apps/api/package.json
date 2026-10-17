@@ -23,7 +23,10 @@
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "test:cov": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
     "test:debug": "node --experimental-vm-modules --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/jest/bin/jest.js --runInBand",
-    "test:e2e": "node ./test/run-e2e.cjs"
+    "test:e2e": "node ./test/run-e2e.cjs",
+    "test:e2e:api": "node ./test/start-e2e-api.cjs",
+    "test:e2e:seed": "node ./test/seed-e2e.cjs",
+    "test:e2e:teardown": "node ./test/teardown-e2e.cjs"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -79,7 +82,11 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
+    "rootDir": ".",
+    "roots": [
+      "<rootDir>/src",
+      "<rootDir>/test"
+    ],
     "testRegex": ".*\\.spec\\.ts$",
     "moduleNameMapper": {
       "^(\\.{1,2}/.*)\\.js$": "$1"
@@ -88,12 +95,12 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "src/**/*.(t|j)s"
     ],
     "coveragePathIgnorePatterns": [
       "/generated/"
     ],
-    "coverageDirectory": "../coverage",
+    "coverageDirectory": "coverage",
     "testEnvironment": "node"
   }
 }

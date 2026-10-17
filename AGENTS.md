@@ -20,7 +20,10 @@ Work is planned as OpenSpec changes. The backlog is authored in Notion; the dura
 
 - **Requirement** — Do not write production code for a feature, bug, or behavior change until an approved change exists under `openspec/changes/<change-id>/`. A human reviews the planning artifacts before implementation starts.
 - **Requirement** — Run the loop as explore → propose → human review → apply → verify → archive. `openspec-propose` plans only and must not implement; start `/openspec-apply-change` in a fresh session once the plan is approved.
-- **Requirement** — Keep one change per backlog task. Do not batch several Notion tasks into one change, and do not start a task whose predecessor is not marked Done in the backlog.
+- **Requirement** — Keep one change per backlog task. Do not batch several Notion tasks into one change.
+- **Requirement** — Start a task only when its direct dependencies are Done. The backlog is a dependency graph with parallel waves, not a linear chain: independent tasks run concurrently, and a failing task blocks only its dependents.
+- **Requirement** — Every implementation task must add or update end-to-end coverage for its acceptance criteria **before** implementing the feature's behavior, and cannot be marked Done until those scenarios pass. If coverage cannot be implemented or a scenario fails, stop the task, document the concrete blocker, and ask; never waive the requirement. Entry points, isolation guarantees, and conventions: [`docs/testing/e2e.md`](docs/testing/e2e.md).
+- **Requirement** — The end-to-end foundation is a global gate. No not-yet-Done task — including a discovery spike — begins until the API suite and the mobile flows pass.
 - **Requirement** — `tasks.md` is the progress source of truth; there is no hidden state. Each behavior task names its test file and the exact command that runs it, and the red phase from `tdd-red-first` is verified before implementing.
 - **Requirement** — Never hand-create a change folder or write artifacts from memory. Use `openspec new change` and `openspec instructions` so `.openspec.yaml`, the schema templates, and the rules in `openspec/config.yaml` apply.
 - **Requirement** — Validate before presenting a plan: `openspec validate <change-id> --strict`. A change with no spec delta must set `skip_specs: true` in `.openspec.yaml` instead of inventing a requirement.

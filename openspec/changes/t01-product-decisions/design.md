@@ -25,98 +25,111 @@ Recorded here so they stop living in chat. Each already has an ADR or an authori
 | **E2E stays local-only** — the mobile suite joins no CI or launch gate | `SYNTHESIS.md` |
 | **Terms versions belong to the offer**; SP04's status enum; the closed search-criteria schema; two-axis pairs with one closed id; the publish gate composed in the use case | **ADR-0001**–**0006** |
 
+## The register, answered
+
+The product owner authorized these calls on 2026-10-17, with the instruction that the MVP be built
+step by step from them. Each becomes an ADR; any of them can be overruled, and overruling one means
+editing its ADR rather than adding a second.
+
+**MVP shape.** The MVP is the **both-sides loop**: a seller publishes an offer and a buyer finds it in
+search, on the real mobile app, against the real API and database. Accounts are separated by purpose
+through an **`accountType` of `seller` or `buyer` on the user model**, so a demo can hand one phone to
+each side.
+
+> **Flagged tension, deliberately accepted for the MVP.** An account *type* of "seller" collides with
+> ADR-0006, where selling is a **state** (`SellerEligibility` plus entitlement), not an account kind —
+> in the real product one person may both buy and sell. For the MVP, `accountType` is a convenience
+> that seeds `SellerEligibility`; it is not a new authorization axis, and no permission may be granted
+> from `accountType` alone. Revisit when subscriptions land.
+
+### A — pair and rail
+
+- **A1** Five canonical pair ids: `VES_USDT`, `VES_BANK_TO_VES_CASH`, `VES_USD_CASH`, `USDT_VES`,
+  `USDT_USD_CASH`. Assets: `VES`, `USD`, `USDT`. Rails: `VES_CASH`, `VES_BANK_TRANSFER`,
+  `USD_CASH`, `USDT_TRANSFER`. **The unqualified "VES" leg is physical cash**, because the product is
+  in-person and the catalog itself contrasts "VES" with "VES in a bank account".
+- **A2** A meeting is required whenever **either leg is physical**. A pair with two digital legs would
+  not need one — but with Zelle gone, no MVP pair has two digital legs, so every MVP pair is in person.
+
+### B — pricing and the offer
+
+- **B1** Margin is a **percentage** the seller sets, bounded to `0 ≤ margin < 100`.
+- **B2** Same-asset pairs (`VES_BANK_TO_VES_CASH`) carry **no rate** — there is no conversion. They
+  carry a margin only, which is the seller's compensation for the form conversion.
+- **B3** Quote validity **15 minutes**; the confirmation binds to the quote it was shown.
+- **B4** Round **once, server-side, to the receive asset's minor unit**: `VES` and `USD` to 2 decimals,
+  `USDT` to 6.
+- **B5** The seller sets per-offer min and max. The platform sets only a floor of `> 0`; there is no
+  platform maximum in the MVP.
+- **B6** Offer expiry defaults to **7 days**, capped at **30**. Expiry is load-bearing under ADR-0008,
+  because it is the only mitigation for a stale rate.
+
+### C — agreement
+
+- **C1** A single-party incident report **does not** release the reservation. Release happens only on
+  mutual cancellation or a moderation decision — the anti-abuse choice, since the alternative hands
+  one party a unilateral way to free inventory.
+- **C2** During reconfirmation the reservation is **held**.
+- **C3** An unconfirmed agreement **expires after 24 hours**, releasing any hold.
+
+### D — inventory
+
+- **D1** **No replenishment** in the MVP. A seller wanting more publishes a new offer. SP03's
+  append-only ledger stays the documented option if this is revisited.
+
+### E — onboarding and trust
+
+- **E1** **No contact verification is required to publish** in the MVP — a documented pilot relaxation,
+  because both delivery providers are unconfigured. The obligation to verify before public launch is
+  recorded in the ADR.
+- **E2** **No reputation signals** in the MVP: no ratings, no badges, no KYC beyond nothing. Every
+  signal the platform lacks is one it cannot misrepresent as safety.
+- **E3** Blocking is **mutual and account-wide**.
+- **E4** Moderation is **manual review with an appeal path**; roles, evidence retention, and response
+  SLAs are recorded as owner-set placeholders rather than invented numbers.
+- **E5** Profiles and billing are **global**, not market-specific. There is one market in the MVP.
+
+### F — subscriptions
+
+- **F1–F5** **Deferred for the MVP.** Every seller is entitled through the documented temporary
+  mechanism the backlog explicitly permits, and no billing is built. This removes the entire
+  subscription build — provider, plans, webhooks, expiry — from the MVP while leaving the entitlement
+  *port* in place so ADR-0006's publish gate is real rather than stubbed.
+
+### G — legal
+
+- **G1–G3** Recorded as **legal-review inputs, not clearances**: USDT/OFAC screening, privacy and
+  retention for billing, report evidence and any stored location, and the jurisdictional review of the
+  VES / USD-cash / USDT model. No real money moves in the MVP, and none of these are answered by an
+  agent.
+
+### H — search parser
+
+- **H1–H5** **Natural-language search is deferred.** The MVP ships manual filters only. The parser port
+  stays defined but unimplemented, so the deferral is a missing adapter rather than a redesign.
+
+### I — pilot
+
+- **I1–I4** **Not yet decided, and not blocking the build.** Pilot thresholds, supply minimums, the
+  deferral list, and whether an analytics SDK is ever added belong to the pilot, not the MVP. The
+  register rows stay open.
+
+### J — smaller calls
+
+- **J1** The seller's margin is **not** displayed as "earnings" in the MVP; the earnings screen is
+  deferred with SP11's work. Nothing on any screen may read as profit or verified earnings.
+- **J2** Out-of-node copy: the app names the active market and offers "Search all of {market}" and
+  "Change market".
+- **J3** GPS accuracy threshold: accept a fix within **100 m**; a worse fix is treated as no fix.
+- **J4** Location is **not persisted**; the search centre is request-scoped. Nothing stores a user's
+  coordinates.
+- **J5** Default search radius **5 km**, bounded by the market polygon.
+
 ## The open register
 
-Grouped by what each decision blocks. **Owner** is who must answer; nothing here is an agent's call.
-
-### A — blocks the pair/rail contract and search (T02 → T09, T10)
-
-| # | Decision | Blocks |
-| --- | --- | --- |
-| A1 | **The pair/rail enum members and canonical labels** — which asset and rail identifiers exist (`VES_CASH` vs `VES_BANK_TRANSFER` vs `VES`; `USDT_TRANSFER`; `USD_CASH`), and **the rail of the unqualified "VES" leg**, which SP01 flagged as ambiguous | The offer direction, search filters, and the parser's enum |
-| A2 | **Whether fully-digital pairs require an in-person meeting** — some pairs have no physical leg at all, which sits in tension with the product's in-person framing | Search, safety guidance, and the agreement flow |
-
-### B — blocks pricing and the offer/quote contract (T02 → T09)
-
-| # | Decision | Blocks |
-| --- | --- | --- |
-| B1 | **How the seller margin is expressed** (percentage, absolute spread, or fixed amount) and its bounds | The offer schema and the quote |
-| B2 | **Whether a same-asset pair carries a rate at all** (VES bank → VES cash has no currency conversion) | The rate field's meaning per direction |
-| B3 | **Quote validity and refresh policy** | The quote's `valid_until` and the confirmation binding |
-| B4 | **Rounding scale and mode per asset** | The frozen amounts both parties see |
-| B5 | **Min/max amount bounds and who sets them** (platform, plan, or seller) | Offer validation and plan limits |
-| B6 | **Default offer expiry and its cap** — now load-bearing, because expiry is the *only* mitigation for rate staleness under ADR-0008 | Offer lifecycle and search visibility |
-
-### C — blocks the agreement state machine (T02 → T13)
-
-| # | Decision | Blocks |
-| --- | --- | --- |
-| C1 | **Does a single-party incident report release the reservation?** SP04 called this the single most consequential choice in the machine | The reservation release rule and the incident path |
-| C2 | **Is the reservation held or released during reconfirmation** after a terms change? | The terms-change transition |
-| C3 | **Do unconfirmed agreements expire, and after what window?** | Whether inventory can be pinned by an unresponsive party |
-
-### D — blocks the inventory model (T02 → T09)
-
-| # | Decision | Blocks |
-| --- | --- | --- |
-| D1 | **Is replenishment allowed at all?** SP03 recommends an append-only ledger *if* it is, but did not choose | The offer amount model and T09's scope |
-
-### E — blocks seller onboarding and trust (T06, T07, T14)
-
-| # | Decision | Blocks |
-| --- | --- | --- |
-| E1 | **Which contact verification is mandatory to publish** (email, phone, both, or none) — noting both delivery providers are unconfigured today | The publish gate and a launch dependency |
-| E2 | **Which reputation signals ship**, and whether sellers need identity/KYC beyond contact verification | The public profile and T14 |
-| E3 | **Blocking semantics** — one-way or mutual, and account-wide or per-conversation | Chat, reports, and the profile view |
-| E4 | **Moderation roles, evidence retention, appeal, and response SLAs** | T14's operations and the support model |
-| E5 | **Whether seller profiles and subscription billing are global or market-specific** | Several contracts at once — flagged since the first README |
-
-### F — blocks subscriptions (T08)
-
-| # | Decision | Blocks |
-| --- | --- | --- |
-| F1 | **Plan names, prices, currency of charge, and plan-based limits** | The plan model and the offer form |
-| F2 | **The initial payment provider or channel** | The billing port's concrete adapter |
-| F3 | **Access policy at expiry**, any grace period, and the listing rights of already-published offers | The entitlement function and T17's messaging |
-| F4 | **Renewal model and refund policy** | The subscription state machine |
-| F5 | **Whether app-store billing is mandatory** for a feature-unlocking subscription | The provider choice and its commission |
-
-### G — legal review (blocks launch, not the build)
-
-| # | Decision | Blocks |
-| --- | --- | --- |
-| G1 | **USDT/OFAC sanctions screening obligations** and the SDN/geography policy | Any USD or USDT leg |
-| G2 | **Privacy and retention obligations** for billing records, report evidence, and any stored location | Schema retention and the privacy notice |
-| G3 | **Jurisdictional review of the VES / USD-cash / USDT model and disclosures** | Launch, per SP08 |
-
-### H — blocks the search parser (T11, T12)
-
-| # | Decision | Blocks |
-| --- | --- | --- |
-| H1 | **LLM provider and model**, chosen by SP12's scorecard | The parser adapter |
-| H2 | **The PII-minimisation rule** for free text | What leaves the device |
-| H3 | **Cost budget at pilot scale** | Whether the hosted path is viable |
-| H4 | **Whether free-text parsing requires authentication** | The search endpoint's guard |
-| H5 | **Whether parsed criteria and prompts are logged or persisted**, and for how long | Retention and privacy |
-
-### I — blocks the pilot (T20)
-
-| # | Decision | Blocks |
-| --- | --- | --- |
-| I1 | **Pilot success and stop thresholds**, and the evaluation window | SP10's scorecard |
-| I2 | **Minimum seller and offer supply** | Launch readiness |
-| I3 | **The final deferral list** | Scope, and what T20 gates |
-| I4 | **Whether a client analytics SDK is added at all** — a new framework needs an approved ADR | SP10's instrumentation |
-
-### J — smaller product calls
-
-| # | Decision | Blocks |
-| --- | --- | --- |
-| J1 | **Whether the seller's margin is displayed as "earnings"**, and under what label | SP11's daily summary |
-| J2 | **Out-of-node UX copy** | SP06's clarification state |
-| J3 | **GPS accuracy threshold** | Whether a fix is trusted |
-| J4 | **Stored location precision and retention** | The location privacy boundary |
-| J5 | **Default search radius and its bounds** | The criteria defaults |
+**Superseded by the answers above.** The only rows still open are group **I** (pilot thresholds,
+supply minimums, deferral list, analytics SDK) and group **G** (legal review), and neither blocks the
+MVP build.
 
 ## Risks / Trade-offs
 
@@ -135,4 +148,6 @@ No code, schema, or dependency changes. Rollback is a revert of the commit.
 
 ## Open Questions
 
-This change *is* the open questions. There is no separate list.
+Two groups remain open, and neither blocks the MVP build: **I** (pilot thresholds, supply minimums,
+the deferral list, and whether an analytics SDK is ever added) belongs to the pilot, and **G** (the
+legal review) is an input from a lawyer rather than an engineering decision.

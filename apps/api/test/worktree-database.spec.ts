@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-const { worktreeDatabaseName } = require('./worktree-database.cjs');
+const { worktreeDatabaseName } = require('./worktree-database.cjs') as {
+  worktreeDatabaseName: (worktreePath: string) => string;
+};
 
 /**
  * Each worktree must get its own disposable database, and the name must satisfy
@@ -32,10 +34,10 @@ describe('worktreeDatabaseName', () => {
 
   it('is a valid unquoted PostgreSQL identifier', () => {
     for (const dir of [WORKTREE, '/a/B C', '/a/ñ', '/a/-leading', '/a/UPPER']) {
-      expect({ dir, name: worktreeDatabaseName(dir) }).toEqual({
+      expect({
         dir,
-        name: expect.stringMatching(/^[a-z_][a-z0-9_]*$/),
-      });
+        valid: /^[a-z_][a-z0-9_]*$/.test(worktreeDatabaseName(dir)),
+      }).toEqual({ dir, valid: true });
     }
   });
 

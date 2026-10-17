@@ -19,13 +19,13 @@
 
 ## 3. The API contract
 
-- [ ] 3.1 Write the failing test for the error envelope in `apps/api/src/common/errors/error-envelope.spec.ts`: every thrown application error and every `ValidationPipe` rejection answer with `{ error: { code, message, details? }, requestId }` and a code from the closed enum; verify it fails with `npm test -- error-envelope` from `apps/api`.
-- [ ] 3.2 Implement the envelope and the code enum, mapping the existing auth filter's shape and Nest's validation shape into it; verify the test from 3.1 passes and that the existing e2e auth scenarios still pass unchanged.
-- [ ] 3.3 Write the failing test for the market-context guard in `apps/api/src/common/market-context/market-context.guard.spec.ts`: a market-scoped endpoint rejects a missing header with a coded `400`, rejects an unknown market, and never defaults to all markets; verify it fails.
-- [ ] 3.4 Implement the guard and the `X-Market-Id` contract; verify 3.3 passes and that the guard is applied by explicit opt-in rather than globally, so health and auth stay market-free.
-- [ ] 3.5 Write the failing test for cursor pagination in `apps/api/src/common/pagination/cursor-pagination.spec.ts`: `?limit&cursor` caps the page size, returns an opaque `nextCursor`, and orders stably; verify it fails.
-- [ ] 3.6 Implement cursor pagination and the shared `{ items, nextCursor }` response shape; verify 3.5 passes.
-- [ ] 3.7 Add the `/v1` URI prefix and update the mobile base URL in `apps/mobile/src/services/api.ts`; verify `npm run e2e` from `apps/mobile` still passes against the running API.
+- [x] 3.1 Write the failing test for the error envelope in `apps/api/src/common/errors/error-envelope.spec.ts`: every thrown application error and every `ValidationPipe` rejection answer with `{ error: { code, message, details? }, requestId }` and a code from the closed enum; verify it fails with `npm test -- error-envelope` from `apps/api`.
+- [x] 3.2 Implement the envelope and the code enum, mapping the existing auth filter's shape and Nest's validation shape into it; verify the test from 3.1 passes and that the existing e2e auth scenarios still pass unchanged.
+- [x] 3.3 Write the failing test for the market-context guard in `apps/api/src/common/market-context/market-context.guard.spec.ts`: a market-scoped endpoint rejects a missing header with a coded `400`, rejects an unknown market, and never defaults to all markets; verify it fails.
+- [x] 3.4 Implement the guard and the `X-Market-Id` contract; verify 3.3 passes and that the guard is applied by explicit opt-in rather than globally, so health and auth stay market-free.
+- [x] 3.5 Write the failing test for cursor pagination in `apps/api/src/common/pagination/cursor-pagination.spec.ts`: `?limit&cursor` caps the page size, returns an opaque `nextCursor`, and orders stably; verify it fails.
+- [x] 3.6 Implement cursor pagination and the shared `{ items, nextCursor }` response shape; verify 3.5 passes.
+- [x] 3.7 Add the `/v1` URI prefix and update the mobile base URL in `apps/mobile/src/services/api.ts`; verify `npm run e2e` from `apps/mobile` still passes against the running API.
 
 ## 4. Catalog and money
 

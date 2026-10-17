@@ -40,6 +40,14 @@ export interface HealthResponse {
   status: string;
 }
 
+/** The API's URI version. The client never hard-codes it per endpoint. */
+const API_VERSION_PREFIX = '/v1';
+
+/** The versioned API root: the configured host plus the version prefix. */
+function apiBaseUrl(): string {
+  return `${resolveApiBaseUrl().replace(/\/+$/, '')}${API_VERSION_PREFIX}`;
+}
+
 /**
  * One `createApi` slice for the whole API. RTK Query is the only server-state
  * cache in this app; do not add a second one.
@@ -47,7 +55,7 @@ export interface HealthResponse {
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
-    baseUrl: resolveApiBaseUrl(),
+    baseUrl: apiBaseUrl(),
     prepareHeaders: (headers, { getState }) => {
       const { accessToken } = (getState() as RootState).session;
       if (accessToken) {

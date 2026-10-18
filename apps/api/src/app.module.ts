@@ -12,7 +12,15 @@ import { AuthModule } from './auth/auth.module';
 import { AllExceptionsFilter } from './common/errors/all-exceptions.filter';
 import { RequestIdMiddleware } from './common/errors/request-id.middleware';
 import { validateEnvironment } from './config/env.validation';
+import { ConversationsModule } from './conversations/conversations.module';
 import { DatabaseModule } from './database/database.module';
+import { ExchangesModule } from './exchanges/exchanges.module';
+import { MarketsModule } from './markets/markets.module';
+import { OffersModule } from './offers/offers.module';
+import { ReportsModule } from './reports/reports.module';
+import { SearchModule } from './search/search.module';
+import { SellersModule } from './sellers/sellers.module';
+import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -21,6 +29,17 @@ import { UsersModule } from './users/users.module';
     DatabaseModule,
     AuthModule,
     UsersModule,
+    // The T02 contract modules. Each owns its contracts; their Prisma adapters
+    // land with their own backlog tasks (T04, T08–T14). `subscriptions` provides
+    // the entitlement port the offers publish gate consumes (ADR-0006, 0014).
+    MarketsModule,
+    SellersModule,
+    SubscriptionsModule,
+    OffersModule,
+    SearchModule,
+    ConversationsModule,
+    ExchangesModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [

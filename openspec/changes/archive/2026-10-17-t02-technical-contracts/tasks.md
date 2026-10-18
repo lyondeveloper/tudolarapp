@@ -47,23 +47,23 @@
 
 ## 6. Module scaffolding and contracts
 
-- [ ] 6.1 Create the module directories and `module.ts` wiring for `markets`, `sellers`, `subscriptions`, `offers`, `search`, `conversations`, `exchanges`, and `reports`, each with the hexagonal layer folders it will actually use and none it will not; verify `npm run build` and `npm run test:e2e -- --runInBand` still pass.
-- [ ] 6.2 Define the initial DTOs and application ports for each module, one file per module under its `adapters/in/http/` and `application/`, importing the shared `catalog`, error, pagination, and market-context contracts rather than redeclaring them; verify `npx tsc --noEmit` is clean and no module declares its own pair, asset, rail, or money type.
-- [ ] 6.3 Define the entitlement port as the **only** subscription surface in the MVP, per ADR-0014, with a test adapter selected under `NODE_ENV=test` and refused in production; verify the refusal by starting the API with production configuration and the test adapter selected.
-- [ ] 6.4 Define the natural-language parser port and leave it unimplemented, per ADR-0015, so the deferral is a missing adapter rather than a redesign; verify the port exists, is wired nowhere, and no route exposes it.
+- [x] 6.1 Create the module directories and `module.ts` wiring for `markets`, `sellers`, `subscriptions`, `offers`, `search`, `conversations`, `exchanges`, and `reports`, each with the hexagonal layer folders it will actually use and none it will not; verify `npm run build` and `npm run test:e2e -- --runInBand` still pass.
+- [x] 6.2 Define the initial DTOs and application ports for each module, one file per module under its `adapters/in/http/` and `application/`, importing the shared `catalog`, error, pagination, and market-context contracts rather than redeclaring them; verify `npx tsc --noEmit` is clean and no module declares its own pair, asset, rail, or money type.
+- [x] 6.3 Define the entitlement port as the **only** subscription surface in the MVP, per ADR-0014, with a test adapter selected under `NODE_ENV=test` and refused in production; verify the refusal by starting the API with production configuration and the test adapter selected.
+- [x] 6.4 Define the natural-language parser port and leave it unimplemented, per ADR-0015, so the deferral is a missing adapter rather than a redesign; verify the port exists, is wired nowhere, and no route exposes it.
 
 ## 7. Safe PostGIS queries
 
-- [ ] 7.1 Write the failing test for the market predicate in `apps/api/src/markets/domain/market-predicate.spec.ts`: the market predicate and the proximity predicate always appear in the same `WHERE`, so a query cannot return an out-of-market offer; verify it fails.
-- [ ] 7.2 Implement the predicate builder and the parameterized query helper, with an explicit allowlist for anything that cannot be parameterized; verify 7.1 passes.
-- [ ] 7.3 Verify no raw SQL escapes the adapters: grep the `domain/` and `application/` layers for `$queryRaw`, `$executeRaw`, and string-interpolated SQL, and confirm there are none.
+- [x] 7.1 Write the failing test for the market predicate in `apps/api/src/markets/domain/market-predicate.spec.ts`: the market predicate and the proximity predicate always appear in the same `WHERE`, so a query cannot return an out-of-market offer; verify it fails.
+- [x] 7.2 Implement the predicate builder and the parameterized query helper, with an explicit allowlist for anything that cannot be parameterized; verify 7.1 passes.
+- [x] 7.3 Verify no raw SQL escapes the adapters: grep the `domain/` and `application/` layers for `$queryRaw`, `$executeRaw`, and string-interpolated SQL, and confirm there are none.
 
 ## 8. Verification
 
-- [ ] 8.1 Run `npx tsc --noEmit`, `npm run build`, `npm test -- --runInBand`, and `npm run test:e2e -- --runInBand` from `apps/api`, and record the counts.
-- [ ] 8.2 Run `npm test`, `npx tsc --noEmit`, and `npx expo lint` from `apps/mobile`, and record the counts; lint must stay at its 16-warning baseline.
-- [ ] 8.3 Confirm every contract in `design.md` traces to an ADR or a spike finding, and that groups **I** and **G** are still marked open wherever a contract touches them.
-- [ ] 8.4 Run `openspec validate t02-technical-contracts --strict` and confirm it passes with `specs` correctly skipped.
+- [x] 8.1 Run `npx tsc --noEmit`, `npm run build`, `npm test -- --runInBand`, and `npm run test:e2e -- --runInBand` from `apps/api`, and record the counts.
+- [x] 8.2 Run `npm test`, `npx tsc --noEmit`, and `npx expo lint` from `apps/mobile`, and record the counts; lint must stay at its 16-warning baseline.
+- [x] 8.3 Confirm every contract in `design.md` traces to an ADR or a spike finding, and that groups **I** and **G** are still marked open wherever a contract touches them.
+- [x] 8.4 Run `openspec validate t02-technical-contracts --strict` and confirm it passes with `specs` correctly skipped.
 
 ## Workflow follow-up
 

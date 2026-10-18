@@ -29,21 +29,21 @@
 
 ## 4. Catalog and money
 
-- [ ] 4.1 Write the failing test for the catalog in `apps/api/src/catalog/catalog.spec.ts`: exactly the five pair ids exist, each maps to an ordered `(give, receive)` of legs, the unqualified "VES" leg resolves to physical cash, and an unknown pair id is rejected; verify it fails.
-- [ ] 4.2 Implement the catalog as pure domain with no infrastructural imports; verify 4.1 passes.
-- [ ] 4.3 Write the failing test for money in `apps/api/src/catalog/money.spec.ts`: values are exact decimals, never floats; rounding happens once to the receive asset's minor unit (VES and USD 2, USDT 6); and a value that cannot round exactly is rejected rather than silently truncated. Verify it fails.
-- [ ] 4.4 Implement the money value object; verify 4.3 passes.
+- [x] 4.1 Write the failing test for the catalog in `apps/api/src/catalog/catalog.spec.ts`: exactly the five pair ids exist, each maps to an ordered `(give, receive)` of legs, the unqualified "VES" leg resolves to physical cash, and an unknown pair id is rejected; verify it fails.
+- [x] 4.2 Implement the catalog as pure domain with no infrastructural imports; verify 4.1 passes.
+- [x] 4.3 Write the failing test for money in `apps/api/src/catalog/money.spec.ts`: values are exact decimals, never floats; rounding happens once to the receive asset's minor unit (VES and USD 2, USDT 6); and a value that cannot round exactly is rejected rather than silently truncated. Verify it fails.
+- [x] 4.4 Implement the money value object; verify 4.3 passes.
 
 ## 5. The quote and terms-version contract
 
-- [ ] 5.1 Write the failing test for terms-version immutability in `apps/api/src/offers/domain/offer-terms-version.spec.ts`: a material edit produces version N+1, the offer's current pointer moves, and no version row is ever updated; verify it fails.
-- [ ] 5.2 Implement the version model and the insert-only rule; verify 5.1 passes.
-- [ ] 5.3 Write the failing integration test that the database itself rejects an update to a version row — asserting the privilege or trigger from the migration, not application discipline; verify it fails before the migration exists.
-- [ ] 5.4 Add the `--create-only` migration enforcing insert-only version rows, and verify the test from 5.3 passes.
-- [ ] 5.5 Write the failing test for the quote in `apps/api/src/offers/domain/quote.spec.ts`: a quote freezes a `termsVersionId` for a buyer, expires after 15 minutes, carries no reference rate and no reference as-of time, and a confirmation binds to the version it was shown; verify it fails.
-- [ ] 5.6 Implement the quote; verify 5.5 passes.
-- [ ] 5.7 Write the failing test that an agreement references a `termsVersionId` rather than copying terms, and that a later offer edit cannot change a confirmed agreement's numbers; verify it fails.
-- [ ] 5.8 Implement the agreement's reference to the version id; verify 5.7 passes.
+- [x] 5.1 Write the failing test for terms-version immutability in `apps/api/src/offers/domain/offer-terms-version.spec.ts`: a material edit produces version N+1, the offer's current pointer moves, and no version row is ever updated; verify it fails.
+- [x] 5.2 Implement the version model and the insert-only rule; verify 5.1 passes.
+- [x] 5.3 Write the failing integration test that the database itself rejects an update to a version row — asserting the privilege or trigger from the migration, not application discipline; verify it fails before the migration exists.
+- [x] 5.4 Add the `--create-only` migration enforcing insert-only version rows, and verify the test from 5.3 passes.
+- [x] 5.5 Write the failing test for the quote in `apps/api/src/offers/domain/quote.spec.ts`: a quote freezes a `termsVersionId` for a buyer, expires after 15 minutes, carries no reference rate and no reference as-of time, and a confirmation binds to the version it was shown; verify it fails.
+- [x] 5.6 Implement the quote; verify 5.5 passes.
+- [x] 5.7 Write the failing test that an agreement references a `termsVersionId` rather than copying terms, and that a later offer edit cannot change a confirmed agreement's numbers; verify it fails.
+- [x] 5.8 Implement the agreement's reference to the version id; verify 5.7 passes.
 
 ## 6. Module scaffolding and contracts
 

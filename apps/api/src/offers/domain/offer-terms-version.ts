@@ -18,8 +18,9 @@ import type { Money } from '../../catalog/money';
  */
 
 /**
- * One immutable terms version. `rate` is null for a same-asset pair, which
- * carries a margin only (ADR-0010 B2).
+ * One immutable terms version. `rate` is receive-asset units per one give-asset
+ * unit, and is comparable only within the same pair (ADR-0008). It is null for
+ * a same-asset pair, which carries a margin only (ADR-0010 B2).
  */
 export interface OfferTermsVersion {
   readonly id: string;
@@ -36,10 +37,21 @@ export interface OfferTermsVersion {
   readonly createdAt: Date;
 }
 
-/** The offer aggregate, reduced to its pointer at the current terms version. */
+/**
+ * The offers-owned aggregate. Inventory amounts are denominated in the give
+ * asset; availability is derived from the three stored counters.
+ */
 export interface Offer {
   readonly id: string;
+  readonly marketId: string;
+  readonly sellerId: string;
+  readonly status: string;
+  readonly description: string;
+  readonly details: string | null;
   readonly currentTermsVersionId: string | null;
+  readonly initialAmount: Money;
+  readonly reservedAmount: Money;
+  readonly completedAmount: Money;
 }
 
 /** The material fields a seller may change only by producing a new version. */

@@ -15,6 +15,29 @@ interface TriggerRow {
   tgname: string;
 }
 
+interface OfferTermsVersionDelegate {
+  create(args: {
+    data: {
+      id: string;
+      offerId: string;
+      version: number;
+      pairId: string;
+      giveAmount: string;
+      receiveAmount: string;
+      rate: string | null;
+      marginPct: string;
+      minAmount: string;
+      maxAmount: string;
+      expiresAt: Date;
+    };
+  }): Promise<{ id: string }>;
+  findUnique(args: { where: { id: string } }): Promise<{
+    id: string;
+    pairId: string;
+    version: number;
+  } | null>;
+}
+
 describe('offer terms version immutability (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
@@ -48,6 +71,37 @@ describe('offer terms version immutability (e2e)', () => {
     `;
     return rows.map((row) => row.tgname);
   }
+
+  it('reads the existing terms-version table through the generated Prisma model', async () => {
+    const termsVersion = (
+      prisma as unknown as {
+        offerTermsVersion?: OfferTermsVersionDelegate;
+      }
+    ).offerTermsVersion;
+    expect(termsVersion).toBeDefined();
+    if (!termsVersion) return;
+
+    const id = randomUUID();
+    await termsVersion.create({
+      data: {
+        id,
+        offerId: randomUUID(),
+        version: 1,
+        pairId: 'VES_USDT',
+        giveAmount: '1000.00',
+        receiveAmount: '1.000000',
+        rate: '0.00100000',
+        marginPct: '1.00',
+        minAmount: '1.00',
+        maxAmount: '1000.00',
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    await expect(
+      termsVersion.findUnique({ where: { id } }),
+    ).resolves.toMatchObject({ id, pairId: 'VES_USDT', version: 1 });
+  });
 
   it('rejects an UPDATE to a version row with a database trigger', async () => {
     // The enforcement must come from the database object the migration adds,

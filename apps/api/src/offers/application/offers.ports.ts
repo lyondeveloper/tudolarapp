@@ -15,6 +15,7 @@ import type { Offer, OfferTermsVersion } from '../domain/offer-terms-version';
  */
 export const OFFER_REPOSITORY = Symbol('OFFER_REPOSITORY');
 export const TERMS_VERSION_REPOSITORY = Symbol('TERMS_VERSION_REPOSITORY');
+export const INVENTORY_RESERVATION_PORT = Symbol('INVENTORY_RESERVATION_PORT');
 
 export interface OfferRepositoryPort {
   findById(offerId: string): Promise<Offer | null>;
@@ -26,6 +27,20 @@ export interface TermsVersionRepositoryPort {
   current(offerId: string): Promise<OfferTermsVersion | null>;
   /** Append-only: inserts a version and never updates an existing one (ADR-0001). */
   append(version: OfferTermsVersion): Promise<void>;
+}
+
+/**
+ * The inventory contract owned by offers and consumed by agreement transitions.
+ * Calls that change counters participate in the same transaction as the
+ * corresponding agreement state change (ADR-0026).
+ */
+export interface InventoryReservationPort {
+  /** Atomically reserves available inventory; false means the guard did not win. */
+  reserve(offerId: string, amount: Money): Promise<boolean>;
+  /** Releases inventory for an allowed agreement transition. */
+  release(offerId: string, amount: Money): Promise<void>;
+  /** Moves a reserved amount into completed inventory. */
+  complete(offerId: string, amount: Money): Promise<void>;
 }
 
 /**

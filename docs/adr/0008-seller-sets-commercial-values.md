@@ -30,12 +30,14 @@ Consequences for the models the spikes proposed:
   time). Its U5–U8 (quote validity, rounding scale, min/max bounds, expiry) still stand, and remain
   the product owner's.
 - **The seller margin stays a first-class field**, distinct from the platform's zero per-exchange
-  commission, because it is now the *only* commercial lever the platform models.
+  commission, because it is now the *only* commercial lever the platform models. It remains a
+  seller-declared value and is not used to calculate or adjust the rate.
 - **The rate is a structured, normalized field the seller sets**, not free text, and search **filters
-  and orders by it**. A rate that cannot be compared across offers cannot be filtered, so it must be a
-  single canonical scalar per direction — with a defined denominator and unit — rather than two raw
-  amounts or a description. The normalization convention is a T02 contract detail; the field itself is
-  not optional.
+  and orders by it**. It is the number of receive-asset units per one give-asset unit
+  (`receive / give`), stored as an exact decimal with at most eight fractional digits. Filters and
+  ordering compare rates only within the same `PairId`; rates for different pairs have different
+  units and are not cross-comparable. The same-asset `VES_BANK_TO_VES_CASH` pair has no rate, per
+  ADR-0010 B2.
 - **Nothing in the system computes a rate.** The backend validates that a submitted rate is
   well-formed and within any bounds the product owner sets; it never computes or corrects one. This is
   consistent with the existing rule that the LLM and the client may never own monetary calculation.
@@ -54,10 +56,12 @@ product that explicitly does not custody, settle, or escrow.
   a reference is say whether a rate is *good*: no "fair rate" badge, no "best offer" claim, and no
   implied comparison against a market price. Ordering by the seller's stated rate is honest; calling
   the top result the best is not.
-- **Filtering is what forces the rate to be normalized.** Two offers are comparable as numbers only if
-  the rate is one canonical scalar per direction, which is the same normalization SP02's
-  "direction-specific offer rate" implies. Without it, "50 USD for 2,000 VES" and "1 USD for 40 VES"
-  cannot be ranged or ordered together, so the filter would silently compare incomparable values.
+- **Filtering is what forces the rate to be normalized.** Two offers with the same `PairId` are
+  comparable as numbers because the rate has the same receive-per-give unit. Rates from different
+  pairs must not be ranged or ordered together, because their units differ.
+- **The margin is not a rate input.** It is a separate seller-declared percentage, not a platform
+  reference margin and not a formula for deriving or adjusting the rate. The system does not assert
+  that the seller-entered margin and rate are mathematically consistent.
 - **Rate staleness becomes the seller's risk, silently.** An offer published at one rate and left
   open drifts out of date with no system-level signal. The offer's expiry is now the only mitigation,
   which raises the weight of the expiry decision (SP02 U7).

@@ -35,8 +35,8 @@ Example interpretation of “needing 50 bucks on Intercomunal via USDT”:
 ```json
 {
   "intent": "search_offer",
-  "direction": { "give": "USDT", "receive": "USD_CASH" },
-  "amount": { "value": 50, "asset": "USD_CASH" },
+  "pairId": "USDT_USD_CASH",
+  "amount": { "value": "50", "asset": "USD" },
   "location": { "hint_text": "Intercomunal Avenue, Ciudad Ojeda", "radius_km": 5 }
 }
 ```

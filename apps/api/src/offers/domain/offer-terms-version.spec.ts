@@ -31,7 +31,15 @@ describe('offer terms versions', () => {
 
   const offer: Offer = Object.freeze({
     id: 'offer-1',
+    marketId: 'market-1',
+    sellerId: 'seller-1',
+    status: 'active',
+    description: 'A seller offer',
+    details: null,
     currentTermsVersionId: 'version-1',
+    initialAmount: Money.of('100000.00', 'VES'),
+    reservedAmount: Money.of('0.00', 'VES'),
+    completedAmount: Money.of('0.00', 'VES'),
   });
 
   const materialEdit: MaterialTermsEdit = Object.freeze({
@@ -148,7 +156,15 @@ describe('offer terms decimal validation', () => {
 
   const offer: Offer = Object.freeze({
     id: 'offer-1',
+    marketId: 'market-1',
+    sellerId: 'seller-1',
+    status: 'active',
+    description: 'A seller offer',
+    details: null,
     currentTermsVersionId: 'version-1',
+    initialAmount: Money.of('100000.00', 'VES'),
+    reservedAmount: Money.of('0.00', 'VES'),
+    completedAmount: Money.of('0.00', 'VES'),
   });
 
   const edit: MaterialTermsEdit = Object.freeze({

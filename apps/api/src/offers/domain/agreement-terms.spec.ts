@@ -32,7 +32,15 @@ describe('an agreement terms reference', () => {
 
   const offer: Offer = Object.freeze({
     id: 'offer-1',
+    marketId: 'market-1',
+    sellerId: 'seller-1',
+    status: 'active',
+    description: 'A seller offer',
+    details: null,
     currentTermsVersionId: 'version-1',
+    initialAmount: Money.of('100000.00', 'VES'),
+    reservedAmount: Money.of('0.00', 'VES'),
+    completedAmount: Money.of('0.00', 'VES'),
   });
 
   const reference: AgreementTermsReference = Object.freeze({

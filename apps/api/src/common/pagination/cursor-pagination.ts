@@ -1,5 +1,3 @@
-import { ApiErrorCode } from '../errors/api-error-code';
-import { ApplicationError } from '../errors/application-error';
 import { decodeCursor, encodeCursor } from './cursor';
 import type { CursorPayload } from './cursor';
 
@@ -23,6 +21,15 @@ export interface CursorOptions<T> {
   compare: (a: T, b: T) => number;
   /** The opaque cursor payload that identifies an item's position. */
   cursorOf: (item: T) => CursorPayload;
+  /**
+   * Orders an item against a cursor position: a positive result means the item
+   * follows that position in the total order. The cursor is resolved as a
+   * *position*, not as a reference to a row, so a page still resumes after an
+   * anchor that has since been deleted, hidden, or expired. It must agree with
+   * `compare`: a positive result here means `compare` would place the item after
+   * the anchor it was derived from.
+   */
+  compareCursor: (item: T, cursor: CursorPayload) => number;
 }
 
 /**
@@ -40,8 +47,9 @@ export function resolvePageLimit(limit?: number): number {
 /**
  * Slices a stably ordered page. The list is sorted by the caller's total
  * ordering first, so equal sort keys keep the same order on every page; the
- * cursor then names the last item returned, and `nextCursor` is `null` on the
- * final page.
+ * cursor then names a *position* in that order (not a row), and `nextCursor` is
+ * `null` on the final page. A malformed cursor is rejected by `decodeCursor`;
+ * a well-formed one whose anchor has since disappeared still resolves.
  */
 export function paginate<T>(
   items: readonly T[],
@@ -54,14 +62,19 @@ export function paginate<T>(
   let start = 0;
   if (query.cursor !== undefined) {
     const payload = decodeCursor(query.cursor);
-    const index = ordered.findIndex((item) => {
-      const key = options.cursorOf(item);
-      return key.k === payload.k && key.i === payload.i;
-    });
-    if (index === -1) {
-      throw new ApplicationError(ApiErrorCode.INVALID_CURSOR);
-    }
-    start = index + 1;
+    // Resolve the cursor as a position: the next page starts at the first item
+    // that sorts after it, whether or not the row it was built from still
+    // exists. A deleted, hidden, or expired anchor therefore resumes the walk
+    // instead of turning an ordinary "next page" into a 400.
+    //
+    // NOTE(T10): this in-memory scan is a stopgap. The offers query must push
+    // the seek into SQL — `WHERE (sort_key, id) > ($k, $i)
+    // ORDER BY sort_key, id LIMIT $limit + 1` — rather than materializing and
+    // sorting the whole collection here (docs/audits/scalability.md H1/H2).
+    const index = ordered.findIndex(
+      (item) => options.compareCursor(item, payload) > 0,
+    );
+    start = index === -1 ? ordered.length : index;
   }
 
   const pageItems = ordered.slice(start, start + limit);

@@ -1,5 +1,9 @@
 import { Money } from '../../catalog/money';
-import { appendVersion, applyMaterialEdit } from './offer-terms-version';
+import {
+  OfferTermsError,
+  appendVersion,
+  applyMaterialEdit,
+} from './offer-terms-version';
 import type {
   MaterialTermsEdit,
   Offer,
@@ -117,5 +121,101 @@ describe('offer terms versions', () => {
       /update|replace|overwrite/i.test(name),
     );
     expect(updateLike).toEqual([]);
+  });
+});
+
+// ADR-0010 B1 bounds margin to `0 <= margin < 100`, and the column is
+// `margin_pct NUMERIC(5, 2)`; `rate` is `NUMERIC(24, 8)`. Without a
+// domain-boundary check the database rounds over-precise values silently:
+// `'99.999'` becomes `100.00`, which breaks the bound. The domain must reject
+// over-precision and out-of-range values, the same way `Money.of` refuses to
+// truncate silently.
+describe('offer terms decimal validation', () => {
+  const current: OfferTermsVersion = Object.freeze({
+    id: 'version-1',
+    offerId: 'offer-1',
+    version: 1,
+    pairId: 'VES_USDT',
+    giveAmount: Money.of('1000.00', 'VES'),
+    receiveAmount: Money.of('1.000000', 'USDT'),
+    rate: '0.00100000',
+    marginPct: '1.00',
+    minAmount: Money.of('10.00', 'VES'),
+    maxAmount: Money.of('100000.00', 'VES'),
+    expiresAt: new Date('2026-11-01T00:00:00.000Z'),
+    createdAt: new Date('2026-10-01T00:00:00.000Z'),
+  });
+
+  const offer: Offer = Object.freeze({
+    id: 'offer-1',
+    currentTermsVersionId: 'version-1',
+  });
+
+  const edit: MaterialTermsEdit = Object.freeze({
+    pairId: 'VES_USDT',
+    giveAmount: Money.of('2000.00', 'VES'),
+    receiveAmount: Money.of('2.000000', 'USDT'),
+    rate: '0.00100000',
+    marginPct: '2.50',
+    minAmount: Money.of('20.00', 'VES'),
+    maxAmount: Money.of('200000.00', 'VES'),
+    expiresAt: new Date('2026-11-15T00:00:00.000Z'),
+  });
+
+  const next = { id: 'version-2', now: new Date('2026-10-02T00:00:00.000Z') };
+  const withMargin = (marginPct: string): MaterialTermsEdit => ({
+    ...edit,
+    marginPct,
+  });
+  const withRate = (rate: string | null): MaterialTermsEdit => ({
+    ...edit,
+    rate,
+  });
+
+  it('rejects a marginPct with more precision than the column scale', () => {
+    // Postgres would round 99.999 up to 100.00, breaking `0 <= margin < 100`.
+    expect(() =>
+      applyMaterialEdit(offer, current, withMargin('99.999'), next),
+    ).toThrow(OfferTermsError);
+  });
+
+  it('rejects a marginPct at or above the 100% bound', () => {
+    expect(() =>
+      applyMaterialEdit(offer, current, withMargin('100'), next),
+    ).toThrow(OfferTermsError);
+    expect(() =>
+      applyMaterialEdit(offer, current, withMargin('100.00'), next),
+    ).toThrow(OfferTermsError);
+  });
+
+  it('rejects a negative marginPct', () => {
+    expect(() =>
+      applyMaterialEdit(offer, current, withMargin('-0.01'), next),
+    ).toThrow(OfferTermsError);
+  });
+
+  it('rejects a rate with more precision than the column scale', () => {
+    expect(() =>
+      applyMaterialEdit(offer, current, withRate('0.0010000000001'), next),
+    ).toThrow(OfferTermsError);
+  });
+
+  it('accepts the largest margin that fits the scale and bound, and stores it exactly', () => {
+    const { version } = applyMaterialEdit(
+      offer,
+      current,
+      withMargin('99.99'),
+      next,
+    );
+
+    expect(version.marginPct).toBe('99.99');
+    // The value the domain accepts is exactly representable in NUMERIC(5, 2),
+    // so storage cannot round it and the `< 100` bound holds after storage.
+    expect(Number(version.marginPct)).toBeLessThan(100);
+  });
+
+  it('keeps accepting a null rate for a same-asset pair', () => {
+    const { version } = applyMaterialEdit(offer, current, withRate(null), next);
+    expect(version.rate).toBeNull();
   });
 });

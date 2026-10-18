@@ -35,6 +35,9 @@ const OPTIONS: CursorOptions<Offer> = {
   compare: (a, b) =>
     b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id),
   cursorOf: (item) => ({ k: item.createdAt, i: item.id }),
+  // Positional: a positive result means the item sorts after the cursor.
+  compareCursor: (item, cursor) =>
+    cursor.k.localeCompare(item.createdAt) || cursor.i.localeCompare(item.id),
 };
 
 const BASE64URL = /^[A-Za-z0-9_-]+$/;
@@ -119,14 +122,36 @@ describe('cursor pagination', () => {
     }
   });
 
-  it('rejects a cursor that does not name a position in the set', () => {
-    const strayCursor = encodeCursor({
-      k: '1999-01-01T00:00:00.000Z',
-      i: 'zz',
-    });
+  it('still rejects a malformed or tampered cursor through paginate', () => {
+    // A well-formed cursor now names a position, so the only cursors that are
+    // rejected are the ones that are not cursors at all: a malformed string or a
+    // payload of the wrong shape. That behaviour is not lost.
+    expect(() =>
+      paginate(UNSORTED, { cursor: 'not-a-cursor' }, OPTIONS),
+    ).toThrow(ApplicationError);
 
-    expect(() => paginate(UNSORTED, { cursor: strayCursor }, OPTIONS)).toThrow(
+    const wrongShape = Buffer.from('{"k":1,"i":"zz"}', 'utf8').toString(
+      'base64url',
+    );
+    expect(() => paginate(UNSORTED, { cursor: wrongShape }, OPTIONS)).toThrow(
       ApplicationError,
     );
+  });
+
+  it('resumes after a cursor whose anchor is no longer in the set', () => {
+    // An anchor can vanish between pages: an offer is hidden at zero
+    // availability, or it expires. The cursor names a *position*, so the
+    // following page must still resolve instead of answering INVALID_CURSOR.
+    const first = paginate(UNSORTED, { limit: 2 }, OPTIONS);
+    expect(first.items.map((item) => item.id)).toEqual(['e', 'd']);
+
+    const withoutAnchor = UNSORTED.filter((item) => item.id !== 'd');
+    const second = paginate(
+      withoutAnchor,
+      { limit: 2, cursor: first.nextCursor as string },
+      OPTIONS,
+    );
+
+    expect(second.items.map((item) => item.id)).toEqual(['c', 'b']);
   });
 });

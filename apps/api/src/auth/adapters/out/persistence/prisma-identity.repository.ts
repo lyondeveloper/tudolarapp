@@ -459,6 +459,12 @@ export class PrismaIdentityRepository implements IdentityRepositoryPort {
     maxAttempts: number;
   }): Promise<boolean> {
     return this.prisma.$transaction(async (tx) => {
+      // Locate the latest live challenge, then act on it with a guarded
+      // `updateMany` compare-and-swap, exactly like `consumeAuthChallenge` and
+      // the other consumers. The guard lives in the write's `WHERE`, so two
+      // concurrent requests cannot both consume the code, and the attempt cap
+      // cannot be exceeded. A read-then-write would let both pass the read
+      // (AGENTS.md:47).
       const challenge = await tx.phoneVerificationChallenge.findFirst({
         where: {
           userId: input.userId,
@@ -468,24 +474,37 @@ export class PrismaIdentityRepository implements IdentityRepositoryPort {
           attempts: { lt: input.maxAttempts },
         },
         orderBy: { createdAt: 'desc' },
-        select: { id: true, codeHmac: true },
+        select: { id: true },
       });
       if (!challenge) return false;
 
-      if (challenge.codeHmac !== input.codeHmac) {
-        // `increment` compiles to `attempts = attempts + 1`, so concurrent
-        // failed attempts cannot lose an increment.
-        await tx.phoneVerificationChallenge.update({
-          where: { id: challenge.id },
-          data: { attempts: { increment: 1 } },
-        });
-        return false;
-      }
-      await tx.phoneVerificationChallenge.update({
-        where: { id: challenge.id },
+      const consumed = await tx.phoneVerificationChallenge.updateMany({
+        where: {
+          id: challenge.id,
+          consumedAt: null,
+          expiresAt: { gt: input.now },
+          attempts: { lt: input.maxAttempts },
+          codeHmac: input.codeHmac,
+        },
         data: { consumedAt: input.now },
       });
-      return true;
+      if (consumed.count > 0) return true;
+
+      // The code did not match (or the challenge was consumed concurrently):
+      // charge one attempt atomically, only while the challenge is still live
+      // and under the cap. `increment` compiles to `attempts = attempts + 1`,
+      // and the `attempts < maxAttempts` guard is re-checked against the locked
+      // row, so concurrent guesses cannot push `attempts` past `maxAttempts`.
+      await tx.phoneVerificationChallenge.updateMany({
+        where: {
+          id: challenge.id,
+          consumedAt: null,
+          expiresAt: { gt: input.now },
+          attempts: { lt: input.maxAttempts },
+        },
+        data: { attempts: { increment: 1 } },
+      });
+      return false;
     });
   }
 

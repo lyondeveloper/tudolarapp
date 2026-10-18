@@ -153,6 +153,16 @@ export interface ClockPort {
   now(): Date;
 }
 
+/**
+ * Application-owned logging port. The application reports a delivery failure
+ * with a message that is already safe to persist — the cause's name and message
+ * only, never a token, code, email, or phone number. The adapter writes it to
+ * the framework logger (AGENTS.md:81).
+ */
+export interface AuthLoggerPort {
+  reportDeliveryFailure(message: string): void;
+}
+
 export interface AccessTokenIssuerPort {
   issue(userId: string, sessionId: string): Promise<string>;
 }

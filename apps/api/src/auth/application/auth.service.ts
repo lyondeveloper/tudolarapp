@@ -1,5 +1,5 @@
-import { Logger } from '@nestjs/common';
 import type {
+  AuthLoggerPort,
   ClockPort,
   CryptoProviderPort,
   EmailDeliveryPort,
@@ -34,8 +34,6 @@ const challengeLifetimeMs = 5 * 60 * 1000;
 const emailActionLifetimeMs = 30 * 60 * 1000;
 
 export class AuthService {
-  private readonly logger = new Logger(AuthService.name);
-
   constructor(
     private readonly identity: IdentityRepositoryPort,
     private readonly passwordHasher: PasswordHasherPort,
@@ -45,6 +43,7 @@ export class AuthService {
     private readonly crypto: CryptoProviderPort,
     private readonly clock: ClockPort,
     private readonly sessions: SessionService,
+    private readonly authLogger: AuthLoggerPort,
   ) {}
 
   async registerWithPassword(
@@ -417,6 +416,8 @@ export class AuthService {
   private logDeliveryFailure(channel: string, error: unknown): void {
     const cause =
       error instanceof Error ? `${error.name}: ${error.message}` : 'unknown';
-    this.logger.error(`${channel} delivery failed (${cause})`);
+    this.authLogger.reportDeliveryFailure(
+      `${channel} delivery failed (${cause})`,
+    );
   }
 }

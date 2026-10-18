@@ -1,5 +1,5 @@
-import { Logger } from '@nestjs/common';
 import type {
+  AuthLoggerPort,
   ClockPort,
   CryptoProviderPort,
   EmailDeliveryPort,
@@ -68,6 +68,7 @@ describe('AuthService passkey authentication', () => {
       {} as CryptoProviderPort,
       clock,
       sessions,
+      { reportDeliveryFailure: jest.fn() },
     );
 
     await expect(
@@ -131,6 +132,7 @@ describe('AuthService passkey authentication', () => {
       {} as CryptoProviderPort,
       { now: () => new Date('2026-01-01T00:01:00.000Z') },
       sessions,
+      { reportDeliveryFailure: jest.fn() },
     );
 
     await expect(
@@ -154,18 +156,22 @@ describe('AuthService delivery failure diagnostics', () => {
     jest.restoreAllMocks();
   });
 
-  function captureErrorLogs(): string[] {
-    const logged: string[] = [];
+  function captureReportedFailures(): {
+    reported: string[];
+    logger: AuthLoggerPort;
+  } {
+    const reported: string[] = [];
+    const logger: AuthLoggerPort = { reportDeliveryFailure: () => undefined };
     jest
-      .spyOn(Logger.prototype, 'error')
-      .mockImplementation((message: unknown) => {
-        logged.push(String(message));
+      .spyOn(logger, 'reportDeliveryFailure')
+      .mockImplementation((message: string) => {
+        reported.push(message);
       });
-    return logged;
+    return { reported, logger };
   }
 
-  it('logs a failed verification email without disclosing whether the account exists', async () => {
-    const logged = captureErrorLogs();
+  it('reports a failed verification email without disclosing whether the account exists', async () => {
+    const { reported, logger } = captureReportedFailures();
 
     const identity = {
       createPasswordAccount: jest.fn().mockResolvedValue(true),
@@ -192,6 +198,7 @@ describe('AuthService delivery failure diagnostics', () => {
       } as unknown as CryptoProviderPort,
       { now: () => new Date('2026-01-01T00:00:00.000Z') },
       {} as SessionService,
+      logger,
     );
 
     const result = await service.registerWithPassword({
@@ -204,17 +211,18 @@ describe('AuthService delivery failure diagnostics', () => {
     // The response is unchanged: nothing about account existence is disclosed.
     expect(result).toEqual({ message: registrationMessage });
 
-    // ...but the failure is an observable, logged signal for the operator.
-    const diagnostics = logged.join(' ');
-    expect(logged.length).toBeGreaterThan(0);
+    // ...but the failure is an observable signal for the operator, reported
+    // through the application-owned port.
+    const diagnostics = reported.join(' ');
+    expect(reported.length).toBeGreaterThan(0);
     expect(diagnostics).toContain('smtp unavailable');
     // Never the credential or the recipient's personal data.
     expect(diagnostics).not.toContain('verification-token');
     expect(diagnostics).not.toContain('alice@example.test');
   });
 
-  it('logs a failed phone-verification SMS before answering service unavailable', async () => {
-    const logged = captureErrorLogs();
+  it('reports a failed phone-verification SMS before answering service unavailable', async () => {
+    const { reported, logger } = captureReportedFailures();
 
     const identity = {
       createPhoneChallenge: jest.fn().mockResolvedValue(undefined),
@@ -237,6 +245,7 @@ describe('AuthService delivery failure diagnostics', () => {
       } as unknown as CryptoProviderPort,
       { now: () => new Date('2026-01-01T00:00:00.000Z') },
       {} as SessionService,
+      logger,
     );
 
     await expect(
@@ -246,8 +255,8 @@ describe('AuthService delivery failure diagnostics', () => {
       }),
     ).rejects.toMatchObject({ code: 'SMS_DELIVERY_UNAVAILABLE' });
 
-    const diagnostics = logged.join(' ');
-    expect(logged.length).toBeGreaterThan(0);
+    const diagnostics = reported.join(' ');
+    expect(reported.length).toBeGreaterThan(0);
     expect(diagnostics).toContain('sms gateway down');
     expect(diagnostics).not.toContain('123456');
     expect(diagnostics).not.toContain('+15551234567');

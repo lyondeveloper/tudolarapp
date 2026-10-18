@@ -30,6 +30,10 @@ Work is planned as OpenSpec changes. The backlog is authored in Notion; the dura
 - **Requirement** — Never hand-create a change folder or write artifacts from memory. Use `openspec new change` and `openspec instructions` so `.openspec.yaml`, the schema templates, and the rules in `openspec/config.yaml` apply.
 - **Requirement** — Validate before presenting a plan: `openspec validate <change-id> --strict`. A change with no spec delta must set `skip_specs: true` in `.openspec.yaml` instead of inventing a requirement.
 - **Requirement** — Archive with `/openspec-archive-change` when every task is checked. Archiving merges the change's deltas into `openspec/specs/`, which then describes what the system does; `openspec/changes/archive/` is the history. Update the Notion task state on propose, apply, and archive.
+- **Requirement** — A branch and a pull request are opened only **after the change has been applied and
+  archived**, and they carry the plan, the implementation, and the archive together. Planning alone is
+  never pushed: `openspec-propose` output stays local while the change is implemented. Never commit or
+  push directly to `main`.
 - **Recommendation** — Use `/sdd-from-notion` to turn a backlog task into a change, and `/openspec-verify-change` to check the implementation against the artifacts before archiving. `.devin/plans/` is session scratch: if a decision must persist, it belongs in an OpenSpec change.
 
 ## PostgreSQL and PostGIS

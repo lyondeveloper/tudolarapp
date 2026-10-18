@@ -1,4 +1,5 @@
 import type {
+  AuthLoggerPort,
   ClockPort,
   CryptoProviderPort,
   EmailDeliveryPort,
@@ -67,6 +68,7 @@ describe('AuthService passkey authentication', () => {
       {} as CryptoProviderPort,
       clock,
       sessions,
+      { reportDeliveryFailure: jest.fn() },
     );
 
     await expect(
@@ -130,6 +132,7 @@ describe('AuthService passkey authentication', () => {
       {} as CryptoProviderPort,
       { now: () => new Date('2026-01-01T00:01:00.000Z') },
       sessions,
+      { reportDeliveryFailure: jest.fn() },
     );
 
     await expect(
@@ -138,5 +141,124 @@ describe('AuthService passkey authentication', () => {
       }),
     ).resolves.toMatchObject({ accessToken: 'signed-token' });
     expect(updatePasskeyCounter).toHaveBeenCalledWith('credential-id', 0);
+  });
+});
+
+// AGENTS.md:81 — "Log useful diagnostics with appropriate access/retention,
+// excluding credentials and tokens." A delivery outage must be visible to the
+// operator even though the caller-facing response stays uniform, so it does not
+// disclose whether an account exists.
+describe('AuthService delivery failure diagnostics', () => {
+  const registrationMessage =
+    'If registration can be completed, verification instructions will be sent.';
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  function captureReportedFailures(): {
+    reported: string[];
+    logger: AuthLoggerPort;
+  } {
+    const reported: string[] = [];
+    const logger: AuthLoggerPort = { reportDeliveryFailure: () => undefined };
+    jest
+      .spyOn(logger, 'reportDeliveryFailure')
+      .mockImplementation((message: string) => {
+        reported.push(message);
+      });
+    return { reported, logger };
+  }
+
+  it('reports a failed verification email without disclosing whether the account exists', async () => {
+    const { reported, logger } = captureReportedFailures();
+
+    const identity = {
+      createPasswordAccount: jest.fn().mockResolvedValue(true),
+    } as unknown as IdentityRepositoryPort;
+    const emailDelivery = {
+      available: true,
+      sendVerification: jest
+        .fn()
+        .mockRejectedValue(new Error('smtp unavailable')),
+      sendPasswordReset: jest.fn(),
+      sendPasswordChanged: jest.fn(),
+    } as unknown as EmailDeliveryPort;
+    const service = new AuthService(
+      identity,
+      {
+        hash: jest.fn().mockResolvedValue('hashed-password'),
+      } as unknown as PasswordHasherPort,
+      emailDelivery,
+      { available: false } as SmsDeliveryPort,
+      {} as WebAuthnAdapterPort,
+      {
+        generateOpaqueToken: () => 'verification-token',
+        hashToken: () => 'verification-token-hash',
+      } as unknown as CryptoProviderPort,
+      { now: () => new Date('2026-01-01T00:00:00.000Z') },
+      {} as SessionService,
+      logger,
+    );
+
+    const result = await service.registerWithPassword({
+      username: 'alice',
+      email: 'alice@example.test',
+      displayName: 'Alice',
+      password: 'correct-horse-battery-staple',
+    });
+
+    // The response is unchanged: nothing about account existence is disclosed.
+    expect(result).toEqual({ message: registrationMessage });
+
+    // ...but the failure is an observable signal for the operator, reported
+    // through the application-owned port.
+    const diagnostics = reported.join(' ');
+    expect(reported.length).toBeGreaterThan(0);
+    expect(diagnostics).toContain('smtp unavailable');
+    // Never the credential or the recipient's personal data.
+    expect(diagnostics).not.toContain('verification-token');
+    expect(diagnostics).not.toContain('alice@example.test');
+  });
+
+  it('reports a failed phone-verification SMS before answering service unavailable', async () => {
+    const { reported, logger } = captureReportedFailures();
+
+    const identity = {
+      createPhoneChallenge: jest.fn().mockResolvedValue(undefined),
+    } as unknown as IdentityRepositoryPort;
+    const smsDelivery = {
+      available: true,
+      sendPhoneVerification: jest
+        .fn()
+        .mockRejectedValue(new Error('sms gateway down')),
+    } as unknown as SmsDeliveryPort;
+    const service = new AuthService(
+      identity,
+      {} as PasswordHasherPort,
+      { available: false } as EmailDeliveryPort,
+      smsDelivery,
+      {} as WebAuthnAdapterPort,
+      {
+        generatePhoneCode: () => '123456',
+        hashPhoneCode: () => 'code-hash',
+      } as unknown as CryptoProviderPort,
+      { now: () => new Date('2026-01-01T00:00:00.000Z') },
+      {} as SessionService,
+      logger,
+    );
+
+    await expect(
+      service.requestPhoneVerification({
+        userId: 'user-1',
+        phoneE164: '+15551234567',
+      }),
+    ).rejects.toMatchObject({ code: 'SMS_DELIVERY_UNAVAILABLE' });
+
+    const diagnostics = reported.join(' ');
+    expect(reported.length).toBeGreaterThan(0);
+    expect(diagnostics).toContain('sms gateway down');
+    expect(diagnostics).not.toContain('123456');
+    expect(diagnostics).not.toContain('+15551234567');
   });
 });

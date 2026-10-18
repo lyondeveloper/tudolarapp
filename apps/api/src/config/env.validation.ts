@@ -106,6 +106,7 @@ export function validateEnvironment(
   const nodeEnvironment = environment.NODE_ENV ?? 'development';
   const emailDeliveryMode = environment.EMAIL_DELIVERY_MODE ?? 'unavailable';
   const smsDeliveryMode = environment.SMS_DELIVERY_MODE ?? 'unavailable';
+  const entitlementMode = environment.ENTITLEMENT_MODE ?? 'temporary';
   const port = Number(environment.PORT ?? 3000);
   const accessTtl = Number(environment.JWT_ACCESS_TTL_SECONDS ?? 600);
   const refreshTtl = Number(environment.JWT_REFRESH_TTL_SECONDS ?? 2_592_000);
@@ -135,6 +136,17 @@ export function validateEnvironment(
   if (!['test', 'unavailable'].includes(smsDeliveryMode as string)) {
     throw new Error('SMS_DELIVERY_MODE must be test or unavailable');
   }
+  // ADR-0014: the entitlement port is the only subscription surface. The
+  // temporary adapter is the MVP default; the test adapter is refused outside
+  // NODE_ENV=test, exactly as the test delivery adapters are.
+  if (!['test', 'temporary'].includes(entitlementMode as string)) {
+    throw new Error('ENTITLEMENT_MODE must be test or temporary');
+  }
+  if (nodeEnvironment !== 'test' && entitlementMode === 'test') {
+    throw new Error(
+      'Test entitlement adapter may only be enabled in NODE_ENV=test',
+    );
+  }
   if (
     nodeEnvironment !== 'test' &&
     (emailDeliveryMode === 'test' || smsDeliveryMode === 'test')
@@ -162,5 +174,6 @@ export function validateEnvironment(
     JWT_REFRESH_TTL_SECONDS: refreshTtl,
     EMAIL_DELIVERY_MODE: emailDeliveryMode,
     SMS_DELIVERY_MODE: smsDeliveryMode,
+    ENTITLEMENT_MODE: entitlementMode,
   };
 }

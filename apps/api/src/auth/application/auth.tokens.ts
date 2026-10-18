@@ -6,3 +6,4 @@ export const WEBAUTHN_ADAPTER = 'WEBAUTHN_ADAPTER';
 export const CRYPTO_PROVIDER = 'CRYPTO_PROVIDER';
 export const ACCESS_TOKEN_ISSUER = 'ACCESS_TOKEN_ISSUER';
 export const CLOCK = 'CLOCK';
+export const AUTH_LOGGER = 'AUTH_LOGGER';

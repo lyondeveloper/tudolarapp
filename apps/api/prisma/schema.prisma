@@ -5,10 +5,11 @@
 //   * CHECK constraints (Prisma Migrate does not support them yet) — appended by
 //     hand to the generated migration SQL; every future `prisma migrate dev`
 //     must preserve them.
-//   * the PostGIS extension — NOT in these migrations. It is installed by
-//     docker/initdb/01-create-databases.sql for local development and by
-//     test/provision-e2e-database.cjs for each disposable test database, and it
-//     needs a privileged role. Verify it before adding the first spatial table.
+//   * the PostGIS extension — created by the `--create-only` migration
+//     20261017190000_add_postgis_extension, which needs a privileged migration
+//     role. docker/initdb/01-create-databases.sql stays a local convenience;
+//     Prisma Migrate is the authority. The API only *verifies* the extension at
+//     startup (src/database/postgis-extension.ts) and never creates it.
 
 generator client {
   provider     = "prisma-client"

@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { APP_GUARD } from '@nestjs/core';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { DatabaseModule } from '../database/database.module';
 import {
   ACCESS_TOKEN_ISSUER,
+  AUTH_LOGGER,
   CLOCK,
   CRYPTO_PROVIDER,
   EMAIL_DELIVERY,
@@ -17,6 +18,7 @@ import {
 } from './application/auth.tokens';
 import type {
   AccessTokenIssuerPort,
+  AuthLoggerPort,
   ClockPort,
   CryptoProviderPort,
   EmailDeliveryPort,
@@ -31,7 +33,6 @@ import {
   AuthController,
   PhoneVerificationController,
 } from './adapters/in/http/auth.controller';
-import { AuthApplicationErrorFilter } from './adapters/in/http/auth-application-error.filter';
 import { JwtAuthGuard } from './adapters/in/http/jwt-auth.guard';
 import { JwtStrategy } from './adapters/in/http/jwt.strategy';
 import {
@@ -45,6 +46,7 @@ import {
   UnavailableSmsDeliveryAdapter,
 } from './adapters/out/sms/sms-delivery.adapter';
 import { SimpleWebAuthnAdapter } from './adapters/out/passkeys/simple-webauthn.adapter';
+import { NestAuthLoggerAdapter } from './adapters/out/logging/auth-logger.adapter';
 import {
   CryptoAuthAdapter,
   SystemClockAdapter,
@@ -105,6 +107,7 @@ import { JwtAccessTokenAdapter } from './adapters/out/tokens/jwt-access-token.ad
       inject: [ConfigService],
     },
     { provide: CLOCK, useClass: SystemClockAdapter },
+    { provide: AUTH_LOGGER, useClass: NestAuthLoggerAdapter },
     {
       provide: ACCESS_TOKEN_ISSUER,
       useFactory: (
@@ -151,6 +154,7 @@ import { JwtAccessTokenAdapter } from './adapters/out/tokens/jwt-access-token.ad
         crypto: CryptoProviderPort,
         clock: ClockPort,
         sessions: SessionService,
+        authLogger: AuthLoggerPort,
       ) =>
         new AuthService(
           identity,
@@ -161,6 +165,7 @@ import { JwtAccessTokenAdapter } from './adapters/out/tokens/jwt-access-token.ad
           crypto,
           clock,
           sessions,
+          authLogger,
         ),
       inject: [
         IDENTITY_REPOSITORY,
@@ -171,13 +176,13 @@ import { JwtAccessTokenAdapter } from './adapters/out/tokens/jwt-access-token.ad
         CRYPTO_PROVIDER,
         CLOCK,
         SessionService,
+        AUTH_LOGGER,
       ],
     },
     JwtStrategy,
     JwtAuthGuard,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
-    { provide: APP_FILTER, useClass: AuthApplicationErrorFilter },
   ],
   exports: [IDENTITY_REPOSITORY, AuthService],
 })

@@ -1,4 +1,5 @@
 import type {
+  AuthLoggerPort,
   ClockPort,
   CryptoProviderPort,
   EmailDeliveryPort,
@@ -42,6 +43,7 @@ export class AuthService {
     private readonly crypto: CryptoProviderPort,
     private readonly clock: ClockPort,
     private readonly sessions: SessionService,
+    private readonly authLogger: AuthLoggerPort,
   ) {}
 
   async registerWithPassword(
@@ -72,7 +74,8 @@ export class AuthService {
     if (created) {
       try {
         await this.emailDelivery.sendVerification(email, emailToken);
-      } catch {
+      } catch (error) {
+        this.logDeliveryFailure('verification email', error);
         return { message: acceptedRegistrationMessage };
       }
     }
@@ -131,7 +134,8 @@ export class AuthService {
       });
       try {
         await this.emailDelivery.sendPasswordReset(account.email, token);
-      } catch {
+      } catch (error) {
+        this.logDeliveryFailure('password reset email', error);
         return { message: acceptedRecoveryMessage };
       }
     }
@@ -147,7 +151,8 @@ export class AuthService {
     if (!email) throw new AuthApplicationError('INVALID_EMAIL_ACTION');
     try {
       await this.emailDelivery.sendPasswordChanged(email);
-    } catch {
+    } catch (error) {
+      this.logDeliveryFailure('password changed email', error);
       return { message: 'Password updated' };
     }
     return { message: 'Password updated' };
@@ -185,7 +190,8 @@ export class AuthService {
     });
     try {
       await this.emailDelivery.sendVerification(email, token);
-    } catch {
+    } catch (error) {
+      this.logDeliveryFailure('enrollment verification email', error);
       return { message: acceptedRegistrationMessage };
     }
     return { message: acceptedRegistrationMessage };
@@ -371,7 +377,8 @@ export class AuthService {
     });
     try {
       await this.smsDelivery.sendPhoneVerification(input.phoneE164, code);
-    } catch {
+    } catch (error) {
+      this.logDeliveryFailure('phone verification SMS', error);
       throw new AuthApplicationError('SMS_DELIVERY_UNAVAILABLE');
     }
     return { message: 'If the number can be verified, a code will be sent.' };
@@ -398,5 +405,19 @@ export class AuthService {
       this.clock.now(),
     );
     return { message: 'Phone verified' };
+  }
+
+  /**
+   * Records a delivery failure so an outage is visible to the operator, while
+   * the caller-facing response stays uniform and discloses nothing about
+   * whether an account exists. Only the error's type and message are logged —
+   * never the token, code, or recipient (AGENTS.md:81).
+   */
+  private logDeliveryFailure(channel: string, error: unknown): void {
+    const cause =
+      error instanceof Error ? `${error.name}: ${error.message}` : 'unknown';
+    this.authLogger.reportDeliveryFailure(
+      `${channel} delivery failed (${cause})`,
+    );
   }
 }

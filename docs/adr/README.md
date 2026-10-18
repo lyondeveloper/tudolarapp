@@ -4,14 +4,17 @@ One file per decision, under `docs/adr/`. The product owner has decided that dec
 an implementer reads one current contract instead of re-deriving it from the spike reports
 (`docs/spikes/SYNTHESIS.md:149`).
 
-These records come from two changes. **0001–0008** are produced by the
+These records come from three changes. **0001–0008** are produced by the
 `spike-interface-reconciliation` change (`openspec/changes/spike-interface-reconciliation/`): they
 reconcile the shapes and names the discovery spikes (SP01–SP12) disagreed on, and they decide no
 product value, threshold, or boundary
-(`openspec/changes/spike-interface-reconciliation/design.md:13-15`). **0009 onward** are produced by
+(`openspec/changes/spike-interface-reconciliation/design.md:13-15`). **0009–0018** are produced by
 the `t01-product-decisions` change (`openspec/changes/t01-product-decisions/`): they record the
 product owner's answers to the register in its `design.md`, so they **do** fix product values,
-thresholds, and boundaries.
+thresholds, and boundaries. **0019–0025** are produced by the `t02-technical-contracts` change
+(`openspec/changes/t02-technical-contracts/`): they record the stack and module-boundary decisions,
+citing `AGENTS.md` rather than restating it as a new rule
+(`openspec/changes/t02-technical-contracts/design.md:32-44`).
 
 ## Convention
 
@@ -53,6 +56,13 @@ message: the ADR is the current contract, and the spike reports are the evidence
 | [0016](0016-mvp-account-type.md) | Selling is a state, not an account type | No `accountType` field is added: publishing comes from `SellerEligibility` plus entitlement per ADR-0006, and the demo's two accounts differ by seeded eligibility. |
 | [0017](0017-mvp-location-and-search-defaults.md) | MVP location and search defaults | GPS fixes worse than 100 m treated as no fix; location never persisted (request-scoped); default radius 5 km bounded by the market polygon; out-of-node copy offers "Search all of {market}" and "Change market". |
 | [0018](0018-mvp-defers-earnings.md) | MVP defers earnings | The seller's margin is not displayed as "earnings"; the earnings screen is deferred with SP11; nothing on any screen may read as profit or verified earnings. |
+| [0019](0019-prisma-owns-the-schema-and-migrations.md) | Prisma owns the schema and migrations | Prisma ORM and Prisma Migrate are the sole schema and migration authority; no second runner, and the PostGIS divergence is resolved by ADR-0023, not a second authority. |
+| [0020](0020-hexagonal-architecture-in-the-api.md) | Hexagonal architecture in the API | The layer names, the inward dependency direction, and the rule that `domain/` imports nothing infrastructural; `apps/api/src/auth/` is the reference shape. |
+| [0021](0021-rtk-query-owns-remote-state.md) | RTK Query owns remote state | RTK Query is the sole remote-state layer and Redux Toolkit owns client state only, with no second server-state cache. |
+| [0022](0022-gluestack-is-the-design-system.md) | gluestack is the design system | gluestack is the design system, consumed through the token layer the design-system spec owns; the spec is not duplicated here. |
+| [0023](0023-postgis-through-prisma.md) | PostGIS through Prisma | The `Unsupported("geometry")` mapping, raw SQL confined to `adapters/out/`, consistent SRIDs with `ST_DWithin` and GiST indexes, the market predicate co-located with the proximity predicate, and `CREATE EXTENSION postgis` in the single migration authority. |
+| [0024](0024-react-native-expo-mobile-client.md) | React Native + Expo is the mobile client | The mobile client is React Native + Expo, with its own conventions cited from `apps/mobile/AGENTS.md` rather than restated. |
+| [0025](0025-api-module-boundaries.md) | API module boundaries | The module table naming which module owns each contract, and the rule that `catalog` alone declares pair, asset, rail, and money types. |
 
 ## What these records leave open
 
@@ -68,6 +78,10 @@ thresholds, and boundaries. Two groups of the T01 register stay **open** and are
 here: group **I** (pilot thresholds, supply minimums, the deferral list, and whether an analytics SDK
 is ever added) and group **G** (the legal review). Neither blocks the MVP build
 (`openspec/changes/t01-product-decisions/design.md:99-115`).
+
+The **T02 records (0019–0025)** record the stack and module-boundary decisions and leave the same two
+groups **open**: group **I** and group **G** are named as open wherever a contract touches them, and
+no record here decides them (`openspec/changes/t02-technical-contracts/design.md:157-161`).
 
 The Ciudad Ojeda polygon is out of scope for the reconciliation change and is not decided by any record
 here (`openspec/changes/spike-interface-reconciliation/proposal.md:67-68`).

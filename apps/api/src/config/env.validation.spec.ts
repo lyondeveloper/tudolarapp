@@ -37,4 +37,38 @@ describe('validateEnvironment', () => {
       }),
     ).toThrow('matching RSA key pair');
   });
+
+  it('refuses the test entitlement adapter outside NODE_ENV=test', () => {
+    // ADR-0014: the test adapter is selected only under NODE_ENV=test and is
+    // refused in production, so a production start fails rather than serving.
+    expect(() =>
+      validateEnvironment({
+        ...validEnvironment(),
+        NODE_ENV: 'production',
+        WEBAUTHN_RP_ID: 'api.tudolar.app',
+        ENTITLEMENT_MODE: 'test',
+      }),
+    ).toThrow('Test entitlement adapter may only be enabled in NODE_ENV=test');
+  });
+
+  it('rejects an unknown entitlement mode', () => {
+    expect(() =>
+      validateEnvironment({
+        ...validEnvironment(),
+        ENTITLEMENT_MODE: 'always',
+      }),
+    ).toThrow('ENTITLEMENT_MODE must be test or temporary');
+  });
+
+  it('allows the test entitlement adapter under NODE_ENV=test', () => {
+    expect(() =>
+      validateEnvironment({
+        ...validEnvironment(),
+        NODE_ENV: 'test',
+        EMAIL_DELIVERY_MODE: 'test',
+        SMS_DELIVERY_MODE: 'test',
+        ENTITLEMENT_MODE: 'test',
+      }),
+    ).not.toThrow();
+  });
 });

@@ -52,9 +52,9 @@ describe('Authentication (e2e)', () => {
       .send({ identifier: 'unknown-user', password: 'incorrect-password' })
       .expect(401);
 
-    expect(responseBody<{ message: string }>(response).message).toBe(
-      'Invalid credentials',
-    );
+    expect(
+      responseBody<{ error: { message: string } }>(response).error.message,
+    ).toBe('Invalid credentials');
   });
 
   it('requires authentication to read the current user', () => {
@@ -229,7 +229,8 @@ describe('Authentication (e2e)', () => {
       .send({ identifier: email, password })
       .expect(401);
     expect(
-      responseBody<{ message: string }>(previousPasswordLogin).message,
+      responseBody<{ error: { message: string } }>(previousPasswordLogin).error
+        .message,
     ).toBe('Invalid credentials');
 
     const newLogin = await request(app.getHttpServer())
@@ -387,9 +388,9 @@ describe('Authentication (e2e)', () => {
       .post('/auth/passkeys/authentication/verify')
       .send(payload)
       .expect(401);
-    expect(responseBody<{ message: string }>(firstAttempt).message).toBe(
-      'Invalid credentials',
-    );
+    expect(
+      responseBody<{ error: { message: string } }>(firstAttempt).error.message,
+    ).toBe('Invalid credentials');
 
     await request(app.getHttpServer())
       .post('/auth/passkeys/authentication/verify')

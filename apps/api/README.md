@@ -38,10 +38,10 @@ npm run start:dev
 
 ## Schema and migrations
 
-Prisma owns the schema (`prisma/schema.prisma`) and the migrations (`prisma/migrations/`). Two classes of object cannot be expressed in the Prisma schema and are appended by hand to the generated migration SQL:
+Prisma owns the schema (`prisma/schema.prisma`) and the migrations (`prisma/migrations/`). Two classes of object cannot be expressed in the Prisma schema and live in hand-written `--create-only` migrations:
 
 - the `CHECK` constraints (Prisma Migrate does not support them and `db pull` does not introspect them);
-- the PostGIS extension, which is an operational step requiring a privileged role.
+- the PostGIS extension, created by the `--create-only` migration `20261017190000_add_postgis_extension` under a privileged migration role. The API verifies it at startup (`src/database/postgis-extension.ts`) and never creates it.
 
 If a future `prisma migrate dev` proposes dropping either, the schema has drifted — restore it instead of accepting the drop. Partial unique indexes are declared in the schema with the `partialIndexes` preview feature and `where: raw(...)`. See [`../../AGENTS.md`](../../AGENTS.md).
 

@@ -7,8 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { ApplicationError } from './application-error';
-import { ApiErrorCode } from './api-error-code';
+import { ApiErrorCode, isApiErrorCode } from './api-error-code';
 import { ERROR_CATALOG } from './error-catalog';
 import { resolveRequestId, toErrorEnvelope } from './error-envelope';
 
@@ -30,27 +29,33 @@ const SERVER_ERROR_STATUS = 500;
 
 interface DescribedError {
   code: ApiErrorCode;
+  /** The status the response answers with. */
+  status: number;
   details?: unknown[];
 }
 
 /**
- * The one filter for errors that are not already an `HttpException`: the
- * application errors a use case throws and Nest's own transport errors,
- * including a `ValidationPipe` rejection.
+ * The one filter for every failure, so a client always reads the shared
+ * envelope and no module can answer in Nest's default shape.
  *
- * Its `@Catch` list is deliberately disjoint from the auth filter's
- * (`@Catch(AuthApplicationError)`), so exactly one filter matches each
- * exception and the order they are registered in never changes the answer.
- * Both answer with the same envelope.
+ * It resolves the answer in this order:
+ *  - an `HttpException` (Nest's own transport errors and a `ValidationPipe`
+ *    rejection): the status mapped through the existing table, keeping the
+ *    exception's own status so a 503 stays 503 and a 422 stays 422;
+ *  - any error that carries a `code` from the closed `ApiErrorCode` enum
+ *    (`ApplicationError` and the auth module's `AuthApplicationError`): that
+ *    code, with the catalog's status and message;
+ *  - anything else: `INTERNAL_ERROR`, logged with its stack, answering with the
+ *    catalog's safe message rather than the raw error's.
+ *
+ * Reading the code by shape, rather than by `instanceof`, is what lets the auth
+ * error travel through this filter without `common/` importing from `auth/`.
  */
-@Catch(HttpException, ApplicationError)
+@Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
 
-  catch(
-    exception: HttpException | ApplicationError,
-    host: ArgumentsHost,
-  ): void {
+  catch(exception: unknown, host: ArgumentsHost): void {
     const context = host.switchToHttp();
     const response = context.getResponse<Response>();
     const request = context.getRequest<Request>();
@@ -58,7 +63,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const described = this.describe(exception);
     const descriptor = ERROR_CATALOG[described.code];
 
-    response.status(descriptor.status).json(
+    response.status(described.status).json(
       toErrorEnvelope({
         code: described.code,
         message: descriptor.message,
@@ -68,17 +73,36 @@ export class AllExceptionsFilter implements ExceptionFilter {
     );
   }
 
-  private describe(
-    exception: HttpException | ApplicationError,
-  ): DescribedError {
-    if (exception instanceof ApplicationError) {
-      return { code: exception.code, details: exception.details };
+  private describe(exception: unknown): DescribedError {
+    if (exception instanceof HttpException) {
+      return this.describeHttpException(exception);
     }
 
+    const code = codeOf(exception);
+    if (code !== undefined) {
+      return {
+        code,
+        status: ERROR_CATALOG[code].status,
+        details: detailsOf(exception),
+      };
+    }
+
+    this.logger.error(
+      `Unhandled exception: ${messageOf(exception)}`,
+      stackOf(exception),
+    );
+
+    return {
+      code: ApiErrorCode.INTERNAL_ERROR,
+      status: ERROR_CATALOG[ApiErrorCode.INTERNAL_ERROR].status,
+    };
+  }
+
+  private describeHttpException(exception: HttpException): DescribedError {
     const status = exception.getStatus();
     const details = validationDetails(exception);
     if (details) {
-      return { code: ApiErrorCode.VALIDATION_FAILED, details };
+      return { code: ApiErrorCode.VALIDATION_FAILED, status, details };
     }
 
     if (status >= SERVER_ERROR_STATUS) {
@@ -94,8 +118,34 @@ export class AllExceptionsFilter implements ExceptionFilter {
         ? ApiErrorCode.INTERNAL_ERROR
         : ApiErrorCode.BAD_REQUEST);
 
-    return { code };
+    return { code, status };
   }
+}
+
+/** Reads a code from the closed enum off any error that carries one. */
+function codeOf(exception: unknown): ApiErrorCode | undefined {
+  if (typeof exception !== 'object' || exception === null) {
+    return undefined;
+  }
+  const code = (exception as { code?: unknown }).code;
+  return isApiErrorCode(code) ? code : undefined;
+}
+
+/** Reads an optional `details` array off any error that carries one. */
+function detailsOf(exception: unknown): unknown[] | undefined {
+  if (typeof exception !== 'object' || exception === null) {
+    return undefined;
+  }
+  const details = (exception as { details?: unknown }).details;
+  return Array.isArray(details) ? details : undefined;
+}
+
+function messageOf(exception: unknown): string {
+  return exception instanceof Error ? exception.message : String(exception);
+}
+
+function stackOf(exception: unknown): string | undefined {
+  return exception instanceof Error ? exception.stack : undefined;
 }
 
 /**

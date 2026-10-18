@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { APP_GUARD } from '@nestjs/core';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
@@ -31,7 +31,6 @@ import {
   AuthController,
   PhoneVerificationController,
 } from './adapters/in/http/auth.controller';
-import { AuthApplicationErrorFilter } from './adapters/in/http/auth-application-error.filter';
 import { JwtAuthGuard } from './adapters/in/http/jwt-auth.guard';
 import { JwtStrategy } from './adapters/in/http/jwt.strategy';
 import {
@@ -177,7 +176,6 @@ import { JwtAccessTokenAdapter } from './adapters/out/tokens/jwt-access-token.ad
     JwtAuthGuard,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
-    { provide: APP_FILTER, useClass: AuthApplicationErrorFilter },
   ],
   exports: [IDENTITY_REPOSITORY, AuthService],
 })

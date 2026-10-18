@@ -5,6 +5,8 @@ import {
   Get,
   INestApplication,
   Post,
+  ServiceUnavailableException,
+  UnprocessableEntityException,
   ValidationPipe,
 } from '@nestjs/common';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
@@ -12,8 +14,8 @@ import { Test } from '@nestjs/testing';
 import { IsString } from 'class-validator';
 import request from 'supertest';
 import { App } from 'supertest/types';
-import { AuthApplicationErrorFilter } from '../../auth/adapters/in/http/auth-application-error.filter';
 import { AuthApplicationError } from '../../auth/application/auth.errors';
+import { MoneyError } from '../../catalog/money';
 import { AllExceptionsFilter } from './all-exceptions.filter';
 import { ApiErrorCode, isApiErrorCode } from './api-error-code';
 import { ApplicationError } from './application-error';
@@ -33,6 +35,21 @@ class EnvelopeController {
   @Get('auth-error')
   throwAuthError(): never {
     throw new AuthApplicationError('INVALID_CREDENTIALS');
+  }
+
+  @Get('domain-error')
+  throwDomainError(): never {
+    throw new MoneyError('1.23456 is not an exact decimal for VES');
+  }
+
+  @Get('service-unavailable')
+  throwServiceUnavailable(): never {
+    throw new ServiceUnavailableException();
+  }
+
+  @Get('unprocessable')
+  throwUnprocessable(): never {
+    throw new UnprocessableEntityException();
   }
 
   @Post('validated')
@@ -58,7 +75,6 @@ describe('the shared error envelope', () => {
       controllers: [EnvelopeController],
       providers: [
         { provide: APP_FILTER, useClass: AllExceptionsFilter },
-        { provide: APP_FILTER, useClass: AuthApplicationErrorFilter },
         {
           provide: APP_PIPE,
           useValue: new ValidationPipe({
@@ -104,6 +120,32 @@ describe('the shared error envelope', () => {
     });
     expect(typeof body.requestId).toBe('string');
     expect(isApiErrorCode(body.error.code)).toBe(true);
+  });
+
+  it('answers a plain domain error with the envelope and an internal-error code', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/envelope/domain-error')
+      .expect(500);
+
+    const body = envelopeOf(response);
+    expect(body.error).toEqual({
+      code: ApiErrorCode.INTERNAL_ERROR,
+      message: 'Internal server error',
+    });
+    expect(typeof body.requestId).toBe('string');
+    expect(isApiErrorCode(body.error.code)).toBe(true);
+  });
+
+  it('preserves a 503 status instead of rewriting it to 500', async () => {
+    await request(app.getHttpServer())
+      .get('/envelope/service-unavailable')
+      .expect(503);
+  });
+
+  it('preserves a 422 status instead of rewriting it to 400', async () => {
+    await request(app.getHttpServer())
+      .get('/envelope/unprocessable')
+      .expect(422);
   });
 
   it('maps a ValidationPipe rejection into the envelope with details', async () => {

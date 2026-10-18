@@ -53,10 +53,9 @@ import { UsersModule } from './users/users.module';
           forbidNonWhitelisted: true,
         }),
     },
-    // The envelope for every error that is not already an `HttpException`.
-    // The auth filter keeps handling `AuthApplicationError`, through the same
-    // envelope. The two `@Catch` lists are disjoint, so registration order
-    // never decides which one answers.
+    // The single envelope for every failure. It is a catch-all filter, so a
+    // domain error, an auth error, and Nest's own transport errors all answer
+    // through the same shape regardless of registration order.
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
   ],
 })

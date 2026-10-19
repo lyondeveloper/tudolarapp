@@ -9,6 +9,47 @@ import type {
   Offer,
   OfferTermsVersion,
 } from './offer-terms-version';
+import * as offerTermsModule from './offer-terms-version';
+
+type ResolveOfferExpiry = (expiry: Date | undefined, now: Date) => Date;
+const resolveOfferExpiry =
+  (
+    offerTermsModule as unknown as {
+      resolveOfferExpiry?: ResolveOfferExpiry;
+    }
+  ).resolveOfferExpiry ??
+  (() => {
+    throw new Error(
+      'resolveOfferExpiry is not exported yet — add it to offer-terms-version.ts',
+    );
+  });
+type InitialTermsInput = {
+  id: string;
+  offerId: string;
+  pairId: OfferTermsVersion['pairId'];
+  giveAmount: Money;
+  receiveAmount: Money;
+  rate: string | null;
+  marginPct: string;
+  minAmount: Money;
+  maxAmount: Money;
+  expiresAt?: Date;
+  now: Date;
+};
+type CreateInitialTermsVersion = (
+  input: InitialTermsInput,
+) => OfferTermsVersion;
+const createInitialTermsVersion =
+  (
+    offerTermsModule as unknown as {
+      createInitialTermsVersion?: CreateInitialTermsVersion;
+    }
+  ).createInitialTermsVersion ??
+  (() => {
+    throw new Error(
+      'createInitialTermsVersion is not exported yet — add it to offer-terms-version.ts',
+    );
+  });
 
 // ADR-0001: the immutable terms version belongs to the offer. A material edit
 // inserts version N+1 and moves the offer's pointer; it never updates a version
@@ -25,7 +66,7 @@ describe('offer terms versions', () => {
     marginPct: '1.00',
     minAmount: Money.of('10.00', 'VES'),
     maxAmount: Money.of('100000.00', 'VES'),
-    expiresAt: new Date('2026-11-01T00:00:00.000Z'),
+    expiresAt: new Date('2026-10-30T00:00:00.000Z'),
     createdAt: new Date('2026-10-01T00:00:00.000Z'),
   });
 
@@ -50,7 +91,7 @@ describe('offer terms versions', () => {
     marginPct: '2.50',
     minAmount: Money.of('20.00', 'VES'),
     maxAmount: Money.of('200000.00', 'VES'),
-    expiresAt: new Date('2026-11-15T00:00:00.000Z'),
+    expiresAt: new Date('2026-10-15T00:00:00.000Z'),
   });
 
   it('produces version N+1 and moves the offer current pointer', () => {
@@ -150,7 +191,7 @@ describe('offer terms decimal validation', () => {
     marginPct: '1.00',
     minAmount: Money.of('10.00', 'VES'),
     maxAmount: Money.of('100000.00', 'VES'),
-    expiresAt: new Date('2026-11-01T00:00:00.000Z'),
+    expiresAt: new Date('2026-10-30T00:00:00.000Z'),
     createdAt: new Date('2026-10-01T00:00:00.000Z'),
   });
 
@@ -175,7 +216,7 @@ describe('offer terms decimal validation', () => {
     marginPct: '2.50',
     minAmount: Money.of('20.00', 'VES'),
     maxAmount: Money.of('200000.00', 'VES'),
-    expiresAt: new Date('2026-11-15T00:00:00.000Z'),
+    expiresAt: new Date('2026-10-15T00:00:00.000Z'),
   });
 
   const next = { id: 'version-2', now: new Date('2026-10-02T00:00:00.000Z') };
@@ -231,7 +272,274 @@ describe('offer terms decimal validation', () => {
   });
 
   it('keeps accepting a null rate for a same-asset pair', () => {
-    const { version } = applyMaterialEdit(offer, current, withRate(null), next);
+    const sameAssetCurrent: OfferTermsVersion = {
+      ...current,
+      id: 'same-asset-version-1',
+      pairId: 'VES_BANK_TO_VES_CASH',
+      giveAmount: Money.of('1000.00', 'VES'),
+      receiveAmount: Money.of('1000.00', 'VES'),
+      rate: null,
+    };
+    const sameAssetOffer: Offer = {
+      ...offer,
+      currentTermsVersionId: sameAssetCurrent.id,
+    };
+    const sameAssetEdit: MaterialTermsEdit = {
+      ...edit,
+      pairId: 'VES_BANK_TO_VES_CASH',
+      giveAmount: Money.of('2000.00', 'VES'),
+      receiveAmount: Money.of('1900.00', 'VES'),
+      rate: null,
+      minAmount: Money.of('20.00', 'VES'),
+      maxAmount: Money.of('200000.00', 'VES'),
+    };
+
+    const { version } = applyMaterialEdit(
+      sameAssetOffer,
+      sameAssetCurrent,
+      sameAssetEdit,
+      next,
+    );
     expect(version.rate).toBeNull();
+  });
+
+  it('rejects changing the pair after the offer is published', () => {
+    const changedPair: MaterialTermsEdit = {
+      ...edit,
+      pairId: 'USDT_VES',
+      giveAmount: Money.of('2.000000', 'USDT'),
+      receiveAmount: Money.of('2000.00', 'VES'),
+      minAmount: Money.of('1.000000', 'USDT'),
+      maxAmount: Money.of('10.000000', 'USDT'),
+    };
+
+    expect(() => applyMaterialEdit(offer, current, changedPair, next)).toThrow(
+      OfferTermsError,
+    );
+  });
+
+  it('rejects a version that is not owned by the offer or current pointer', () => {
+    expect(() =>
+      applyMaterialEdit(
+        { ...offer, currentTermsVersionId: 'another-version' },
+        current,
+        edit,
+        next,
+      ),
+    ).toThrow(OfferTermsError);
+    expect(() =>
+      applyMaterialEdit(
+        offer,
+        { ...current, offerId: 'another-offer' },
+        edit,
+        next,
+      ),
+    ).toThrow(OfferTermsError);
+  });
+
+  it('rejects amount assets that do not match the pair legs', () => {
+    expect(() =>
+      applyMaterialEdit(
+        offer,
+        current,
+        { ...edit, giveAmount: Money.of('2000.00', 'USD') },
+        next,
+      ),
+    ).toThrow(OfferTermsError);
+    expect(() =>
+      applyMaterialEdit(
+        offer,
+        current,
+        { ...edit, receiveAmount: Money.of('2.000000', 'VES') },
+        next,
+      ),
+    ).toThrow(OfferTermsError);
+  });
+
+  it('rejects a minimum or maximum that is not denominated in the give asset', () => {
+    expect(() =>
+      applyMaterialEdit(
+        offer,
+        current,
+        { ...edit, minAmount: Money.of('1.000000', 'USDT') },
+        next,
+      ),
+    ).toThrow(OfferTermsError);
+    expect(() =>
+      applyMaterialEdit(
+        offer,
+        current,
+        { ...edit, maxAmount: Money.of('1.000000', 'USDT') },
+        next,
+      ),
+    ).toThrow(OfferTermsError);
+  });
+
+  it('rejects offer inventory that is not valid for the pair', () => {
+    expect(() =>
+      applyMaterialEdit(
+        { ...offer, initialAmount: Money.of('100000.00', 'USD') },
+        current,
+        edit,
+        next,
+      ),
+    ).toThrow(OfferTermsError);
+    expect(() =>
+      applyMaterialEdit(
+        { ...offer, initialAmount: Money.of('0.00', 'VES') },
+        current,
+        edit,
+        next,
+      ),
+    ).toThrow(OfferTermsError);
+    expect(() =>
+      applyMaterialEdit(
+        { ...offer, reservedAmount: Money.of('-1.00', 'VES') },
+        current,
+        edit,
+        next,
+      ),
+    ).toThrow(OfferTermsError);
+    expect(() =>
+      applyMaterialEdit(
+        {
+          ...offer,
+          reservedAmount: Money.of('60000.00', 'VES'),
+          completedAmount: Money.of('50000.00', 'VES'),
+        },
+        current,
+        edit,
+        next,
+      ),
+    ).toThrow(OfferTermsError);
+  });
+
+  it.each([
+    ['zero give amount', { giveAmount: Money.of('0.00', 'VES') }],
+    ['negative receive amount', { receiveAmount: Money.of('-1.00', 'USDT') }],
+    ['zero minimum', { minAmount: Money.of('0.00', 'VES') }],
+    ['zero maximum', { maxAmount: Money.of('0.00', 'VES') }],
+    [
+      'inverted limits',
+      {
+        minAmount: Money.of('200.00', 'VES'),
+        maxAmount: Money.of('100.00', 'VES'),
+      },
+    ],
+  ])('rejects %s', (_name, changes) => {
+    expect(() =>
+      applyMaterialEdit(offer, current, { ...edit, ...changes }, next),
+    ).toThrow(OfferTermsError);
+  });
+
+  it('requires a positive rate for conversion pairs', () => {
+    expect(() =>
+      applyMaterialEdit(offer, current, withRate(null), next),
+    ).toThrow(OfferTermsError);
+    expect(() =>
+      applyMaterialEdit(offer, current, withRate('0'), next),
+    ).toThrow(OfferTermsError);
+    expect(() =>
+      applyMaterialEdit(offer, current, withRate('-0.001'), next),
+    ).toThrow(OfferTermsError);
+  });
+
+  it('rejects a rate for the same-asset pair', () => {
+    const sameAssetCurrent: OfferTermsVersion = {
+      ...current,
+      pairId: 'VES_BANK_TO_VES_CASH',
+      giveAmount: Money.of('1000.00', 'VES'),
+      receiveAmount: Money.of('1000.00', 'VES'),
+      rate: null,
+    };
+    const sameAssetOffer: Offer = {
+      ...offer,
+      currentTermsVersionId: sameAssetCurrent.id,
+    };
+    const sameAssetEdit: MaterialTermsEdit = {
+      ...edit,
+      pairId: 'VES_BANK_TO_VES_CASH',
+      giveAmount: Money.of('2000.00', 'VES'),
+      receiveAmount: Money.of('1900.00', 'VES'),
+      rate: '1.00000000',
+    };
+
+    expect(() =>
+      applyMaterialEdit(sameAssetOffer, sameAssetCurrent, sameAssetEdit, next),
+    ).toThrow(OfferTermsError);
+  });
+
+  it('rejects expiry outside the future 30-day window', () => {
+    expect(() =>
+      applyMaterialEdit(
+        offer,
+        current,
+        { ...edit, expiresAt: new Date('2026-10-01T23:59:59.999Z') },
+        next,
+      ),
+    ).toThrow(OfferTermsError);
+    expect(() =>
+      applyMaterialEdit(
+        offer,
+        current,
+        { ...edit, expiresAt: new Date('2026-11-02T00:00:00.000Z') },
+        next,
+      ),
+    ).toThrow(OfferTermsError);
+  });
+
+  it('rejects an amount too large for NUMERIC(24, 6)', () => {
+    expect(() =>
+      applyMaterialEdit(
+        offer,
+        current,
+        { ...edit, giveAmount: Money.of('1000000000000000000.00', 'VES') },
+        next,
+      ),
+    ).toThrow(OfferTermsError);
+  });
+});
+
+describe('initial offer expiry', () => {
+  it('defaults an omitted expiry to seven days after publication', () => {
+    const publishedAt = new Date('2026-10-02T12:00:00.000Z');
+
+    expect(resolveOfferExpiry(undefined, publishedAt)).toEqual(
+      new Date('2026-10-09T12:00:00.000Z'),
+    );
+  });
+});
+
+describe('initial offer terms version', () => {
+  it('creates version 1 from complete terms and resolves the seven-day default', () => {
+    const now = new Date('2026-10-02T12:00:00.000Z');
+    const giveAmount = Money.of('2000.00', 'VES');
+    const receiveAmount = Money.of('2.000000', 'USDT');
+
+    const version = createInitialTermsVersion({
+      id: 'version-1',
+      offerId: 'offer-1',
+      pairId: 'VES_USDT',
+      giveAmount,
+      receiveAmount,
+      rate: '0.00100000',
+      marginPct: '2.50',
+      minAmount: Money.of('20.00', 'VES'),
+      maxAmount: Money.of('200000.00', 'VES'),
+      now,
+    });
+
+    expect(version).toMatchObject({
+      id: 'version-1',
+      offerId: 'offer-1',
+      version: 1,
+      pairId: 'VES_USDT',
+      giveAmount,
+      receiveAmount,
+      rate: '0.00100000',
+      marginPct: '2.50',
+      expiresAt: new Date('2026-10-09T12:00:00.000Z'),
+      createdAt: now,
+    });
   });
 });

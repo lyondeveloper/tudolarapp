@@ -4,9 +4,9 @@ const { URL } = require('node:url');
 
 const { Client } = require('pg');
 const {
-  DEFAULT_DATABASE_URL,
   LOCAL_HOSTS,
   repoRoot,
+  resolveTestDatabase,
 } = require('./e2e-environment.cjs');
 const { worktreeDatabaseName } = require('./worktree-database.cjs');
 
@@ -20,7 +20,8 @@ const { worktreeDatabaseName } = require('./worktree-database.cjs');
 
 async function main() {
   const expected = worktreeDatabaseName(repoRoot);
-  const template = new URL(process.env.DATABASE_URL || DEFAULT_DATABASE_URL);
+  const { adminUrl } = resolveTestDatabase();
+  const template = new URL(adminUrl);
 
   if (!LOCAL_HOSTS.includes(template.hostname)) {
     throw new Error(

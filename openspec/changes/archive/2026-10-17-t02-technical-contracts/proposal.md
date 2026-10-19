@@ -65,7 +65,7 @@ None.
 ## Impact
 
 - `docs/adr/` — ADRs `0019`–`0025`, plus the `README.md` index.
-- `openspec/changes/t02-technical-contracts/design.md` — the frozen contract set.
+- `openspec/changes/archive/2026-10-17-t02-technical-contracts/design.md` — the frozen contract set.
 - `apps/api/src/` — the contract layer: `common/` (error envelope, pagination, versioning,
   market context), `catalog/` (pair/rail/asset and money value objects), and the initial DTOs and
   ports under each module (`markets`, `sellers`, `subscriptions`, `offers`, `search`,

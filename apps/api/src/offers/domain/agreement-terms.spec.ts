@@ -77,7 +77,7 @@ describe('an agreement terms reference', () => {
       marginPct: '9.99',
       minAmount: Money.of('99.00', 'VES'),
       maxAmount: Money.of('999999.00', 'VES'),
-      expiresAt: new Date('2026-12-01T00:00:00.000Z'),
+      expiresAt: new Date('2026-10-15T00:00:00.000Z'),
     });
 
     const { version: versionTwo } = applyMaterialEdit(offer, versionOne, edit, {
@@ -99,5 +99,16 @@ describe('an agreement terms reference', () => {
     expect(() => resolveAgreementTerms(reference, [])).toThrow(
       AgreementTermsNotFoundError,
     );
+  });
+
+  it('rejects a terms version owned by a different offer', () => {
+    const mismatchedReference: AgreementTermsReference = Object.freeze({
+      ...reference,
+      offerId: 'offer-2',
+    });
+
+    expect(() =>
+      resolveAgreementTerms(mismatchedReference, [versionOne]),
+    ).toThrow(AgreementTermsNotFoundError);
   });
 });

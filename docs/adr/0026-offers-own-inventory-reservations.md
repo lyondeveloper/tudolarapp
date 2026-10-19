@@ -23,19 +23,25 @@ The offers module owns the `Offer` aggregate and its inventory lifecycle. Its co
 and exact `Money` values for `initialAmount`, `reservedAmount`, and `completedAmount`. The inventory
 amounts use the offer's give-asset unit. `initialAmount` is immutable, and
 `availableAmount = initialAmount - reservedAmount - completedAmount` is derived rather than stored.
+The offer's pair is immutable after publication; every later terms version must retain that pair.
+Per-transaction minimum and maximum amounts are denominated in the same give asset (ADR-0010 B5).
 
 The offers application layer owns the reservation port. The exchanges application consumes that
 port when an agreement transition changes inventory; it does not define a second reservation owner.
 The port exposes these operations:
 
 - **Reserve:** atomically increase `reservedAmount` only when the offer is active and sufficient
-  availability remains. The operation uses a compare-and-swap guard and reports whether it won.
+  availability remains. The amount uses the offer's give asset. The operation uses a
+  compare-and-swap guard and reports whether it won.
 - **Release:** decrease `reservedAmount` for mutual cancellation, moderation release, or expiry.
-  A single-party incident does not release inventory.
+  A single-party incident does not release inventory. A failed guard reports failure so the
+  agreement transition cannot commit.
 - **Complete:** move the completed agreement's amount from `reservedAmount` to `completedAmount`.
+  A failed guard reports failure so the agreement transition cannot commit.
 
 The agreement state transition and its corresponding inventory operation MUST commit or roll back
-together in one database transaction. Release and completion MUST NOT underflow the reservation.
+together in one database transaction. Offer and agreement write ports accept the same opaque
+application transaction context; release and completion MUST NOT underflow the reservation.
 
 The offers table enforces `initial_amount > 0`, `reserved_amount >= 0`,
 `completed_amount >= 0`, and `reserved_amount + completed_amount <= initial_amount` with database

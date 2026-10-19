@@ -1,6 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { randomUUID } from 'node:crypto';
+import { Prisma } from './../../src/generated/prisma/client';
 import { AppModule } from './../../src/app.module';
 import { PrismaService } from './../../src/database/prisma.service';
 
@@ -9,33 +10,11 @@ import { PrismaService } from './../../src/database/prisma.service';
 // `--create-only` migration — not by application discipline. This is the same
 // class of unmodelled object as the CHECK constraints in the identity migration.
 const TABLE = 'offer_terms_versions';
+const DELETE_TRIGGER = 'offer_terms_versions_no_delete';
 const UPDATE_TRIGGER = 'offer_terms_versions_no_update';
 
 interface TriggerRow {
   tgname: string;
-}
-
-interface OfferTermsVersionDelegate {
-  create(args: {
-    data: {
-      id: string;
-      offerId: string;
-      version: number;
-      pairId: string;
-      giveAmount: string;
-      receiveAmount: string;
-      rate: string | null;
-      marginPct: string;
-      minAmount: string;
-      maxAmount: string;
-      expiresAt: Date;
-    };
-  }): Promise<{ id: string }>;
-  findUnique(args: { where: { id: string } }): Promise<{
-    id: string;
-    pairId: string;
-    version: number;
-  } | null>;
 }
 
 describe('offer terms version immutability (e2e)', () => {
@@ -72,41 +51,88 @@ describe('offer terms version immutability (e2e)', () => {
     return rows.map((row) => row.tgname);
   }
 
-  it('reads the existing terms-version table through the generated Prisma model', async () => {
-    const termsVersion = (
-      prisma as unknown as {
-        offerTermsVersion?: OfferTermsVersionDelegate;
-      }
-    ).offerTermsVersion;
-    expect(termsVersion).toBeDefined();
-    if (!termsVersion) return;
+  async function expectMutationViolation(
+    operation: () => Promise<unknown>,
+  ): Promise<void> {
+    let failure: unknown;
+    try {
+      await operation();
+    } catch (error) {
+      failure = error;
+    }
 
+    const prismaFailure = failure as {
+      meta?: { driverAdapterError?: { cause?: { originalCode?: string } } };
+    };
+    expect(failure).toBeDefined();
+    expect(prismaFailure.meta?.driverAdapterError?.cause?.originalCode).toBe(
+      '23514',
+    );
+  }
+
+  it('reads the existing terms-version table through the generated Prisma model', async () => {
     const id = randomUUID();
-    await termsVersion.create({
+    const offerId = randomUUID();
+    await prisma.offerTermsVersion.create({
       data: {
         id,
-        offerId: randomUUID(),
+        offerId,
         version: 1,
         pairId: 'VES_USDT',
-        giveAmount: '1000.00',
-        receiveAmount: '1.000000',
-        rate: '0.00100000',
-        marginPct: '1.00',
-        minAmount: '1.00',
-        maxAmount: '1000.00',
+        giveAmount: new Prisma.Decimal('1000.00'),
+        receiveAmount: new Prisma.Decimal('1.000000'),
+        rate: new Prisma.Decimal('0.00100000'),
+        marginPct: new Prisma.Decimal('1.00'),
+        minAmount: new Prisma.Decimal('1.00'),
+        maxAmount: new Prisma.Decimal('1000.00'),
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       },
     });
 
+    const termsVersion = await prisma.offerTermsVersion.findUnique({
+      where: { id },
+    });
+    expect(termsVersion).toMatchObject({
+      id,
+      offerId,
+      pairId: 'VES_USDT',
+      version: 1,
+    });
+    expect(termsVersion?.giveAmount.toFixed(6)).toBe('1000.000000');
+    expect(termsVersion?.receiveAmount.toFixed(6)).toBe('1.000000');
+    expect(termsVersion?.rate?.toFixed(8)).toBe('0.00100000');
+    expect(termsVersion?.marginPct.toFixed(2)).toBe('1.00');
+  });
+
+  it('enforces the per-offer version unique index through the generated delegate', async () => {
+    const offerId = randomUUID();
+    const data = {
+      offerId,
+      version: 1,
+      pairId: 'VES_USDT',
+      giveAmount: new Prisma.Decimal('1000.00'),
+      receiveAmount: new Prisma.Decimal('1.000000'),
+      rate: new Prisma.Decimal('0.00100000'),
+      marginPct: new Prisma.Decimal('1.00'),
+      minAmount: new Prisma.Decimal('1.00'),
+      maxAmount: new Prisma.Decimal('1000.00'),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    };
+
+    await prisma.offerTermsVersion.create({
+      data: { id: randomUUID(), ...data },
+    });
     await expect(
-      termsVersion.findUnique({ where: { id } }),
-    ).resolves.toMatchObject({ id, pairId: 'VES_USDT', version: 1 });
+      prisma.offerTermsVersion.create({
+        data: { id: randomUUID(), ...data },
+      }),
+    ).rejects.toMatchObject({ code: 'P2002' });
   });
 
   it('rejects an UPDATE to a version row with a database trigger', async () => {
     // The enforcement must come from the database object the migration adds,
     // not from anything the application chooses to do.
-    expect(await installedTriggers()).toContain(UPDATE_TRIGGER);
+    expect(await installedTriggers()).toEqual([DELETE_TRIGGER, UPDATE_TRIGGER]);
 
     const offerId = randomUUID();
     const versionId = randomUUID();
@@ -121,25 +147,13 @@ describe('offer terms version immutability (e2e)', () => {
       )
     `;
 
-    let failure: unknown;
-    try {
-      await prisma.$executeRaw`
+    await expectMutationViolation(
+      () =>
+        prisma.$executeRaw`
         UPDATE "offer_terms_versions"
         SET "give_amount" = 999
         WHERE "id" = ${versionId}::uuid
-      `;
-    } catch (error) {
-      failure = error;
-    }
-
-    // Prisma wraps driver errors; assert the Postgres SQLSTATE the trigger
-    // raises (23514, check_violation) rather than Prisma's own error code.
-    const prismaFailure = failure as {
-      meta?: { driverAdapterError?: { cause?: { originalCode?: string } } };
-    };
-    expect(failure).toBeDefined();
-    expect(prismaFailure.meta?.driverAdapterError?.cause?.originalCode).toBe(
-      '23514',
+      `,
     );
 
     // And the row is untouched.
@@ -150,5 +164,35 @@ describe('offer terms version immutability (e2e)', () => {
     `;
     expect(rows).toHaveLength(1);
     expect(rows[0].give_amount).toBe('1000.000000');
+  });
+
+  it('rejects a DELETE to a version row with the database trigger', async () => {
+    const offerId = randomUUID();
+    const versionId = randomUUID();
+    await prisma.$executeRaw`
+      INSERT INTO "offer_terms_versions"
+        ("id", "offer_id", "version", "pair_id", "give_amount", "receive_amount",
+         "rate", "margin_pct", "min_amount", "max_amount", "expires_at")
+      VALUES (
+        ${versionId}::uuid, ${offerId}::uuid, 1, 'VES_USDT',
+        1000.00, 1.000000, 0.00100000, 1.00, 1.00, 1000000.00,
+        now() + interval '7 days'
+      )
+    `;
+
+    await expectMutationViolation(
+      () =>
+        prisma.$executeRaw`
+        DELETE FROM "offer_terms_versions"
+        WHERE "id" = ${versionId}::uuid
+      `,
+    );
+
+    const rows = await prisma.$queryRaw<Array<{ id: string }>>`
+      SELECT "id"::text AS id
+      FROM "offer_terms_versions"
+      WHERE "id" = ${versionId}::uuid
+    `;
+    expect(rows).toHaveLength(1);
   });
 });

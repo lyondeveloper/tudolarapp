@@ -26,10 +26,12 @@ The offer's commercial terms are the seller's and are bounded only where a value
 - **B3 — Quote validity is 15 minutes**, and the confirmation binds to the quote it was shown.
 - **B4 — Round once, server-side, to the receive asset's minor unit**: `VES` and `USD` to 2 decimals,
   `USDT` to 6.
-- **B5 — The seller sets per-offer min and max.** The platform sets only a floor of `> 0`; there is no
+- **B5 — The seller sets per-offer min and max in the pair's give asset.** Both must be positive and
+  the minimum must not exceed the maximum. The platform sets only a floor of `> 0`; there is no
   platform maximum in the MVP.
-- **B6 — Offer expiry defaults to 7 days, capped at 30.** Expiry is load-bearing under ADR-0008,
-  because it is the only mitigation for a stale rate.
+- **B6 — Offer expiry defaults to 7 days, capped at 30.** A supplied expiry must be in the future
+  and no more than 30 days after publication or a material edit. Expiry is load-bearing under
+  ADR-0008, because it is the only mitigation for a stale rate.
 
 ## Consequences
 

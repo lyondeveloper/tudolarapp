@@ -12,10 +12,10 @@ product value, threshold, or boundary
 the `t01-product-decisions` change (`openspec/changes/t01-product-decisions/`): they record the
 product owner's answers to the register in its `design.md`, so they **do** fix product values,
 thresholds, and boundaries. **0019–0025** are produced by the `t02-technical-contracts` change
-(`openspec/changes/t02-technical-contracts/`): they record the stack and module-boundary decisions,
+(`openspec/changes/archive/2026-10-17-t02-technical-contracts/`): they record the stack and module-boundary decisions,
 citing `AGENTS.md` rather than restating it as a new rule
-(`openspec/changes/t02-technical-contracts/design.md:32-44`). **0026** is produced by the
-`t02-contract-gaps` change (`openspec/changes/t02-contract-gaps/`): it closes the inventory-ownership
+(`openspec/changes/archive/2026-10-17-t02-technical-contracts/design.md:32-44`). **0026** is produced by the
+`t02-contract-gaps` change (`openspec/changes/archive/2026-10-18-t02-contract-gaps/`): it closes the inventory-ownership
 contract gap without implementing the reservation.
 
 ## Convention
@@ -49,7 +49,7 @@ message: the ADR is the current contract, and the spike reports are the evidence
 | [0007](0007-offer-and-quote-shape.md) | Offer and quote shape | The offer/quote shape is stable whichever way the platform-reference question goes. |
 | [0008](0008-seller-sets-commercial-values.md) | Seller sets commercial values | The seller sets every commercial value; rate is receive units per one give unit, comparable only within a pair; the platform publishes no reference rate and computes none. |
 | [0009](0009-mvp-pair-and-rail-catalog.md) | The MVP pair and rail catalog | Five canonical pair ids on three assets and four rails; the unqualified "VES" leg is physical cash; a meeting is required when either leg is physical. |
-| [0010](0010-mvp-pricing-and-offer-terms.md) | MVP pricing and offer terms | Margin is a percentage bounded `0 ≤ margin < 100`; same-asset pairs carry no rate; quotes last 15 minutes; round once server-side to the receive asset's minor unit; seller-set min/max with only a `> 0` platform floor; expiry defaults to 7 days, capped at 30. |
+| [0010](0010-mvp-pricing-and-offer-terms.md) | MVP pricing and offer terms | Margin is a percentage bounded `0 ≤ margin < 100`; same-asset pairs carry no rate; quotes last 15 minutes; round once server-side to the receive asset's minor unit; seller-set give-asset min/max with a `> 0` floor and `min ≤ max`; expiry defaults to 7 days, capped at 30. |
 | [0011](0011-mvp-agreement-rules.md) | MVP agreement rules | An incident report does not release the reservation (only mutual cancellation or moderation does); the reservation is held during reconfirmation; an unconfirmed agreement expires after 24 hours. |
 | [0012](0012-mvp-inventory-no-replenishment.md) | MVP inventory has no replenishment | No replenishment in the MVP; a seller wanting more publishes a new offer; SP03's append-only ledger stays the documented option. |
 | [0013](0013-mvp-onboarding-and-trust.md) | MVP onboarding and trust | No contact verification required to publish (a pilot relaxation, verify before launch); no reputation signals; mutual account-wide blocking; manual moderation with an appeal path and owner-set SLAs; profiles and billing global. |
@@ -65,7 +65,7 @@ message: the ADR is the current contract, and the spike reports are the evidence
 | [0023](0023-postgis-through-prisma.md) | PostGIS through Prisma | The `Unsupported("geometry")` mapping, raw SQL confined to `adapters/out/`, consistent SRIDs with `ST_DWithin` and GiST indexes, the market predicate co-located with the proximity predicate, and `CREATE EXTENSION postgis` in the single migration authority. |
 | [0024](0024-react-native-expo-mobile-client.md) | React Native + Expo is the mobile client | The mobile client is React Native + Expo, with its own conventions cited from `apps/mobile/AGENTS.md` rather than restated. |
 | [0025](0025-api-module-boundaries.md) | API module boundaries | The module table naming which module owns each contract, and the rule that `catalog` alone declares pair, asset, rail, and money types. |
-| [0026](0026-offers-own-inventory-reservations.md) | Offers own inventory reservations | Offers owns the inventory aggregate and reservation port; availability is derived, and agreement transitions and counter changes are atomic. |
+| [0026](0026-offers-own-inventory-reservations.md) | Offers own inventory reservations | Offers owns immutable give-asset inventory and the reservation port; availability is derived, pair identity is immutable, and agreement transitions/counter changes share one transaction context with guarded outcomes. |
 
 ## What these records leave open
 
@@ -84,7 +84,7 @@ is ever added) and group **G** (the legal review). Neither blocks the MVP build
 
 The **T02 stack records (0019–0025)** record the stack and module-boundary decisions and leave the
 same two groups **open**: group **I** and group **G** are named as open wherever a contract touches
-them, and no record here decides them (`openspec/changes/t02-technical-contracts/design.md:157-161`).
+them, and no record here decides them (`openspec/changes/archive/2026-10-17-t02-technical-contracts/design.md:157-161`).
 **ADR-0026** adds the offers-owned inventory contract and does not decide either group.
 
 The Ciudad Ojeda polygon is out of scope for the reconciliation change and is not decided by any record

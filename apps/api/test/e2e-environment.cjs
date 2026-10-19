@@ -2,6 +2,8 @@
 
 const path = require('node:path');
 const { URL } = require('node:url');
+const fs = require('node:fs');
+const dotenv = require('dotenv');
 
 const { worktreeDatabaseName } = require('./worktree-database.cjs');
 
@@ -17,8 +19,11 @@ const repoRoot = path.resolve(apiRoot, '..', '..');
 // is already exported, so an explicit environment still wins.
 require('dotenv').config({ path: path.join(apiRoot, '.env'), quiet: true });
 
-const LOCAL_HOSTS = ['localhost', '127.0.0.1', '::1'];
-const DEFAULT_DATABASE_URL = 'postgresql://tudolar:tudolar@127.0.0.1:5433/tudolar';
+const LOCAL_HOSTS = ['localhost', '127.0.0.1', '::1', '[::1]'];
+const DEFAULT_DATABASE_URL =
+  'postgresql://tudolar_app:tudolar_app@127.0.0.1:5433/tudolar';
+const DEFAULT_MIGRATION_DATABASE_URL =
+  'postgresql://tudolar:tudolar@127.0.0.1:5433/tudolar';
 // CREATE DATABASE cannot be parameterized, so the name is checked against this
 // allowlist before it is ever interpolated.
 const SAFE_IDENTIFIER = /^[a-z_][a-z0-9_]*$/;
@@ -46,18 +51,50 @@ function validateLocalDisposable(url, source) {
  */
 function resolveTestDatabase() {
   const explicit = process.env.TUDOLAR_TEST_DATABASE_URL;
+  const runtimeTemplate = new URL(
+    process.env.DATABASE_URL || DEFAULT_DATABASE_URL,
+  );
+  const runtimeBaseUrl = runtimeTemplate.toString();
+  let url;
+  let name;
+  let derived;
+
   if (explicit) {
-    validateLocalDisposable(explicit, 'TUDOLAR_TEST_DATABASE_URL');
-    return { url: explicit, derived: false };
+    const validated = validateLocalDisposable(
+      explicit,
+      'TUDOLAR_TEST_DATABASE_URL',
+    );
+    url = explicit;
+    name = validated.name;
+    derived = false;
+  } else {
+    name = worktreeDatabaseName(repoRoot);
+    runtimeTemplate.pathname = `/${name}`;
+    url = runtimeTemplate.toString();
+    validateLocalDisposable(url, 'the derived worktree database');
+    derived = true;
   }
 
-  const template = new URL(process.env.DATABASE_URL || DEFAULT_DATABASE_URL);
-  const adminUrl = template.toString();
-  template.pathname = `/${worktreeDatabaseName(repoRoot)}`;
-  const url = template.toString();
-  validateLocalDisposable(url, 'the derived worktree database');
+  const migrationEnvPath = path.join(apiRoot, '.env.migration');
+  const migrationFile = fs.existsSync(migrationEnvPath)
+    ? dotenv.parse(fs.readFileSync(migrationEnvPath))
+    : {};
+  const migrationBase = new URL(
+    process.env.MIGRATION_DATABASE_URL ??
+      migrationFile.MIGRATION_DATABASE_URL ??
+      DEFAULT_MIGRATION_DATABASE_URL,
+  );
+  if (!LOCAL_HOSTS.includes(migrationBase.hostname)) {
+    throw new Error(
+      'MIGRATION_DATABASE_URL must target a local PostgreSQL host for E2E',
+    );
+  }
+  const adminUrl = migrationBase.toString();
+  migrationBase.pathname = `/${name}`;
+  const migrationUrl = migrationBase.toString();
+  validateLocalDisposable(migrationUrl, 'the derived maintenance database');
 
-  return { url, derived: true, adminUrl };
+  return { url, migrationUrl, adminUrl, runtimeBaseUrl, derived };
 }
 
 function databaseNameOf(url) {
@@ -69,6 +106,7 @@ module.exports = {
   repoRoot,
   LOCAL_HOSTS,
   DEFAULT_DATABASE_URL,
+  DEFAULT_MIGRATION_DATABASE_URL,
   SAFE_IDENTIFIER,
   validateLocalDisposable,
   resolveTestDatabase,

@@ -8,7 +8,10 @@ const {
   databaseNameOf,
   resolveTestDatabase,
 } = require('./e2e-environment.cjs');
-const { provisionDatabase } = require('./provision-e2e-database.cjs');
+const {
+  grantRuntimePrivileges,
+  provisionDatabase,
+} = require('./provision-e2e-database.cjs');
 const { SEEDED_ACCOUNT, seedVerifiedAccount } = require('./seed-e2e.cjs');
 
 /**
@@ -22,10 +25,10 @@ const { SEEDED_ACCOUNT, seedVerifiedAccount } = require('./seed-e2e.cjs');
 
 const prismaCli = path.join(apiRoot, 'node_modules/prisma/build/index.js');
 
-function runSync(nodeArgs) {
+function runSync(nodeArgs, env = process.env) {
   const result = spawnSync(process.execPath, nodeArgs, {
     cwd: apiRoot,
-    env: process.env,
+    env,
     stdio: 'inherit',
   });
   if (result.error) throw result.error;
@@ -33,15 +36,22 @@ function runSync(nodeArgs) {
 }
 
 async function main() {
-  const { url, derived, adminUrl } = resolveTestDatabase();
+  const { url, migrationUrl, adminUrl, runtimeBaseUrl, derived } =
+    resolveTestDatabase();
 
-  if (derived) {
-    await provisionDatabase(adminUrl, url);
-  }
-  process.env.DATABASE_URL = url;
+  await provisionDatabase(adminUrl, url, {
+    createIfMissing: derived,
+    runtimeBaseUrl,
+  });
 
-  runSync([prismaCli, 'generate']);
-  runSync([prismaCli, 'migrate', 'deploy']);
+  const migrationEnv = {
+    ...process.env,
+    DATABASE_URL: url,
+    MIGRATION_DATABASE_URL: migrationUrl,
+  };
+  runSync([prismaCli, 'generate'], migrationEnv);
+  runSync([prismaCli, 'migrate', 'deploy'], migrationEnv);
+  await grantRuntimePrivileges(migrationUrl, url);
 
   await seedVerifiedAccount(url);
   console.log(`[e2e] seeded ${SEEDED_ACCOUNT.username}`);
@@ -49,9 +59,11 @@ async function main() {
     `[e2e] starting the API against ${databaseNameOf(url)} on port ${process.env.PORT ?? 3000}`,
   );
 
+  const apiEnv = { ...process.env, DATABASE_URL: url };
+  delete apiEnv.MIGRATION_DATABASE_URL;
   const api = spawn('npm', ['run', 'start'], {
     cwd: apiRoot,
-    env: process.env,
+    env: apiEnv,
     stdio: 'inherit',
   });
 

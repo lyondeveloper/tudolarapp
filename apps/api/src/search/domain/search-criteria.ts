@@ -1,11 +1,11 @@
-import type { Asset, Leg } from '../../catalog/catalog';
+import type { Asset, PairId } from '../../catalog/catalog';
 
 /**
  * The search criteria — pure domain, no infrastructure imports.
  *
  * ADR-0003 makes the schema **closed**: every key is allowlisted and every enum
  * member comes from the shared `catalog`, so this module imports `Asset` and
- * `Leg` rather than declaring its own asset, rail, pair, or money type
+ * `PairId` rather than declaring its own asset, rail, pair, or money type
  * (ADR-0025). The schema carries an explicit unparsed/needs-clarification
  * outcome, which ADR-0003 requires but does not name; the member below is that
  * outcome.
@@ -18,12 +18,6 @@ export type SearchIntent = 'search_offer' | 'unsupported' | 'unparsed';
 export interface SearchAmount {
   readonly value: string;
   readonly asset: Asset;
-}
-
-/** The two-leg direction, using the shared catalog legs (ADR-0005). */
-export interface SearchDirection {
-  readonly give: Leg;
-  readonly receive: Leg;
 }
 
 /** An optional location hint and radius, in kilometers (ADR-0017). */
@@ -42,7 +36,7 @@ export interface SearchConfidence {
 /** The closed search criteria the manual filters and the parser both produce. */
 export interface SearchCriteria {
   readonly intent: SearchIntent;
-  readonly direction: SearchDirection | null;
+  readonly pairId: PairId | null;
   readonly amount: SearchAmount | null;
   readonly location: SearchLocation | null;
   readonly unresolved: readonly string[];

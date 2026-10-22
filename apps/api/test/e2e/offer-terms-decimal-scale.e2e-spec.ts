@@ -50,7 +50,18 @@ describe('offer terms decimal scale (e2e)', () => {
       expiresAt: new Date('2026-11-01T00:00:00.000Z'),
       createdAt: new Date('2026-10-01T00:00:00.000Z'),
     };
-    const offer: Offer = { id: offerId, currentTermsVersionId: current.id };
+    const offer: Offer = {
+      id: offerId,
+      marketId: randomUUID(),
+      sellerId: randomUUID(),
+      status: 'active',
+      description: 'A seller offer',
+      details: null,
+      currentTermsVersionId: current.id,
+      initialAmount: Money.of('100000.00', 'VES'),
+      reservedAmount: Money.of('0.00', 'VES'),
+      completedAmount: Money.of('0.00', 'VES'),
+    };
     const edit: MaterialTermsEdit = {
       pairId: 'VES_USDT',
       giveAmount: Money.of('2000.00', 'VES'),

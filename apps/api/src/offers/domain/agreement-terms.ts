@@ -21,7 +21,7 @@ export interface AgreementTermsReference {
   readonly termsVersionId: string;
 }
 
-/** Thrown when an agreement references a version that is not in the history. */
+/** Thrown when an agreement references a version outside its offer's history. */
 export class AgreementTermsNotFoundError extends Error {
   constructor(termsVersionId: string) {
     super(`Agreement references an unknown terms version: ${termsVersionId}`);
@@ -38,7 +38,9 @@ export function resolveAgreementTerms(
   versions: readonly OfferTermsVersion[],
 ): OfferTermsVersion {
   const version = versions.find(
-    (candidate) => candidate.id === reference.termsVersionId,
+    (candidate) =>
+      candidate.id === reference.termsVersionId &&
+      candidate.offerId === reference.offerId,
   );
   if (!version) {
     throw new AgreementTermsNotFoundError(reference.termsVersionId);

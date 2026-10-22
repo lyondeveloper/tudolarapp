@@ -134,3 +134,21 @@ model PhoneVerificationChallenge {
   @@index([userId, expiresAt])
   @@map("phone_verification_challenges")
 }
+
+model OfferTermsVersion {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  offerId       String    @map("offer_id") @db.Uuid
+  version       Int
+  pairId        String    @map("pair_id")
+  giveAmount    Decimal   @map("give_amount") @db.Decimal(24, 6)
+  receiveAmount Decimal   @map("receive_amount") @db.Decimal(24, 6)
+  rate          Decimal?  @db.Decimal(24, 8)
+  marginPct     Decimal   @map("margin_pct") @db.Decimal(5, 2)
+  minAmount     Decimal   @map("min_amount") @db.Decimal(24, 6)
+  maxAmount     Decimal   @map("max_amount") @db.Decimal(24, 6)
+  expiresAt     DateTime  @map("expires_at") @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([offerId, version], map: "offer_terms_versions_offer_id_version_uq")
+  @@map("offer_terms_versions")
+}

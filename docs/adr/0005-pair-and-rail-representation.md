@@ -39,10 +39,10 @@ shape is settled (`openspec/changes/spike-interface-reconciliation/design.md:70`
 
 ## Consequences
 
-- SP06's and SP12's single-value shapes are reconciled to the two-axis model; the API and search
-  criteria expose the derived closed pair id.
-- The funnel event shape must adopt the two-leg `direction` with an asset per leg instead of a
-  singular `pair`/`currency` (mismatch I7, `docs/spikes/CROSS-B-discovery.md:170-174`).
+- The API and search criteria expose the derived closed pair id; the pair's two axes remain internal.
+  ADR-0003 adopts `pairId` so a criteria object cannot express an invalid catalog combination.
+- The funnel event shape uses the closed `pairId`, not a two-leg `direction` or a singular
+  `pair`/`currency` (mismatch I7, `docs/spikes/CROSS-B-discovery.md:170-174`).
 - Left open (product owner, T01): the enum members and the canonical labels
   (`docs/spikes/CROSS-C-commercial-trust.md:267`, R4; `docs/spikes/SP01-exchange-pairs.md:123`, U7),
   and whether the flat pair id is an opaque id or a derived string (a T02 detail that does not change

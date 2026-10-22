@@ -2,6 +2,14 @@
 const { worktreeDatabaseName } = require('./worktree-database.cjs') as {
   worktreeDatabaseName: (worktreePath: string) => string;
 };
+const { resolveTestDatabase } = require('./e2e-environment.cjs') as {
+  resolveTestDatabase: () => {
+    url: string;
+    adminUrl?: string;
+    migrationUrl?: string;
+    derived: boolean;
+  };
+};
 
 /**
  * Each worktree must get its own disposable database, and the name must satisfy
@@ -44,5 +52,50 @@ describe('worktreeDatabaseName', () => {
   it('is not so long that PostgreSQL truncates it', () => {
     const long = `/Users/someone/projects/${'x'.repeat(120)}`;
     expect(worktreeDatabaseName(long).length).toBeLessThanOrEqual(63);
+  });
+});
+
+describe('resolveTestDatabase', () => {
+  it('keeps runtime and maintenance credentials separate for one worktree DB', () => {
+    const original = {
+      DATABASE_URL: process.env.DATABASE_URL,
+      MIGRATION_DATABASE_URL: process.env.MIGRATION_DATABASE_URL,
+      TUDOLAR_TEST_DATABASE_URL: process.env.TUDOLAR_TEST_DATABASE_URL,
+    };
+
+    try {
+      process.env.DATABASE_URL =
+        'postgresql://tudolar_app:app-password@127.0.0.1:5433/tudolar';
+      process.env.MIGRATION_DATABASE_URL =
+        'postgresql://tudolar:migration-password@127.0.0.1:5433/tudolar';
+      delete process.env.TUDOLAR_TEST_DATABASE_URL;
+
+      const resolved = resolveTestDatabase();
+      expect(resolved.derived).toBe(true);
+      expect(resolved.migrationUrl).toBeDefined();
+      expect(new URL(resolved.url).username).toBe('tudolar_app');
+      expect(new URL(resolved.migrationUrl ?? '').username).toBe('tudolar');
+      expect(new URL(resolved.url).pathname).toBe(
+        new URL(resolved.migrationUrl ?? '').pathname,
+      );
+      expect(new URL(resolved.adminUrl ?? '').username).toBe('tudolar');
+    } finally {
+      if (original.DATABASE_URL === undefined) {
+        delete process.env.DATABASE_URL;
+      } else {
+        process.env.DATABASE_URL = original.DATABASE_URL;
+      }
+      if (original.MIGRATION_DATABASE_URL === undefined) {
+        delete process.env.MIGRATION_DATABASE_URL;
+      } else {
+        process.env.MIGRATION_DATABASE_URL = original.MIGRATION_DATABASE_URL;
+      }
+      if (original.TUDOLAR_TEST_DATABASE_URL === undefined) {
+        delete process.env.TUDOLAR_TEST_DATABASE_URL;
+      } else {
+        process.env.TUDOLAR_TEST_DATABASE_URL =
+          original.TUDOLAR_TEST_DATABASE_URL;
+      }
+    }
   });
 });

@@ -9,10 +9,11 @@
 
 ## Context
 
-SP06 owns a closed, allowlisted criteria schema:
+SP06 owns a closed, allowlisted criteria schema. The external search shape is corrected by T02 to use
+the catalog's closed `PairId`, consistent with ADR-0005:
 
 ```
-intent; direction{give,receive}; amount{value,asset}; location{hint_text,radius_km};
+intent; pairId; amount{value,asset}; location{hint_text,radius_km};
 unresolved[]; confidence{direction,amount,location}
 ```
 — `docs/spikes/SP06-prompt-to-search-contract.md:88-104`
@@ -28,7 +29,8 @@ SP12 still cites the pre-existing illustrative contract whose names SP06 replace
 catalog. SP06 dropped `action`, renamed the pair to `direction{give,receive}`, renamed
 `location_hint` → `location.hint_text`, `max_distance_km` → `location.radius_km`, and changed
 `amount` from a number to `{value,asset}`. `docs/spikes/CROSS-B-discovery.md:120-136` records this
-as interface mismatch I1.
+as interface mismatch I1. The two-leg `direction` shape itself is superseded by ADR-0005: the
+external criteria carry the derived `PairId`, so they cannot express a pair outside the catalog.
 
 Separately, SP12 needs a "cannot parse" outcome
 (`docs/spikes/SP12-llm-natural-language-search.md:70`) that SP06's `intent` enum
@@ -38,9 +40,10 @@ this as mismatch I2.
 
 ## Decision
 
-SP06 owns the closed criteria schema, and SP12 adopts it. SP12's parser emits SP06's field names —
-`direction{give,receive}`, `location{hint_text,radius_km}`, `amount{value,asset}` — not the older
-names its report still shows (`openspec/changes/spike-interface-reconciliation/design.md:49-51`).
+SP06 owns the closed criteria schema, and SP12 adopts it. The external and application criteria
+carry the catalog's closed `pairId` rather than two independent legs; the parser emits that same
+`PairId`, plus `location{hint_text,radius_km}` and `amount{value,asset}`. The pair's ordered legs
+remain an internal catalog representation per ADR-0005.
 
 The schema is closed: every key allowlisted, every enum member from SP01's catalog, no other key
 accepted (`docs/spikes/SP06-prompt-to-search-contract.md:88`, `SP06:104`, `SP06:109`).
@@ -58,8 +61,8 @@ parser being able to say so rather than guessing
 - The design fixes that the unparsed/needs-clarification outcome must exist; it does not name the
   enum member, and the enum members come from SP01's catalog
   (`docs/spikes/SP06-prompt-to-search-contract.md:88`).
-- The funnel event shape must adopt the two-leg `direction` with an asset per leg instead of a
-  singular `pair`/`currency` (mismatch I7, `docs/spikes/CROSS-B-discovery.md:170-174`).
+- The funnel event shape uses the closed `pairId`, not a two-leg `direction` or a singular
+  `pair`/`currency` (mismatch I7, `docs/spikes/CROSS-B-discovery.md:170-174`).
 
 ## Alternatives considered
 
@@ -67,6 +70,9 @@ parser being able to say so rather than guessing
 check rejects unknown keys and enum values outside SP01's catalog (`forbidNonWhitelisted`,
 `docs/spikes/SP06-prompt-to-search-contract.md:108-109`); SP12's adapter cannot emit the names SP06
 rejects, and SP12 itself defers to SP06.
+
+**Exposing two independent legs as `direction`.** Rejected because the shape admits combinations
+outside the closed catalog, while a `PairId` is already the API contract in ADR-0005.
 
 **Leaving "cannot parse" out of the schema, as SP06 does (`SP06:150`).** Rejected because SP12's
 failure budget depends on the parser being able to say it cannot parse rather than guessing

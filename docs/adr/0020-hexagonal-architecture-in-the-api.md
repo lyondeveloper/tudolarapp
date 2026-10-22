@@ -3,7 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-10-17
 - **Resolves:** the T02 stack decision recorded as row **0020** in the stack table
-  (`openspec/changes/t02-technical-contracts/design.md:32-44`)
+  (`openspec/changes/archive/2026-10-17-t02-technical-contracts/design.md:32-44`)
 
 ## Context
 
@@ -11,12 +11,11 @@
 rules: keep the domain independent of NestJS, HTTP, PostgreSQL/ORM, and external providers; point
 dependencies inward; and organize each module by business context with the suggested layers. This
 record records that decision and its rationale and cites `AGENTS.md` rather than restating it as a new
-rule (`openspec/changes/t02-technical-contracts/design.md:34`).
+rule (`openspec/changes/archive/2026-10-17-t02-technical-contracts/design.md:34`).
 
-The existing shape to follow is `apps/api/src/auth/` and `apps/api/src/users/`
-(`openspec/changes/t02-technical-contracts/design.md:7`): each module already separates `domain/`,
-`application/`, `adapters/in/`, and `adapters/out/`, with the NestJS wiring in `module.ts`. The
-`auth/` module is the reference implementation.
+The existing shape to follow is `apps/api/src/auth/`
+(`openspec/changes/archive/2026-10-17-t02-technical-contracts/design.md:7`): it separates `domain/`,
+`application/`, `adapters/in/`, and `adapters/out/`, with the NestJS wiring in `module.ts`.
 
 ## Decision
 
@@ -30,9 +29,9 @@ stated as rules in `AGENTS.md` (section "Node.js and NestJS — hexagonal archit
   persistence models, or concrete repositories.
 - **The `domain/` rule:** `domain/` imports nothing infrastructural — no NestJS, HTTP, PostgreSQL/ORM,
   or external provider. Domain models, value objects, invariants, and domain services live there.
-- **Reference implementation:** the existing `apps/api/src/auth/` shape (with `apps/api/src/users/`),
-  which the change cites as the model to follow
-  (`openspec/changes/t02-technical-contracts/design.md:7`).
+- **Reference implementation:** the existing `apps/api/src/auth/` shape, which the change cites as
+  the model to follow
+  (`openspec/changes/archive/2026-10-17-t02-technical-contracts/design.md:7`).
 
 ## Consequences
 
@@ -42,9 +41,9 @@ stated as rules in `AGENTS.md` (section "Node.js and NestJS — hexagonal archit
   models are mapped at boundaries and never exposed through the API.
 - New modules (`markets`, `sellers`, `subscriptions`, `offers`, `search`, `conversations`,
   `exchanges`, `reports`) adopt the same shape, using only the layers they actually need
-  (`openspec/changes/t02-technical-contracts/tasks.md:50`).
+  (`openspec/changes/archive/2026-10-17-t02-technical-contracts/tasks.md:50`).
 - Left open (unchanged): group **G** (the legal review) and group **I** (pilot) remain open
-  (`openspec/changes/t02-technical-contracts/design.md:157-161`).
+  (`openspec/changes/archive/2026-10-17-t02-technical-contracts/design.md:157-161`).
 
 ## Alternatives considered
 
@@ -54,4 +53,4 @@ stated as rules in `AGENTS.md` (section "Node.js and NestJS — hexagonal archit
 - **Letting `domain/` import the ORM or NestJS for convenience.** Rejected: it inverts the dependency
   direction and breaks the `domain/` rule.
 - **A new layer shape for the new modules.** Rejected: the existing `auth/` shape is the reference
-  implementation to follow (`openspec/changes/t02-technical-contracts/design.md:7`).
+  implementation to follow (`openspec/changes/archive/2026-10-17-t02-technical-contracts/design.md:7`).

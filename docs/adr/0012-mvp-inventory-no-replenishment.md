@@ -14,12 +14,12 @@ product owner has adopted stored counters with the one-writer-same-transaction d
 (`docs/spikes/SYNTHESIS.md:145,154-171`).
 
 The product owner answered the replenishment question on 2026-10-17
-(`openspec/changes/t01-product-decisions/design.md:30-32`).
+(`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:30-32`).
 
 ## Decision
 
 There is **no replenishment** in the MVP. A seller wanting more publishes a new offer
-(`openspec/changes/t01-product-decisions/design.md:75-78`).
+(`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:75-78`).
 
 SP03's append-only ledger stays the documented option if this is revisited.
 
@@ -30,13 +30,13 @@ SP03's append-only ledger stays the documented option if this is revisited.
 - No replenishment path means no new way to raise an offer's available amount after publication; more
   supply is a new offer, not an edit.
 - SP03's append-only ledger is recorded as the option to adopt if replenishment is later allowed
-  (`openspec/changes/t01-product-decisions/design.md:77-78`).
+  (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:77-78`).
 - Left open (unchanged): group **G** (the legal review) and group **I** (pilot) remain open
-  (`openspec/changes/t01-product-decisions/design.md:99-115`).
+  (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:99-115`).
 
 ## Alternatives considered
 
 - **Allowing replenishment under SP03's append-only ledger.** Deferred, not adopted: the ledger stays
-  the documented option if this is revisited (`openspec/changes/t01-product-decisions/design.md:77-78`).
+  the documented option if this is revisited (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:77-78`).
 - **Editing `initial_amount` in place to add supply.** Rejected: `initial_amount` is immutable and the
   guarded counters are its derived state (`docs/spikes/SYNTHESIS.md:145`).

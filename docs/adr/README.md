@@ -5,11 +5,11 @@ an implementer reads one current contract instead of re-deriving it from the spi
 (`docs/spikes/SYNTHESIS.md:149`).
 
 These records come from four changes. **0001–0008** are produced by the
-`spike-interface-reconciliation` change (`openspec/changes/spike-interface-reconciliation/`): they
+`spike-interface-reconciliation` change (`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/`): they
 reconcile the shapes and names the discovery spikes (SP01–SP12) disagreed on, and they decide no
 product value, threshold, or boundary
-(`openspec/changes/spike-interface-reconciliation/design.md:13-15`). **0009–0018** are produced by
-the `t01-product-decisions` change (`openspec/changes/t01-product-decisions/`): they record the
+(`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:13-15`). **0009–0018** and **0027** are produced by
+the `t01-product-decisions` change (`openspec/changes/archive/2026-10-24-t01-product-decisions/`): they record the
 product owner's answers to the register in its `design.md`, so they **do** fix product values,
 thresholds, and boundaries. **0019–0025** are produced by the `t02-technical-contracts` change
 (`openspec/changes/archive/2026-10-17-t02-technical-contracts/`): they record the stack and module-boundary decisions,
@@ -27,14 +27,14 @@ contract gap without implementing the reservation.
   current until a later record supersedes it.
 - **Supersedes:** where a record corrects a claim in a spike report, it names the claim by file and
   line. The correction is additive: the report's original text stays visible with a pointer to the
-  ADR (`openspec/changes/spike-interface-reconciliation/design.md:89-90`).
+  ADR (`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:89-90`).
 
 ## The rule
 
 An ADR records a decision that later work may cite. When an implementation task or a later change
 needs to know what was decided, it cites the ADR number rather than a spike report or a chat
 message: the ADR is the current contract, and the spike reports are the evidence behind it
-(`openspec/changes/spike-interface-reconciliation/proposal.md:34-35`).
+(`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/proposal.md:34-35`).
 
 ## Index
 
@@ -52,8 +52,8 @@ message: the ADR is the current contract, and the spike reports are the evidence
 | [0010](0010-mvp-pricing-and-offer-terms.md) | MVP pricing and offer terms | Margin is a percentage bounded `0 ≤ margin < 100`; same-asset pairs carry no rate; quotes last 15 minutes; round once server-side to the receive asset's minor unit; seller-set give-asset min/max with a `> 0` floor and `min ≤ max`; expiry defaults to 7 days, capped at 30. |
 | [0011](0011-mvp-agreement-rules.md) | MVP agreement rules | An incident report does not release the reservation (only mutual cancellation or moderation does); the reservation is held during reconfirmation; an unconfirmed agreement expires after 24 hours. |
 | [0012](0012-mvp-inventory-no-replenishment.md) | MVP inventory has no replenishment | No replenishment in the MVP; a seller wanting more publishes a new offer; SP03's append-only ledger stays the documented option. |
-| [0013](0013-mvp-onboarding-and-trust.md) | MVP onboarding and trust | No contact verification required to publish (a pilot relaxation, verify before launch); no reputation signals; mutual account-wide blocking; manual moderation with an appeal path and owner-set SLAs; profiles and billing global. |
-| [0014](0014-mvp-subscriptions-deferred.md) | MVP subscriptions are deferred | Subscriptions deferred; every seller entitled through the documented temporary mechanism; the entitlement port stays so ADR-0006's publish gate is real, not stubbed. |
+| [0013](0013-mvp-onboarding-and-trust.md) | MVP onboarding and trust | No contact verification required to publish (a pilot relaxation, verify before launch); no reputation signals; mutual account-wide blocking; manual moderation with an appeal path and owner-set SLAs; profiles and billing global; group G legal review remains open. |
+| [0014](0014-mvp-subscriptions-deferred.md) | MVP subscriptions are deferred | Subscriptions deferred; every seller entitled through the documented temporary mechanism; the entitlement port stays so ADR-0006's publish gate is real, not stubbed; billing-related legal inputs remain open. |
 | [0015](0015-mvp-search-defers-natural-language.md) | MVP search defers natural language | Manual filters only; the parser port stays defined but unimplemented, so the deferral is a missing adapter rather than a redesign. |
 | [0016](0016-mvp-account-type.md) | Selling is a state, not an account type | No `accountType` field is added: publishing comes from `SellerEligibility` plus entitlement per ADR-0006, and the demo's two accounts differ by seeded eligibility. |
 | [0017](0017-mvp-location-and-search-defaults.md) | MVP location and search defaults | GPS fixes worse than 100 m treated as no fix; location never persisted (request-scoped); default radius 5 km bounded by the market polygon; out-of-node copy offers "Search all of {market}" and "Change market". |
@@ -66,6 +66,7 @@ message: the ADR is the current contract, and the spike reports are the evidence
 | [0024](0024-react-native-expo-mobile-client.md) | React Native + Expo is the mobile client | The mobile client is React Native + Expo, with its own conventions cited from `apps/mobile/AGENTS.md` rather than restated. |
 | [0025](0025-api-module-boundaries.md) | API module boundaries | The module table naming which module owns each contract, and the rule that `catalog` alone declares pair, asset, rail, and money types. |
 | [0026](0026-offers-own-inventory-reservations.md) | Offers own inventory reservations | Offers owns immutable give-asset inventory and the reservation port; availability is derived, pair identity is immutable, and agreement transitions/counter changes share one transaction context with guarded outcomes. |
+| [0027](0027-mvp-pilot-thresholds-deferred.md) | Pilot thresholds and analytics are deferred | Group I is deferred, not decided: no pilot threshold, supply minimum, deferral list, or analytics SDK is set; T20 must obtain the answers first. |
 
 ## What these records leave open
 
@@ -74,13 +75,13 @@ value, a threshold, or a boundary. The open items they touch remain the product 
 record names what it leaves open. Two of those items have since been answered: whether a platform
 reference rate exists at all, and how the seller margin is expressed, is settled by **ADR-0008**; the
 pair/rail enum members and the canonical labels are settled by **ADR-0009**
-(`openspec/changes/spike-interface-reconciliation/design.md:70,107-108`).
+(`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:70,107-108`).
 
 The **T01 records (0009–0018)** record the product owner's answers, so they **do** fix values,
 thresholds, and boundaries. Two groups of the T01 register stay **open** and are decided by no record
 here: group **I** (pilot thresholds, supply minimums, the deferral list, and whether an analytics SDK
 is ever added) and group **G** (the legal review). Neither blocks the MVP build
-(`openspec/changes/t01-product-decisions/design.md:99-115`).
+(`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:99-115`).
 
 The **T02 stack records (0019–0025)** record the stack and module-boundary decisions and leave the
 same two groups **open**: group **I** and group **G** are named as open wherever a contract touches
@@ -88,4 +89,4 @@ them, and no record here decides them (`openspec/changes/archive/2026-10-17-t02-
 **ADR-0026** adds the offers-owned inventory contract and does not decide either group.
 
 The Ciudad Ojeda polygon is out of scope for the reconciliation change and is not decided by any record
-here (`openspec/changes/spike-interface-reconciliation/proposal.md:67-68`).
+here (`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/proposal.md:67-68`).

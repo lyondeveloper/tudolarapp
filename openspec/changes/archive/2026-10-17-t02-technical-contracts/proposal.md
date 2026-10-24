@@ -2,7 +2,7 @@
 
 ## Why
 
-T01 answered the product register (`openspec/changes/t01-product-decisions/design.md:28-126`) and
+T01 answered the product register (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:28-126`) and
 every downstream task now waits for T02. The backlog's dependency graph is explicit: T03 (Prisma and
 the data foundation) and T15 (mobile shell) wait for T02, and T04–T14 wait for T03. The technical
 contracts, however, do not exist yet:
@@ -79,7 +79,7 @@ None.
 
 - **Group I** (pilot thresholds, supply minimums, the deferral list, and whether an analytics SDK is
   ever added) and **group G** (the legal review) stay open; where a contract touches them it names
-  them as open rather than deciding them (`openspec/changes/t01-product-decisions/design.md:112-116`).
+  them as open rather than deciding them (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:112-116`).
 - **Implementing the feature behavior** — offer publish, search results, conversations, agreements,
   and reports are built by their own tasks (T08–T14); T02 freezes the contract they build on.
 - **The natural-language parser.** The port is defined and left unimplemented, per ADR-0015.

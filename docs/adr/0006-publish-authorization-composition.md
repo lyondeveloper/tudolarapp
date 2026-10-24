@@ -29,12 +29,12 @@ missing owner as gap G1. This record corrects no single report claim; it fills t
 The publish gate is composed in the **offer-publish use case**, from **two ports**. Publishing
 requires `seller eligibility AND subscription entitlement`, and the composition belongs in the use
 case — not in the controller, and not inside either module
-(`openspec/changes/spike-interface-reconciliation/design.md:72-74`).
+(`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:72-74`).
 
 The vocabulary collision is resolved by keeping three distinct concepts with three distinct names:
 `AccountStatus` (can this account sign in), `SellerEligibility` (may this seller publish), and
 entitlement (is the subscription active). "Suspended" must not be reused across them
-(`openspec/changes/spike-interface-reconciliation/design.md:77-79`).
+(`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:77-79`).
 
 ## Consequences
 
@@ -42,7 +42,7 @@ entitlement (is the subscription active). "Suspended" must not be reused across 
   entitlement); neither module knows about the other.
 - This is consistent with AGENTS.md: "Controllers must not contain business rules" (`AGENTS.md:68`)
   and "Keep business invariants in the domain or appropriate use case" (`AGENTS.md:72`), as the
-  design cites (`openspec/changes/spike-interface-reconciliation/design.md:75-76`).
+  design cites (`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:75-76`).
 - Left open (product owner): whether eligibility and subscription billing are global or
   market-specific (S3, `docs/spikes/CROSS-C-commercial-trust.md:238`; gap G4,
   `docs/spikes/CROSS-C-commercial-trust.md:188-193`), and which subscription states grant publishing
@@ -52,8 +52,8 @@ entitlement (is the subscription active). "Suspended" must not be reused across 
 
 **Composing the gate in the controller.** Rejected: AGENTS.md requires business invariants in the
 domain or the use case and forbids controllers holding business rules (`AGENTS.md:68`,
-`AGENTS.md:72`; `openspec/changes/spike-interface-reconciliation/design.md:75-76`).
+`AGENTS.md:72`; `openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:75-76`).
 
 **Composing the gate inside either module (eligibility in SP07, or entitlement in SP08).**
 Rejected: both inputs are ports and neither module knows about the other, so the composition cannot
-live inside either (`openspec/changes/spike-interface-reconciliation/design.md:75-76`).
+live inside either (`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:75-76`).

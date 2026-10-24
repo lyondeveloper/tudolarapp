@@ -3,7 +3,7 @@
 ## Context
 
 See proposal.md — Why. The authority for every decision below is `docs/adr/0001`–`0018` and
-`openspec/changes/t01-product-decisions/design.md`; this design freezes contracts, it does not re-decide
+`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md`; this design freezes contracts, it does not re-decide
 anything. The existing hexagonal shape to follow is `apps/api/src/auth/`.
 
 The constraint that shapes the whole change: several modules (T08 subscriptions, T09 offers, T13

@@ -16,6 +16,7 @@ Supporting commands, all from `apps/api`:
 
 | Command | Purpose |
 | --- | --- |
+| `npm run test:e2e:migrations` | Verify migrations apply cleanly from empty and over pre-existing identity rows, with no schema drift and all hand-written catalog constraints intact |
 | `npm run test:e2e:preflight` | Exercise the terms migration guard against an invalid existing row |
 | `npm run test:e2e:api` | Run the API against this worktree's database, seeded, for the mobile flows |
 | `npm run test:e2e:seed` | Seed the account the mobile flows sign in with |

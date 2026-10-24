@@ -35,7 +35,7 @@ records this as mismatch M1.
 ## Decision
 
 SP04's agreement status enum is authoritative, and SP11 adopts it
-(`openspec/changes/spike-interface-reconciliation/design.md:56-59`). The design names the concrete
+(`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:56-59`). The design names the concrete
 corrections: the real enum is `cancelled` and `incident_open`, alongside `awaiting_confirmation` and
 `expired`, which SP11 never mentioned.
 

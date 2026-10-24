@@ -32,7 +32,7 @@ the source of truth, and an agreement references a version id.
 
 The design states the reason from the backlog: T13 requires the agreement record to capture "the
 same version of the offer's complete terms"
-(`openspec/changes/spike-interface-reconciliation/design.md:36-38`), and SP02 makes *material offer
+(`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:36-38`), and SP02 makes *material offer
 changes* the versioned event — so the version belongs to the offer.
 
 ## Consequences
@@ -53,4 +53,4 @@ changes* the versioned event — so the version belongs to the offer.
 **SP04's agreement-scoped snapshot, created when the agreement is proposed.** Rejected: two
 agreements on one offer could then hold different snapshots of the same terms, and the offer's own
 history would be unrecoverable — which is exactly the history a seller edit needs
-(`openspec/changes/spike-interface-reconciliation/design.md:39-41`).
+(`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:39-41`).

@@ -3,14 +3,14 @@
 - **Status:** Accepted
 - **Date:** 2026-10-17
 - **Supersedes:** an earlier MVP convenience in which an `accountType` of `seller` or `buyer` would be
-  added to the user model (`openspec/changes/t01-product-decisions/design.md:30-44`)
+  added to the user model (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:30-44`)
 
 ## Context
 
 The MVP needs two kinds of account to demonstrate the both-sides loop: one that can publish an offer
 and one that can find it. The first proposal was an **`accountType` of `seller` or `buyer`** on the
 user model — a convenience that would seed `SellerEligibility` and let a demo hand one phone to each
-side (`openspec/changes/t01-product-decisions/design.md:34-44`).
+side (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:34-44`).
 
 That proposal collided with **ADR-0006**, which settles three distinct concepts with three distinct
 names: `AccountStatus` (may this account sign in), `SellerEligibility` (may this seller publish), and
@@ -20,7 +20,7 @@ exclusive account type would make that impossible and would become a fourth auth
 competing with the three ADR-0006 deliberately separated.
 
 The product owner reconsidered and confirmed the state model
-(`openspec/changes/t01-product-decisions/design.md:30-44`).
+(`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:30-44`).
 
 ## Decision
 
@@ -46,7 +46,7 @@ The product owner reconsidered and confirmed the state model
   *is* the model subscriptions will attach to — entitlement becomes the second input of the same gate
   (ADR-0014).
 - Left open (unchanged): group **G** (the legal review) and group **I** (pilot) remain open
-  (`openspec/changes/t01-product-decisions/design.md:99-115`).
+  (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:99-115`).
 
 ## Alternatives considered
 

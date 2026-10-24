@@ -46,7 +46,7 @@ None.
 
 ## Impact
 
-- `openspec/changes/t01-product-decisions/design.md` — the decision register.
+- `openspec/changes/archive/2026-10-24-t01-product-decisions/design.md` — the decision register.
 - `docs/adr/` — one ADR per answered decision, numbered from 0009.
 - `docs/spikes/SYNTHESIS.md` — the open-decisions list becomes a pointer to the register rather than a
   second copy that can drift.

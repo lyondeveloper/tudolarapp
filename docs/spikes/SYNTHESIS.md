@@ -72,57 +72,13 @@ Two consequences you should weigh before approving:
 A short synthesis pass over the interfaces — inventory ↔ agreement ↔ earnings, and search ↔ geofence
 ↔ parser — would close this cheaply before T01. It is the one gap this batch leaves.
 
-## Open decisions for the product owner
+## Product-owner decision register
 
-Grouped by what they block, with the consuming task. No spike decided any of these.
-
-**Blocking T04 (markets) — highest priority, nothing geospatial can start without it**
-
-- The official polygon or source defining the Ciudad Ojeda market. Raised independently by SP05,
-  SP06, and SP10.
-
-**Product scope**
-
-- Whether seller profiles and subscription billing are global or market-specific (SP05, SP07, SP10).
-- The pair/rail normalization calls: the rail of the unqualified "VES" leg; whether fully digital
-  pairs require an in-person meeting; canonical pair labels (SP01).
-- Replenishment: allowed at all, and if so under which model (SP03).
-- Which reputation signals ship, and whether sellers need identity/KYC beyond contact verification
-  (SP07).
-- Blocking semantics, moderation roles, evidence retention, appeal and response SLAs (SP07).
-- Contact verification required to publish: email, phone, both, or none — noting both delivery
-  providers are unconfigured today (SP07, SP08).
-- Final deferral list, pilot success/stop thresholds, minimum supply, seed size, and whether a client
-  analytics SDK is added at all (SP10).
-- The day boundary and timezone for "daily earnings", and whether the seller's own margin is shown as
-  earnings and under what label (SP11).
-
-**Commercial**
-
-- Reference-rate source(s) and reference time; how the seller margin is expressed and bounded; and
-  whether the same-currency VES bank → VES cash pair carries a rate or margin at all (SP01, SP02).
-- Quote validity and refresh, rounding scale and mode, min/max rules and bounds, default offer
-  duration and cap (SP02).
-- Subscription plans and prices, the charging provider, expiry and grace policy, refunds, and whether
-  app-store billing is mandatory (SP08).
-
-**Legal and compliance — SP08 found evidence, not conclusions**
-
-- Zelle's terms restrict it to personal, non-commercial use; Venezuela's exchange-control regime was
-  derogated in 2018 but OFAC 31 CFR 591 applies; app stores require their own billing for
-  feature-unlocking subscriptions. These need a jurisdictional review before launch, not a spike's
-  judgement.
-
-**Technical, for T02 rather than you**
-
-- Whether an unconfirmed agreement expires, and whether a reservation is held or released during
-  reconfirmation (SP04).
-- Whether a single-party incident report releases the reservation, or only mutual cancellation or
-  moderation (SP04) — the backlog fixes mutual cancellation but is silent on withdrawal alone.
-- Reservation time limit; UX when a confirmation loses the atomic guard (SP03).
-- The `Unsupported("geometry")` mapping, SRID choice, and PostGIS provisioning authority (SP05, SP09).
-- Integration-test file convention, and the auth requirement for parsing free text (SP06, SP09).
-- LLM provider and model, PII handling for free text, and the cost budget at pilot scale (SP12).
+The canonical answered and open register is maintained in
+`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md`; its accepted decisions are recorded in
+`docs/adr/0009`–`0018`. This synthesis is evidence, not a second decision list. Group G remains
+legal-review input rather than clearance, and group I remains undecided for the pilot; neither
+blocks the MVP build.
 
 ## Verification limits to be honest about
 
@@ -134,24 +90,7 @@ Grouped by what they block, with the consuming task. No spike decided any of the
   mechanically; the parent agent verified all twelve centrally: every report has the eight protocol
   sections, and only `docs/spikes/` was written.
 
-## Decisions taken by the product owner
-
-Recorded here so they do not evaporate; they belong in the **T01** artifact once that exists.
-
-| Decision | Effect |
-| --- | --- |
-| **Zelle is out of the MVP** | The catalog drops from ten pairs to five: VES → USDT, VES (bank) → VES cash, VES → USD cash, USDT → VES, USDT → USD cash. Removes most of SP08's legal blocker, since the Zelle terms were the main one — OFAC on USDT and app-store billing remain. It also removes SP01's hardest normalization call, because Zelle was a *USD rail* rather than an asset. Follow-through is needed in T01's catalog text, SP01's matrix, SP02's per-pair pricing, and the SP06/SP12 enums, all of which name Zelle today; `AGENTS.md`'s product context lists it too. |
-| **E2E stays local-only for now** | The mobile suite does not join a launch gate, which closes SP10's open question and needs no macOS CI runner. |
-| **Stored counters for inventory** | SP03's recommendation is adopted: `initial_amount` immutable, `reserved`/`completed` stored, `available` derived. See the drift note below. |
-| **Test convention** | End-to-end scenarios get their own folder (`apps/api/test/e2e/`, `apps/mobile/e2e/`). Everything testable gets its own test beside it — feature file, utility, service, controller, adapter, port, component, hook — with no test folder mirroring `src/`. Recorded in `AGENTS.md`. |
-| **Daily earnings use market-local time** | Bucketed server-side on the market's civil day (`America/Caracas`, UTC−4, no DST) rather than the device's timezone, so the same exchanges always produce the same totals and SP10's funnel metrics are comparable across sellers. Revisit per-user timezones only when there is more than one market. |
-| **Quote and terms-version ownership** | Assigned to T02's contract list, so T09 and T13 have something to build on. |
-| **Decisions live as ADRs** | Product and technical decisions are recorded one per ADR under `docs/adr/`, so implementers have a current contract to read rather than archived history. T01 produces the product ones; T02 the technical ones. |
-| **The seller sets every commercial value** | Decided 2026-10-17 (ADR-0008). The platform publishes **no reference rate** and derives none, which resolves SP02's reference-source and reference-time questions as not applicable and settles the SP01-versus-SP02 disagreement that the cross-check flagged. The rate is nonetheless a **structured, normalized field the seller sets, and search filters and orders by it** — so filtering forces one canonical scalar per direction, which is the same normalization SP02's direction-specific rate implies. What the platform cannot do without a reference is judge a rate: no "fair rate" badge and no "best offer" claim. The remaining cost to own deliberately: **rate staleness becomes the seller's silent risk**, with offer expiry as its only mitigation. |
-| **The Ciudad Ojeda boundary is the official limit of Municipio Lagunillas, Zulia** | Decided and confirmed 2026-10-17 by the product owner. This is the blocker that gated every geospatial task (T04, T05, T10, and SP05's geofence design). Two consequences worth stating: the municipal limit is **larger than the city of Ciudad Ojeda**, which sits inside it, so the market covers more than the city; and the boundary must be **stored as data**, not inferred from a name. Still to pick before T04 starts: the source dataset, and its licence plus any attribution it requires. |
-| **The boundary source is OpenStreetMap** | OSM's Municipio Lagunillas administrative boundary. **ODbL**: free for commercial use, requires the attribution "© OpenStreetMap contributors" to appear in the app — a product requirement, not a nicety — and its share-alike clause does not trigger, because the boundary is used internally rather than redistributed as a derived database. Recorded as evidence for the legal review, not as a clearance. Reconcile against official INE or Zulia state data if it becomes obtainable. |
-
-### Avoiding counter drift
+## Avoiding counter drift
 
 Stored counters duplicate a number that the agreement rows already imply, so they can disagree. Four
 defences, in order of strength — the first three are cheap and should all be used:
@@ -170,9 +109,8 @@ defences, in order of strength — the first three are cheap and should all be u
    database itself the guarantor, but it hides logic, is unmodelled by Prisma, and needs the same
    hand-written-SQL care as CHECKs. Recorded as an option, not the recommendation.
 
-One simplification worth considering in T02: if `completed_amount` is only ever used for reporting
-and not for the guard, it need not be stored at all — fewer stored counters means fewer ways to
-drift.
+ADR-0026 retains `completed_amount` as a stored counter and records the atomic port, CHECK constraints,
+and reconciliation that T03 must implement.
 
 ## Cross-checks
 
@@ -185,12 +123,12 @@ see.
 | --- | --- |
 | **A — transaction lifecycle** | **Resolved.** The immutable terms version had two incompatible parents — SP04 scoped it to the agreement, SP09 to the offer — and **ADR-0001** puts it on the offer, because T13 requires the record to capture the offer's terms version. SP11's invented status labels ("mutually cancelled", "disputed") are superseded by **ADR-0004**, which adopts SP04's enum (`awaiting_confirmation`, `confirmed_by_both`, `completed`, `cancelled`, `incident_open`, `expired`). |
 | **B — discovery** | **Resolved.** SP06 made a location *required* when GPS is unavailable, contradicting SP05, SP12, the backlog and its own test case; **ADR-0002** makes location optional and searches the whole active market. SP12's stale field names and its missing "cannot parse" outcome are settled by **ADR-0003**, which puts the closed schema on SP06. |
-| **C — commercial and trust** | **Resolved.** SP01's seller-set rate versus SP02's platform reference is settled by **ADR-0008**: the seller sets every commercial value, no reference exists, and the rate remains a structured field search filters and orders by. The four incompatible pair/rail shapes are settled by **ADR-0005** (two axes internally, one closed pair id externally). The unowned publish gate is settled by **ADR-0006** (composed in the use case from two ports). |
+| **C — commercial and trust** | **Resolved.** See ADR-0006, ADR-0008, and ADR-0009; the T01 register points to the current product decisions, and the ADRs record the reconciled contracts. |
 
 ## Next step
 
-You review this set. The accepted decisions then go into the **T01** (product decisions) and **T02**
-(technical decisions and contracts) OpenSpec changes, which is where durable decisions live — these
-reports are evidence for that review, not requirements the system must satisfy.
+Product decisions and their remaining open questions are in the T01 change and ADRs 0009–0018;
+technical contracts are in T02 and ADRs 0019–0026. The spike and cross-check reports remain evidence,
+not a second source of current decisions.
 
 T01 waits for the complete set, which is now in hand.

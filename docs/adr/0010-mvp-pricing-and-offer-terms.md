@@ -13,12 +13,12 @@ scale, min/max bounds, and expiry (`docs/adr/0008-seller-sets-commercial-values.
 `docs/spikes/SYNTHESIS.md:104-105`). ADR-0008 also warned that offer expiry is now the only mitigation
 for a stale rate (`docs/adr/0008-seller-sets-commercial-values.md:61-63`).
 
-The product owner answered on 2026-10-17 (`openspec/changes/t01-product-decisions/design.md:30-32`).
+The product owner answered on 2026-10-17 (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:30-32`).
 
 ## Decision
 
 The offer's commercial terms are the seller's and are bounded only where a value would be meaningless
-(`openspec/changes/t01-product-decisions/design.md:54-65`).
+(`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:54-65`).
 
 - **B1 — Margin is a percentage the seller sets, bounded to `0 ≤ margin < 100`.**
 - **B2 — Same-asset pairs (`VES_BANK_TO_VES_CASH`) carry no rate.** There is no conversion; they carry
@@ -46,16 +46,16 @@ The offer's commercial terms are the seller's and are bounded only where a value
 - Same-asset pairs carrying no rate is consistent with the pair catalog: `VES_BANK_TO_VES_CASH` is not a
   conversion (`docs/adr/0009-mvp-pair-and-rail-catalog.md`).
 - Left open (unchanged): group **G** (the legal review) and group **I** (pilot) remain open
-  (`openspec/changes/t01-product-decisions/design.md:99-115`).
+  (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:99-115`).
 
 ## Alternatives considered
 
 - **A platform maximum on min/max.** Rejected: the platform sets only a `> 0` floor and no maximum in
-  the MVP (`openspec/changes/t01-product-decisions/design.md:62-63`).
+  the MVP (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:62-63`).
 - **Expressing the margin as an absolute amount rather than a percentage.** Rejected: the margin is a
-  percentage bounded to `0 ≤ margin < 100` (`openspec/changes/t01-product-decisions/design.md:56`).
+  percentage bounded to `0 ≤ margin < 100` (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:56`).
 - **Rounding in the client or the model, or rounding more than once.** Rejected: the backend owns
   money and rounds once, server-side, to the receive asset's minor unit
-  (`openspec/changes/t01-product-decisions/design.md:60-61`; `AGENTS.md:47`).
+  (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:60-61`; `AGENTS.md:47`).
 - **A longer or uncapped offer expiry.** Rejected: expiry defaults to 7 days and is capped at 30
-  (`openspec/changes/t01-product-decisions/design.md:64`).
+  (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:64`).

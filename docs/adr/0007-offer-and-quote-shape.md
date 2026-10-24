@@ -23,10 +23,10 @@ question would otherwise block.
 
 The offer/quote contract shape is stable **whichever way the platform-reference question goes**. The
 offer stores an explicit rate; the quote stores its source and as-of time; the seller margin is its
-own field (`openspec/changes/spike-interface-reconciliation/design.md:81-85`).
+own field (`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:81-85`).
 
 This change settles the **shape** and leaves the platform-reference question to T01
-(`openspec/changes/spike-interface-reconciliation/design.md:81-85`).
+(`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:81-85`).
 
 ## Consequences
 
@@ -34,7 +34,7 @@ This change settles the **shape** and leaves the platform-reference question to 
   (SP02): the offer's explicit rate, the quote's source and as-of time, and a separate margin field
   cover both.
 - Left open (product owner, T01): whether a platform reference rate exists at all, and how the seller
-  margin is expressed (`openspec/changes/spike-interface-reconciliation/design.md:107-108`;
+  margin is expressed (`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:107-108`;
   P1/P2, `docs/spikes/CROSS-C-commercial-trust.md:251-252`).
 
 ## Alternatives considered
@@ -42,4 +42,4 @@ This change settles the **shape** and leaves the platform-reference question to 
 **Making the contract shape depend on the platform-reference question.** Rejected: the shape does
 not depend on it — the offer stores an explicit rate, the quote stores its source and as-of time, and
 the seller margin is its own field — so the product question need not block the contract
-(`openspec/changes/spike-interface-reconciliation/design.md:81-85`).
+(`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:81-85`).

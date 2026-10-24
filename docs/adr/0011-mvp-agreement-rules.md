@@ -15,12 +15,12 @@ the backlog fixes mutual cancellation but is silent on withdrawal alone. SP04 su
 machine these rules attach to (`docs/spikes/SYNTHESIS.md:14`), and ADR-0004 fixed its enum, including
 the optional `expired` state (`docs/adr/0004-agreement-status-enum.md:12-23`).
 
-The product owner answered on 2026-10-17 (`openspec/changes/t01-product-decisions/design.md:30-32`).
+The product owner answered on 2026-10-17 (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:30-32`).
 
 ## Decision
 
 The reservation is protected against unilateral release, and an unconfirmed agreement does not hold
-inventory forever (`openspec/changes/t01-product-decisions/design.md:67-73`).
+inventory forever (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:67-73`).
 
 - **C1 — A single-party incident report does not release the reservation.** Release happens only on
   mutual cancellation or a moderation decision — the anti-abuse choice, since the alternative hands one
@@ -37,16 +37,16 @@ inventory forever (`openspec/changes/t01-product-decisions/design.md:67-73`).
   (`docs/adr/0004-agreement-status-enum.md:21`).
 - C2 means inventory cannot escape during the reconfirmation step; the hold persists across it.
 - Left open (unchanged): group **G** (the legal review, including retention of report evidence) and
-  group **I** (pilot) remain open (`openspec/changes/t01-product-decisions/design.md:99-115`).
+  group **I** (pilot) remain open (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:99-115`).
 
 ## Alternatives considered
 
 - **Letting a single-party incident report release the reservation.** Rejected: it hands one party a
   unilateral way to free inventory, which is the anti-abuse problem C1 exists to close
-  (`openspec/changes/t01-product-decisions/design.md:69-71`).
+  (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:69-71`).
 - **Releasing the reservation during reconfirmation.** Rejected: the reservation is held through
   reconfirmation (C2), so inventory cannot escape mid-agreement
-  (`openspec/changes/t01-product-decisions/design.md:72`).
+  (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:72`).
 - **Letting an unconfirmed agreement hold inventory indefinitely.** Rejected: it expires after 24
   hours, releasing any hold (C3)
-  (`openspec/changes/t01-product-decisions/design.md:73`).
+  (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:73`).

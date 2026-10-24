@@ -25,17 +25,17 @@ SP01's own unresolved item U6 asks whether search criteria and offer contracts a
 model or keep one method enum (`docs/spikes/SP01-exchange-pairs.md:122`). Even after Zelle's
 removal, the two VES rails (bank transfer vs physical cash) prove a single method enum cannot
 express the catalog — that was SP01's finding, and Zelle's removal does not undo it
-(`openspec/changes/spike-interface-reconciliation/design.md:65-67`).
+(`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:65-67`).
 
 ## Decision
 
 The pair/rail model is **two-axis internally, one closed enum externally**. A leg is
 `{asset, rail, delivery}`; an offer is an ordered `(give, receive)` of legs. The API and the search
 criteria expose a single **closed pair id** derived from those axes, because validation needs a flat
-allowlist (`openspec/changes/spike-interface-reconciliation/design.md:61-64`).
+allowlist (`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:61-64`).
 
 Only the **shape** is decided here. The **members** of the enum are the product owner's; only the
-shape is settled (`openspec/changes/spike-interface-reconciliation/design.md:70`).
+shape is settled (`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:70`).
 
 ## Consequences
 
@@ -46,12 +46,12 @@ shape is settled (`openspec/changes/spike-interface-reconciliation/design.md:70`
 - Left open (product owner, T01): the enum members and the canonical labels
   (`docs/spikes/CROSS-C-commercial-trust.md:267`, R4; `docs/spikes/SP01-exchange-pairs.md:123`, U7),
   and whether the flat pair id is an opaque id or a derived string (a T02 detail that does not change
-  the two-axis model, `openspec/changes/spike-interface-reconciliation/design.md:109-110`).
+  the two-axis model, `openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:109-110`).
 
 ## Alternatives considered
 
 **One flat method enum, matching SP06 and SP12's current shape.** Rejected: it cannot distinguish
 VES-by-bank from VES-in-cash, which are different pairs
-(`openspec/changes/spike-interface-reconciliation/design.md:68-69`). Zelle's removal does not fix
+(`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:68-69`). Zelle's removal does not fix
 this — the five surviving pairs still contain both VES rails
 (`docs/spikes/CROSS-C-commercial-trust.md:122-126`).

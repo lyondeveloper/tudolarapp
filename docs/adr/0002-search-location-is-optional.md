@@ -32,15 +32,15 @@ siblings.
 ## Decision
 
 Location is optional. When GPS is unavailable, denied, or outside the node, the search runs against
-the whole active market (`openspec/changes/spike-interface-reconciliation/design.md:43-47`).
+the whole active market (`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:43-47`).
 
 This is a **correction to SP06, not a new decision** — the design says so explicitly
-(`openspec/changes/spike-interface-reconciliation/design.md:47`).
+(`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:47`).
 
 ## Consequences
 
 - SP06's report is corrected additively, with a pointer to this ADR; its original text stays visible
-  (`openspec/changes/spike-interface-reconciliation/design.md:89-90`).
+  (`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:89-90`).
 - The whole-node rule is now the fixed behavior for the discovery path; a location is never
   required.
 - Left open (product owner): the GPS-accuracy threshold that degrades a fix to whole-node search

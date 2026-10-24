@@ -51,7 +51,7 @@ accepted (`docs/spikes/SP06-prompt-to-search-contract.md:88`, `SP06:104`, `SP06:
 One addition is needed: SP06's `intent` enum has no way to express "cannot parse". The schema needs
 an explicit unparsed/needs-clarification outcome, because SP12's failure budget depends on the
 parser being able to say so rather than guessing
-(`openspec/changes/spike-interface-reconciliation/design.md:52-54`).
+(`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:52-54`).
 
 ## Consequences
 
@@ -76,4 +76,4 @@ outside the closed catalog, while a `PairId` is already the API contract in ADR-
 
 **Leaving "cannot parse" out of the schema, as SP06 does (`SP06:150`).** Rejected because SP12's
 failure budget depends on the parser being able to say it cannot parse rather than guessing
-(`openspec/changes/spike-interface-reconciliation/design.md:52-54`).
+(`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:52-54`).

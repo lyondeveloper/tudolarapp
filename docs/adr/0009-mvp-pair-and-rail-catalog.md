@@ -9,19 +9,19 @@
 ADR-0005 settled the pair/rail **shape** — two axes internally (`{asset, rail, delivery}`), one closed
 pair id externally — and left the **members** to the product owner
 (`docs/adr/0005-pair-and-rail-representation.md:36-38`;
-`openspec/changes/spike-interface-reconciliation/design.md:70`). SP01's own unresolved items U6 and U7
+`openspec/changes/archive/2026-10-18-spike-interface-reconciliation/design.md:70`). SP01's own unresolved items U6 and U7
 asked for the rail of the unqualified "VES" leg and the canonical labels
 (`docs/spikes/SP01-exchange-pairs.md:122-123`), and `docs/spikes/SYNTHESIS.md:87-88` carries them as
 open. Zelle's removal already dropped the catalog from ten pairs to five
 (`docs/spikes/SYNTHESIS.md:143`; `AGENTS.md:7`).
 
 The product owner answered on 2026-10-17, with the instruction that the MVP be built step by step from
-the register (`openspec/changes/t01-product-decisions/design.md:30-32`).
+the register (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:30-32`).
 
 ## Decision
 
 The MVP catalog is five canonical pairs on three assets and four rails, and every MVP pair is in
-person (`openspec/changes/t01-product-decisions/design.md:45-52`).
+person (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:45-52`).
 
 - **Five canonical pair ids:** `VES_USDT`, `VES_BANK_TO_VES_CASH`, `VES_USD_CASH`, `USDT_VES`,
   `USDT_USD_CASH`.
@@ -43,15 +43,15 @@ person (`openspec/changes/t01-product-decisions/design.md:45-52`).
   catalog; the "two digital legs need no meeting" branch is documented but unused in the MVP.
 - Left open (unchanged): group **G** (the legal review) and group **I** (pilot thresholds, supply
   minimums, the deferral list, and whether an analytics SDK is ever added) remain open
-  (`openspec/changes/t01-product-decisions/design.md:99-115`).
+  (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:99-115`).
 
 ## Alternatives considered
 
 - **Reading the unqualified "VES" leg as a bank transfer.** Rejected: the product is in-person and the
   catalog itself contrasts "VES" with "VES in a bank account", so the unqualified leg is the physical
-  one (`openspec/changes/t01-product-decisions/design.md:49-50`).
+  one (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:49-50`).
 - **Keeping a flat single method enum.** Already rejected by ADR-0005: it cannot distinguish
   VES-by-bank from VES-in-cash, which are different pairs
   (`docs/adr/0005-pair-and-rail-representation.md:53-56`).
 - **A pair with two digital legs so no meeting is needed.** Not available in the MVP: with Zelle out,
-  no MVP pair has two digital legs (`openspec/changes/t01-product-decisions/design.md:51-52`).
+  no MVP pair has two digital legs (`openspec/changes/archive/2026-10-24-t01-product-decisions/design.md:51-52`).

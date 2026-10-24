@@ -24,6 +24,7 @@
     "test:cov": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
     "test:debug": "node --experimental-vm-modules --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/jest/bin/jest.js --runInBand",
     "test:e2e": "node ./test/run-e2e.cjs",
+    "test:e2e:migrations": "node ./test/e2e/migration-reproducibility.cjs",
     "test:e2e:preflight": "node ./test/e2e/offer-terms-version-preflight.cjs",
     "test:e2e:api": "node ./test/start-e2e-api.cjs",
     "test:e2e:seed": "node ./test/seed-e2e.cjs",

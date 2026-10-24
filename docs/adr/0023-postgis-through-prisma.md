@@ -36,7 +36,10 @@ and PostGIS"):
 - **The market predicate is co-located with the proximity predicate** in the same `WHERE`, so no query
   can return an out-of-market offer (`openspec/changes/archive/2026-10-17-t02-technical-contracts/design.md:127-133`).
 - **Parameterized values only**, never interpolated, with an explicit allowlist for identifiers and
-  sort options that cannot be parameterized.
+  sort options that cannot be parameterized. `apps/api/src/database/spatial/proximity-filter.ts`
+  provides the parameterized `ST_DWithin` builder (`proximityFilter` and `kilometresToMeters`) over
+  `geography` (SRID 4326, meters) with a caller-supplied `maxRadiusMeters` and a typed
+  `SpatialAllowlist` (`createSpatialAllowlist`).
 - **`CREATE EXTENSION postgis` becomes part of the single migration authority** through a
   `--create-only` migration run under a privileged migration role, plus a **startup assertion** that
   fails loudly when the extension is absent

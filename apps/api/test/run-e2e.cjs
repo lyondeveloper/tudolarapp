@@ -20,6 +20,10 @@ const preflightScript = path.join(
   apiRoot,
   'test/e2e/offer-terms-version-preflight.cjs',
 );
+const reproducibilityScript = path.join(
+  apiRoot,
+  'test/e2e/migration-reproducibility.cjs',
+);
 
 function run(nodeArgs, env = process.env) {
   const result = spawnSync(process.execPath, nodeArgs, {
@@ -36,6 +40,11 @@ async function main() {
     resolveTestDatabase();
 
   run([preflightScript], {
+    ...process.env,
+    DATABASE_URL: url,
+    MIGRATION_DATABASE_URL: adminUrl,
+  });
+  run([reproducibilityScript], {
     ...process.env,
     DATABASE_URL: url,
     MIGRATION_DATABASE_URL: adminUrl,

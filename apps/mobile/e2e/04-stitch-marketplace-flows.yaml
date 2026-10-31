@@ -1,0 +1,77 @@
+# Exercises the Stitch Civic Trust Exchange marketplace flows (T15):
+# discovery on /home, manual deterministic search on /search, offer detail +
+# public meeting safety handshake modal on /offers/[id], contextual chat on
+# /chat/[id], post-exchange confirmation on /agreements/[id]/confirm, and
+# seller offer publishing preview on /publish.
+appId: com.lyondeveloper.mobile
+name: Stitch marketplace flows navigate across discovery, safety handshake, chat, confirmation, and publish
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- assertVisible:
+    id: 'sign-in-identifier'
+- tapOn:
+    id: 'sign-in-identifier'
+- inputText: 'e2e-demo'
+- tapOn:
+    id: 'sign-in-password'
+- inputText: 'e2e-demo-password'
+- tapOn:
+    id: 'sign-in-submit'
+- runFlow:
+    when:
+      visible: 'Not Now'
+    commands:
+      - tapOn: 'Not Now'
+- assertVisible: 'Signed in'
+- assertVisible: 'E2E Demo'
+- assertVisible: 'Mercado Activo: Ciudad Ojeda'
+- tapOn:
+    id: 'dock-search'
+- assertVisible:
+    id: 'search-screen-heading'
+- tapOn:
+    id: 'dock-offers'
+- tapOn:
+    id: 'offer-card-td-892'
+- scrollUntilVisible:
+    element:
+      id: 'offer-detail-start-chat'
+    direction: DOWN
+- assertVisible:
+    id: 'offer-detail-start-chat'
+- tapOn:
+    id: 'offer-detail-start-chat'
+- scrollUntilVisible:
+    element:
+      id: 'safety-handshake-checkbox'
+    direction: DOWN
+- tapOn:
+    id: 'safety-handshake-checkbox'
+- scrollUntilVisible:
+    element:
+      id: 'safety-handshake-confirm'
+    direction: DOWN
+- tapOn:
+    id: 'safety-handshake-confirm'
+- assertVisible:
+    id: 'chat-accept-agreement'
+- tapOn:
+    id: 'chat-accept-agreement'
+- assertVisible:
+    id: 'agreement-confirm-heading'
+- scrollUntilVisible:
+    element:
+      id: 'agreement-back-to-home'
+    direction: DOWN
+- tapOn:
+    id: 'agreement-back-to-home'
+- tapOn:
+    id: 'dock-publish'
+- scrollUntilVisible:
+    element:
+      id: 'publish-offer-submit'
+    direction: DOWN
+- assertVisible:
+    id: 'publish-offer-submit'

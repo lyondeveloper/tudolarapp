@@ -31,7 +31,21 @@ jest.mock('expo-secure-store', () => ({
   deleteItemAsync: async () => undefined,
 }));
 
-const SCREEN_SOURCE = 'app/home.tsx';
+const SCREEN_SOURCES = [
+  'app/home.tsx',
+  'app/register.tsx',
+  'app/search.tsx',
+  'app/offers/[id].tsx',
+  'app/publish.tsx',
+  'app/chat/[id].tsx',
+  'app/agreements/[id]/confirm.tsx',
+  'features/auth/register-form.tsx',
+  'features/marketplace/components/civic-notice-banner.tsx',
+  'features/marketplace/components/market-node-banner.tsx',
+  'features/marketplace/components/offer-card.tsx',
+  'features/marketplace/components/bottom-dock.tsx',
+  'features/marketplace/components/safety-handshake-modal.tsx',
+];
 
 /** A hex colour written literally, which no screen should contain. */
 const LITERAL_COLOUR = /#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?\b/;
@@ -64,8 +78,10 @@ describe('authenticated placeholder tokens', () => {
     expect(families).toContain(fontFamilies.regular);
   });
 
-  it('carries no literal colour in its source', () => {
-    const contents = readFileSync(join(__dirname, '..', SCREEN_SOURCE), 'utf8');
-    expect(LITERAL_COLOUR.test(contents)).toBe(false);
+  it('carries no literal colour in any screen or marketplace component source', () => {
+    for (const source of SCREEN_SOURCES) {
+      const contents = readFileSync(join(__dirname, '..', source), 'utf8');
+      expect(LITERAL_COLOUR.test(contents)).toBe(false);
+    }
   });
 });

@@ -1,5 +1,8 @@
-import type { ComponentProps } from 'react';
+import { useRouter } from 'expo-router';
+import { type ComponentProps, useState } from 'react';
 import { Controller } from 'react-hook-form';
+
+import { Box } from '@/components/ui/box';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import {
   FormControl,
@@ -10,6 +13,7 @@ import {
 } from '@/components/ui/form-control';
 import { Heading } from '@/components/ui/heading';
 import { Input, InputField } from '@/components/ui/input';
+import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { textStyle } from '@/theme/typography';
@@ -25,11 +29,24 @@ const TITLE_STYLE = textStyle('headline-lg-mobile') as ComponentProps<
 >['style'];
 
 export function SignInForm() {
+  const router = useRouter();
   const { control, onSubmit, errors, isSubmitting } = useSignInForm();
+  const [passkeyNoticeVisible, setPasskeyNoticeVisible] = useState(false);
 
   return (
-    <VStack className="w-full gap-6">
-      <Heading style={TITLE_STYLE}>Sign in</Heading>
+    <VStack className="w-full gap-4">
+      <Box className="self-start rounded-md border border-outline bg-surface-muted px-2.5 py-1">
+        <Text className="text-primary" style={textStyle('label-sm')}>
+          Nodo Activo: Ciudad Ojeda • Sin Custodia
+        </Text>
+      </Box>
+
+      <VStack className="gap-1">
+        <Heading style={TITLE_STYLE}>Sign in</Heading>
+        <Text className="text-muted-foreground" style={textStyle('body-sm')}>
+          Acceso Seguro P2P • Intercambio presencial en puntos públicos de Ciudad Ojeda
+        </Text>
+      </VStack>
 
       <Controller
         control={control}
@@ -105,10 +122,70 @@ export function SignInForm() {
         </Text>
       ) : null}
 
-      <Button onPress={onSubmit} isDisabled={isSubmitting} testID="sign-in-submit">
+      <Button
+        isDisabled={isSubmitting}
+        onPress={onSubmit}
+        testID="sign-in-submit"
+      >
         {isSubmitting ? <ButtonSpinner /> : null}
         <ButtonText style={textStyle('label-lg')}>Sign in</ButtonText>
       </Button>
+
+      <Box className="rounded-md border border-border bg-surface p-3">
+        <VStack className="gap-2">
+          <Text className="text-foreground" style={textStyle('label-md')}>
+            Entrada Biométrica Rápida (Passkey)
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            className="rounded-md border border-outline bg-surface-muted px-3 py-2"
+            onPress={() => setPasskeyNoticeVisible(true)}
+            testID="sign-in-passkey-button"
+          >
+            <Text className="text-primary" style={textStyle('label-md')}>
+              Entrar con Passkey / Huella o FaceID
+            </Text>
+          </Pressable>
+          {passkeyNoticeVisible ? (
+            <Box
+              className="rounded-sm border border-warning-border bg-warning p-2"
+              testID="passkey-preview-notice"
+            >
+              <Text
+                className="text-warning-foreground"
+                style={textStyle('body-sm')}
+              >
+                Vista previa T15: La ceremonia nativa de Passkey se integra en T16. Usa tus credenciales abajo.
+              </Text>
+            </Box>
+          ) : null}
+        </VStack>
+      </Box>
+
+      <Box className="rounded-md border border-border bg-surface-muted p-3">
+        <VStack className="gap-1">
+          <Text className="text-foreground" style={textStyle('label-sm')}>
+            Compromiso de Privacidad Local
+          </Text>
+          <Text
+            className="text-muted-foreground"
+            style={textStyle('body-sm')}
+          >
+            Tus datos de contacto están protegidos y TUDOLAR no custodia fondos.
+          </Text>
+        </VStack>
+      </Box>
+
+      <Pressable
+        accessibilityRole="button"
+        className="items-center py-1"
+        onPress={() => router.push('/register')}
+        testID="sign-in-go-to-register"
+      >
+        <Text className="text-primary" style={textStyle('label-md')}>
+          ¿No tienes una cuenta en TUDOLAR? Regístrate aquí
+        </Text>
+      </Pressable>
     </VStack>
   );
 }

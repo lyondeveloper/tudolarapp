@@ -6,12 +6,20 @@ currency exchanges. Product context lives in the [root README](../../README.md);
 
 ## Status
 
-Early. The app currently presents **sign-in as its first screen** and, once a session is
-established, a temporary authenticated screen that reads the signed-in user from `GET /users/me`.
+The app implements the **Civic Trust Exchange** Stitch interface (`T15`) across authentication,
+marketplace discovery, deterministic search, offer details with in-person safety handshake,
+contextual P2P chat, post-exchange confirmation, and offer publication preview:
 
-Not implemented yet: registration, password recovery, refresh-on-resume, logout, market selection,
-offers, search, chat, subscriptions, and exchange records. The authenticated screen is a
-placeholder that T15/T17 replace.
+- **Live API state (`src/services/api.ts`)**: `POST /auth/sessions` (sign-in),
+  `POST /auth/sessions/refresh`, and `GET /users/me` on the authenticated home screen.
+- **Typed preview dataset (`src/features/marketplace/domain/`)**: Local Ciudad Ojeda marketplace
+  offers, safe meeting corridors, and agreement conversation state for endpoints scheduled in
+  `T04`–`T14`. See [`docs/design/stitch-mobile-mapping.md`](../../docs/design/stitch-mobile-mapping.md)
+  for the screen-by-screen Stitch mapping and ADR adaptations.
+
+Not wired to live backend endpoints yet: registration submission (`T02`), passkey ceremony (`T03`),
+market selection persistence (`T05`), live offer CRUD (`T07`–`T09`), spatial/manual search API
+(`T10`), real-time chat & exchange agreements (`T12`), and incident moderation (`T14`).
 
 ## Requirements
 
@@ -87,15 +95,28 @@ and checks the approved values — or on the roles a screen names, never on reso
 
 ```
 src/
-  app/            expo-router routes; every file here is a screen
-  __tests__/      shell and screen specs
-  components/ui/  gluestack-ui components
-  features/       auth and session logic
-  services/       the single RTK Query API slice
-  store/          Redux store, typed hooks, connectivity wiring
-  theme/          the typographic scale and its contract test
-  test-support/   helpers shared by specs
-  global.css      colour, radius, and spacing tokens
+  app/
+    sign-in.tsx                 Stitch 4.2 — sign-in + passkey entry + register link
+    register.tsx                Stitch 4.1 — community registration + Pacto de Confianza Ojeda
+    home.tsx                    Stitch 1.1 & 1.2 — Ciudad Ojeda discovery + list/map toggle
+    search.tsx                  Stitch 1.3 — deterministic manual search (ADR-0015)
+    offers/[id].tsx             Stitch 2.1 — offer detail + SafetyHandshakeModal
+    publish.tsx                 Stitch 2.2 — publish offer wizard + pilot entitlement (ADR-0014)
+    chat/[id].tsx               Stitch 3.1 — contextual P2P chat + safe meeting point picker
+    agreements/[id]/confirm.tsx Stitch 3.2 — post-exchange confirmation (ADR-0013)
+  __tests__/                    shell and screen specs
+  components/ui/                gluestack-ui components
+  features/
+    auth/                       sign-in and registration forms & hooks
+    marketplace/
+      domain/                   canonical MVP pairs (ADR-0009), pure calculations, preview dataset
+      components/               CivicNoticeBanner, MarketNodeBanner, OfferCard, BottomDock, SafetyHandshakeModal
+    session/                    session slice, SecureStore hydration, route gates
+  services/                     the single RTK Query API slice
+  store/                        Redux store, typed hooks, connectivity wiring
+  theme/                        the typographic scale and its contract test
+  test-support/                 helpers shared by specs
+  global.css                    colour, radius, and spacing tokens
 ```
 
 Tests must not live under `src/app`: expo-router registers every file there as a route.

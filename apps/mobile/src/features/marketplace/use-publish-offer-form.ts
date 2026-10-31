@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 
 import {
   CANONICAL_PAIRS,
@@ -20,25 +20,38 @@ export interface PublishOfferFormValues {
   corridorId: string;
 }
 
+const DEFAULT_PUBLISH_VALUES: PublishOfferFormValues = {
+  pairId: 'VES_USD_CASH',
+  rateText: '39.20',
+  marginText: '0',
+  minAmountText: '20',
+  maxAmountText: '250',
+  rails: ['VES_BANK_TRANSFER'],
+  corridorId: 'ojeda-mall',
+};
+
 export function usePublishOfferForm() {
   const [submittedPreview, setSubmittedPreview] = useState(false);
   const [validationErrors, setValidationErrors] = useState<
     OfferDraftValidationResult['errors']
   >({});
 
-  const { control, setValue, watch } = useForm<PublishOfferFormValues>({
-    defaultValues: {
-      pairId: 'VES_USD_CASH',
-      rateText: '39.20',
-      marginText: '0',
-      minAmountText: '20',
-      maxAmountText: '250',
-      rails: ['VES_BANK_TRANSFER'],
-      corridorId: 'ojeda-mall',
-    },
+  const { control, setValue } = useForm<PublishOfferFormValues>({
+    defaultValues: DEFAULT_PUBLISH_VALUES,
   });
 
-  const values = watch();
+  const watched = useWatch({ control });
+  const values: PublishOfferFormValues = {
+    pairId: watched.pairId ?? DEFAULT_PUBLISH_VALUES.pairId,
+    rateText: watched.rateText ?? DEFAULT_PUBLISH_VALUES.rateText,
+    marginText: watched.marginText ?? DEFAULT_PUBLISH_VALUES.marginText,
+    minAmountText:
+      watched.minAmountText ?? DEFAULT_PUBLISH_VALUES.minAmountText,
+    maxAmountText:
+      watched.maxAmountText ?? DEFAULT_PUBLISH_VALUES.maxAmountText,
+    rails: watched.rails ?? DEFAULT_PUBLISH_VALUES.rails,
+    corridorId: watched.corridorId ?? DEFAULT_PUBLISH_VALUES.corridorId,
+  };
   const pair = CANONICAL_PAIRS[values.pairId];
   const parsedRate = Number(values.rateText.replace(',', '.'));
   const parsedMargin = Number(values.marginText.replace(',', '.'));

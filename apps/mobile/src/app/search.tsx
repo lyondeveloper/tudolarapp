@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import type { ComponentProps } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -42,18 +42,26 @@ interface SearchFilterFormValues {
   corridorId: string | 'ALL';
 }
 
+const DEFAULT_SEARCH_VALUES: SearchFilterFormValues = {
+  pairId: 'ALL',
+  rail: 'ALL',
+  amountText: '',
+  corridorId: 'ALL',
+};
+
 export default function SearchScreen() {
   const router = useRouter();
-  const { control, setValue, watch } = useForm<SearchFilterFormValues>({
-    defaultValues: {
-      pairId: 'ALL',
-      rail: 'ALL',
-      amountText: '',
-      corridorId: 'ALL',
-    },
+  const { control, setValue } = useForm<SearchFilterFormValues>({
+    defaultValues: DEFAULT_SEARCH_VALUES,
   });
 
-  const values = watch();
+  const watched = useWatch({ control });
+  const values: SearchFilterFormValues = {
+    pairId: watched?.pairId ?? DEFAULT_SEARCH_VALUES.pairId,
+    rail: watched?.rail ?? DEFAULT_SEARCH_VALUES.rail,
+    amountText: watched?.amountText ?? DEFAULT_SEARCH_VALUES.amountText,
+    corridorId: watched?.corridorId ?? DEFAULT_SEARCH_VALUES.corridorId,
+  };
   const parsedAmount = Number(values.amountText.replace(',', '.'));
   const matches = filterOffers(OFFERS_PREVIEW, {
     pairId: values.pairId,

@@ -91,38 +91,42 @@ beforeEach(() => {
 });
 
 describe('app shell for a restored session', () => {
-  it('presents the authenticated screen instead of sign-in, and no secrets', async () => {
-    secureStore.__store.set(REFRESH_TOKEN_KEY, 'stored-refresh-token');
-    const router = renderRouter('src/app', { initialUrl: '/' });
+  it(
+    'presents the authenticated screen instead of sign-in, and no secrets',
+    async () => {
+      secureStore.__store.set(REFRESH_TOKEN_KEY, 'stored-refresh-token');
+      const router = renderRouter('src/app', { initialUrl: '/' });
 
-    // The restore resolves through secure storage, RTK Query, and a mocked
-    // `fetch`. `renderRouter` turns on fake timers, so `waitFor` advances time in
-    // 50ms steps and the default 1s budget is only about twenty pumps — not
-    // enough for that chain when the machine is busy. The explicit budget keeps
-    // the spec deterministic under load.
-    await waitFor(
-      () => {
-        expect(store.getState().session.status).toBe('authenticated');
-        expect(router.getPathname()).toBe('/home');
-      },
-      { timeout: 10_000 },
-    );
-    await waitFor(
-      () => {
-        expect(screen.getByText('Demo User')).toBeTruthy();
-      },
-      { timeout: 10_000 },
-    );
+      // The restore resolves through secure storage, RTK Query, and a mocked
+      // `fetch`. `renderRouter` turns on fake timers, so `waitFor` advances time in
+      // 50ms steps and the default 1s budget is only about twenty pumps — not
+      // enough for that chain when the machine is busy. The explicit budget keeps
+      // the spec deterministic under load.
+      await waitFor(
+        () => {
+          expect(store.getState().session.status).toBe('authenticated');
+          expect(router.getPathname()).toBe('/home');
+        },
+        { timeout: 10_000 },
+      );
+      await waitFor(
+        () => {
+          expect(screen.getByText('Demo User')).toBeTruthy();
+        },
+        { timeout: 10_000 },
+      );
 
-    // The sign-in screen is not presented.
-    expect(screen.queryByText('Username or email')).toBeNull();
+      // The sign-in screen is not presented.
+      expect(screen.queryByText('Username or email')).toBeNull();
 
-    // No credentials, tokens, or password data are rendered.
-    const rendered = JSON.stringify(screen.toJSON());
-    expect(rendered).not.toContain('restored-access-token');
-    expect(rendered).not.toContain('rotated-refresh-token');
-    expect(rendered).not.toContain('stored-refresh-token');
-    expect(rendered).not.toContain('leaked-hash-marker');
-    expect(screen.queryByText(/password/i)).toBeNull();
-  });
+      // No credentials, tokens, or password data are rendered.
+      const rendered = JSON.stringify(screen.toJSON());
+      expect(rendered).not.toContain('restored-access-token');
+      expect(rendered).not.toContain('rotated-refresh-token');
+      expect(rendered).not.toContain('stored-refresh-token');
+      expect(rendered).not.toContain('leaked-hash-marker');
+      expect(screen.queryByText(/password/i)).toBeNull();
+    },
+    15_000,
+  );
 });

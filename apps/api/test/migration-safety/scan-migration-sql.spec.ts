@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 import * as fs from 'node:fs';
+import * as os from 'node:os';
 import * as path from 'node:path';
 
 interface Finding {
@@ -67,7 +68,7 @@ describe('scanMigrationDirectory', () => {
   });
 
   it('names the migration, statement, and line of an unapproved finding', () => {
-    const tmp = fs.mkdtempSync(path.join(__dirname, 'fixture-'));
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'fixture-'));
     try {
       fs.mkdirSync(path.join(tmp, '20990101000000_bad'));
       fs.writeFileSync(
@@ -86,7 +87,7 @@ describe('scanMigrationDirectory', () => {
   });
 
   it('accepts a destructive migration that is allowlisted with a reason', () => {
-    const tmp = fs.mkdtempSync(path.join(__dirname, 'fixture-'));
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'fixture-'));
     try {
       fs.mkdirSync(path.join(tmp, '20990101000000_bad'));
       fs.writeFileSync(

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 
 export interface RegisterFormValues {
   displayName: string;
@@ -18,7 +18,6 @@ export function useRegisterForm() {
     control,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
     defaultValues: {
@@ -32,8 +31,10 @@ export function useRegisterForm() {
     },
   });
 
-  const frequentSector = watch('frequentSector');
-  const acceptedCivicPact = watch('acceptedCivicPact');
+  const frequentSector =
+    useWatch({ control, name: 'frequentSector' }) ?? 'ojeda-mall';
+  const acceptedCivicPact =
+    useWatch({ control, name: 'acceptedCivicPact' }) ?? false;
 
   const onSubmit = handleSubmit(() => {
     setSubmittedPreview(true);

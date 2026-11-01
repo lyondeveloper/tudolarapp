@@ -13,13 +13,14 @@ describe('BottomDock', () => {
     mockPush.mockReset();
   });
 
-  it('renders the 4 Stitch destinations without Home or Explore labels and navigates on press', async () => {
+  it('renders the 5 destinations without Home or Explore labels and navigates on press', async () => {
     await render(<BottomDock activeTab="offers" />);
 
     expect(screen.getByText('Ofertas')).toBeTruthy();
     expect(screen.getByText('Buscar')).toBeTruthy();
-    expect(screen.getByText('Acuerdos')).toBeTruthy();
     expect(screen.getByText('Publicar')).toBeTruthy();
+    expect(screen.getByText('Acuerdos')).toBeTruthy();
+    expect(screen.getByText('Perfil')).toBeTruthy();
     expect(screen.queryByText('Home')).toBeNull();
     expect(screen.queryByText('Explore')).toBeNull();
 
@@ -28,5 +29,8 @@ describe('BottomDock', () => {
 
     await fireEvent.press(screen.getByTestId('dock-publish'));
     expect(mockPush).toHaveBeenCalledWith('/publish');
+
+    await fireEvent.press(screen.getByTestId('dock-profile'));
+    expect(mockPush).toHaveBeenCalledWith('/profile');
   });
 });

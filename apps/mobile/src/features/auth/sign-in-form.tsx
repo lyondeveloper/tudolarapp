@@ -30,17 +30,16 @@ export function SignInForm() {
 
   return (
     <VStack className="w-full gap-5 pb-8">
-      {/* ── Top Bar: Active Node Badge ─────────────────────────────── */}
+      {/* ── Top Bar: Global Identity ─────────────────────────────── */}
       <Box className="flex-row items-center justify-between">
         <Box className="flex-row items-center gap-2 rounded-full border border-outline-variant bg-surface px-3 py-1.5 shadow-xs">
-          <Box className="h-2 w-2 rounded-full bg-secondary" />
-          <Text className="text-foreground" style={textStyle('label-sm')}>
-            Nodo Activo: Ciudad Ojeda • Sin Custodia
+          <Text className="text-primary font-bold" style={textStyle('label-md')}>
+            TUDOLAR • Cuenta Global
           </Text>
         </Box>
         <Box className="rounded-full bg-surface-muted px-2.5 py-1">
-          <Text className="text-muted-foreground" style={textStyle('label-sm')}>
-            Municipio Lagunillas
+          <Text className="text-secondary font-medium" style={textStyle('label-sm')}>
+            🔒 Red P2P
           </Text>
         </Box>
       </Box>
@@ -55,7 +54,7 @@ export function SignInForm() {
           </Box>
           <Heading style={TITLE_STYLE}>Acceso Seguro P2P</Heading>
           <Text className="text-muted-foreground" style={textStyle('body-sm')}>
-            Intercambio presencial de divisas y efectivo en puntos públicos vigilados de Ciudad Ojeda.
+            Intercambio presencial de divisas y efectivo en puntos públicos vigilados.
           </Text>
 
           <Box className="mt-2 flex-row items-center justify-between border-t border-outline-variant pt-3">

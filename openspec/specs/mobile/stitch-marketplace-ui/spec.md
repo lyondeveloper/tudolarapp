@@ -7,7 +7,7 @@ Defines the mobile presentation and interactive workflows derived from the Stitc
 
 ### Requirement: Stitch Civic Trust Exchange screens and bottom dock are navigable
 
-The mobile client SHALL present the Stitch Civic Trust Exchange marketplace discovery feed on `/home` accessible to both guest and authenticated users, with a four-destination bottom navigation dock (`Ofertas`, `Buscar`, `Acuerdos`, `Publicar`) anchored at the bottom of the viewport, preserving the signed-in user profile summary when authenticated and a welcoming guest banner when unauthenticated.
+The mobile client SHALL present the Stitch Civic Trust Exchange marketplace discovery feed on `/home` accessible to both guest and authenticated users, with a five-destination bottom navigation dock (`Ofertas`, `Buscar`, `Publicar`, `Acuerdos`, `Perfil`) anchored at the bottom of the viewport, preserving the signed-in user profile summary when authenticated and a welcoming guest banner when unauthenticated.
 
 #### Scenario: Authenticated home presents marketplace discovery and profile summary
 
@@ -21,17 +21,17 @@ The mobile client SHALL present the Stitch Civic Trust Exchange marketplace disc
 
 #### Scenario: Bottom navigation dock navigates across core Stitch flows
 
-- **WHEN** an authenticated user taps `Ofertas`, `Buscar`, `Acuerdos`, or `Publicar` on the bottom dock
-- **THEN** the client navigates to the corresponding Stitch screen (`/home`, `/search`, `/chat/td-892`, or `/publish`) without rendering any Expo starter-template `Home` or `Explore` tab bar
+- **WHEN** an authenticated user taps `Ofertas`, `Buscar`, `Publicar`, `Acuerdos`, or `Perfil` on the bottom dock
+- **THEN** the client navigates to the corresponding screen (`/home`, `/search`, `/publish`, `/chat/td-892`, or `/profile`) without rendering any Expo starter-template `Home` or `Explore` tab bar
 
 ### Requirement: Sign-in and registration screens reflect the Stitch auth flows
 
-The mobile client SHALL present the Stitch passkey and credential sign-in presentation on `/sign-in` featuring branded header, civic hero trust card, elevated form container with comfortable input heights and icons, passkey quick action, local privacy notice, and navigation to both `/register` and guest marketplace exploration.
+The mobile client SHALL present global identity authentication on `/sign-in` and `/register` decoupled from municipal nodes, featuring civic trust presentation, elevated form controls, passkey quick action, local privacy notice, and navigation between credentials, registration, and guest marketplace exploration.
 
 #### Scenario: Sign-in presents passkey entry card, civic privacy notice, and registration link
 
 - **WHEN** an anonymous user views `/sign-in`
-- **THEN** the screen presents the Ciudad Ojeda node badge, passkey entry option, username/email and password fields (`sign-in-identifier`, `sign-in-password`, `sign-in-submit`), local privacy notice, and a control to navigate to `/register`
+- **THEN** the screen presents global identity branding, passkey entry option, username/email and password fields (`sign-in-identifier`, `sign-in-password`, `sign-in-submit`), local privacy notice, and a control to navigate to `/register` without municipal node constraint
 
 #### Scenario: Sign-in presents guest exploration option
 
@@ -88,3 +88,17 @@ The conversation screen (`/chat/[id]`) and post-exchange confirmation screen (`/
 
 - **WHEN** a user interacts with `/chat/[id]` or `/agreements/[id]/confirm`
 - **THEN** the user can inspect the agreement breakdown, select a verified Ciudad Ojeda meeting point, transition to the post-exchange confirmation checklist, or open the `Reportar Incidencia` modal
+
+### Requirement: Profile screen displays global account identity and session controls
+
+The mobile client SHALL present a dedicated profile screen on `/profile` displaying account details, verification badges, seller eligibility, active market node selector, and session controls.
+
+#### Scenario: Authenticated user inspects profile
+
+- **WHEN** an authenticated user views `/profile`
+- **THEN** the screen displays the user's display name, username, email verification status, phone verification status, seller eligibility state, active market node switcher, and a sign-out control
+
+#### Scenario: Guest user views profile screen
+
+- **WHEN** an anonymous user views `/profile`
+- **THEN** the screen displays a guest explanation prompt with clear actions to sign in or register

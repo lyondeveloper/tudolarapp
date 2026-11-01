@@ -39,7 +39,8 @@ describe('SignInForm (Stitch 1.1 & Passkeys)', () => {
       </Provider>,
     );
 
-    expect(screen.getByText(/Nodo Activo: Ciudad Ojeda/i)).toBeTruthy();
+    expect(screen.getByText(/TUDOLAR • Cuenta Global/i)).toBeTruthy();
+    expect(screen.queryByText(/Nodo Activo: Ciudad Ojeda/i)).toBeNull();
     expect(screen.getByText(/Comunidad Verificada/i)).toBeTruthy();
     expect(screen.getByText(/Cifrado Local/i)).toBeTruthy();
     expect(screen.getByText(/Puntos Céntricos/i)).toBeTruthy();

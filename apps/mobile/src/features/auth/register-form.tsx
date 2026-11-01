@@ -41,16 +41,23 @@ export function RegisterForm() {
 
   return (
     <VStack className="w-full gap-4">
-      <Box className="self-start rounded-md border border-outline bg-surface-muted px-2.5 py-1">
-        <Text className="text-primary" style={textStyle('label-sm')}>
-          Registro Comunitario • Ciudad Ojeda
-        </Text>
+      <Box className="flex-row items-center justify-between">
+        <Box className="flex-row items-center gap-2 rounded-full border border-outline-variant bg-surface px-3 py-1.5 shadow-xs">
+          <Text className="text-primary font-bold" style={textStyle('label-md')}>
+            TUDOLAR • Cuenta Global
+          </Text>
+        </Box>
+        <Box className="rounded-full bg-surface-muted px-2.5 py-1">
+          <Text className="text-secondary font-medium" style={textStyle('label-sm')}>
+            🔒 Red P2P
+          </Text>
+        </Box>
       </Box>
 
       <VStack className="gap-1">
         <Heading style={TITLE_STYLE}>Datos y Verificación Cívica</Heading>
         <Text className="text-muted-foreground" style={textStyle('body-sm')}>
-          Construimos una red confiable para acuerdos presenciales en puntos públicos de Ciudad Ojeda.
+          Construimos una red confiable para acuerdos presenciales en puntos públicos seguros.
         </Text>
       </VStack>
 

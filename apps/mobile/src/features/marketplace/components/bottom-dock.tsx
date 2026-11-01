@@ -5,25 +5,26 @@ import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
 import { textStyle } from '@/theme/typography';
 
-export type DockTab = 'offers' | 'search' | 'agreements' | 'publish';
+export type DockTab = 'offers' | 'search' | 'agreements' | 'publish' | 'profile';
 
 interface DockItem {
   id: DockTab;
   label: string;
-  href: '/home' | '/search' | '/chat/td-892' | '/publish';
+  href: '/home' | '/search' | '/chat/td-892' | '/publish' | '/profile';
   testID: string;
 }
 
 const DOCK_ITEMS: readonly DockItem[] = [
   { id: 'offers', label: 'Ofertas', href: '/home', testID: 'dock-offers' },
   { id: 'search', label: 'Buscar', href: '/search', testID: 'dock-search' },
+  { id: 'publish', label: 'Publicar', href: '/publish', testID: 'dock-publish' },
   {
     id: 'agreements',
     label: 'Acuerdos',
     href: '/chat/td-892',
     testID: 'dock-agreements',
   },
-  { id: 'publish', label: 'Publicar', href: '/publish', testID: 'dock-publish' },
+  { id: 'profile', label: 'Perfil', href: '/profile', testID: 'dock-profile' },
 ] as const;
 
 export interface BottomDockProps {

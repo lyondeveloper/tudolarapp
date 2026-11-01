@@ -81,4 +81,23 @@ describe('HomeScreen (Stitch 2.1 Descubrimiento de Ofertas - Mercado Ojeda)', ()
     expect(screen.queryByText('Home')).toBeNull();
     expect(screen.queryByText('Explore')).toBeNull();
   });
+
+  it('renders marketplace discovery feed for unauthenticated guest users with guest prompt and sign-in button', async () => {
+    const store = configureStore({ reducer: { session: sessionReducer } });
+
+    await render(
+      <Provider store={store}>
+        <HomeScreen />
+      </Provider>,
+    );
+
+    expect(screen.getByText('Mercado Activo: Ciudad Ojeda')).toBeTruthy();
+    expect(screen.getByText(/Modo Invitado/i)).toBeTruthy();
+    expect(screen.getByTestId('home-guest-sign-in')).toBeTruthy();
+    expect(screen.getByText('Carlos M.')).toBeTruthy();
+    expect(screen.getByTestId('stitch-bottom-dock')).toBeTruthy();
+
+    await fireEvent.press(screen.getByTestId('home-guest-sign-in'));
+    expect(mockPush).toHaveBeenCalledWith('/sign-in');
+  });
 });

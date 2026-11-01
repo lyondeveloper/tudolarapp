@@ -19,11 +19,6 @@ import { VStack } from '@/components/ui/vstack';
 import { textStyle } from '@/theme/typography';
 import { useSignInForm } from './use-sign-in-form';
 
-/**
- * gluestack's Heading types its `style` prop through `@expo/html-elements`,
- * whose web style clashes with React Native's `TextStyle`. The value is a plain
- * React Native text style, so the cast is only about the prop's declared type.
- */
 const TITLE_STYLE = textStyle('headline-lg-mobile') as ComponentProps<
   typeof Heading
 >['style'];
@@ -34,151 +29,235 @@ export function SignInForm() {
   const [passkeyNoticeVisible, setPasskeyNoticeVisible] = useState(false);
 
   return (
-    <VStack className="w-full gap-4">
-      <Box className="self-start rounded-md border border-outline bg-surface-muted px-2.5 py-1">
-        <Text className="text-primary" style={textStyle('label-sm')}>
-          Nodo Activo: Ciudad Ojeda • Sin Custodia
-        </Text>
+    <VStack className="w-full gap-5 pb-8">
+      {/* ── Top Bar: Active Node Badge ─────────────────────────────── */}
+      <Box className="flex-row items-center justify-between">
+        <Box className="flex-row items-center gap-2 rounded-full border border-outline-variant bg-surface px-3 py-1.5 shadow-xs">
+          <Box className="h-2 w-2 rounded-full bg-secondary" />
+          <Text className="text-foreground" style={textStyle('label-sm')}>
+            Nodo Activo: Ciudad Ojeda • Sin Custodia
+          </Text>
+        </Box>
+        <Box className="rounded-full bg-surface-muted px-2.5 py-1">
+          <Text className="text-muted-foreground" style={textStyle('label-sm')}>
+            Municipio Lagunillas
+          </Text>
+        </Box>
       </Box>
 
-      <VStack className="gap-1">
-        <Heading style={TITLE_STYLE}>Sign in</Heading>
-        <Text className="text-muted-foreground" style={textStyle('body-sm')}>
-          Acceso Seguro P2P • Intercambio presencial en puntos públicos de Ciudad Ojeda
-        </Text>
-      </VStack>
-
-      <Controller
-        control={control}
-        name="identifier"
-        rules={{ required: 'Enter your username or email' }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <FormControl isInvalid={Boolean(errors.identifier)}>
-            <FormControlLabel>
-              <FormControlLabelText
-                className="text-foreground"
-                style={textStyle('label-md')}
-              >
-                Username or email
-              </FormControlLabelText>
-            </FormControlLabel>
-            <Input>
-              <InputField
-                autoCapitalize="none"
-                autoComplete="username"
-                onBlur={onBlur}
-                onChangeText={onChange}
-                style={textStyle('body-md')}
-                testID="sign-in-identifier"
-                value={value}
-              />
-            </Input>
-            <FormControlError>
-              <FormControlErrorText style={textStyle('body-sm')}>
-                {errors.identifier?.message}
-              </FormControlErrorText>
-            </FormControlError>
-          </FormControl>
-        )}
-      />
-
-      <Controller
-        control={control}
-        name="password"
-        rules={{ required: 'Enter your password' }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <FormControl isInvalid={Boolean(errors.password)}>
-            <FormControlLabel>
-              <FormControlLabelText
-                className="text-foreground"
-                style={textStyle('label-md')}
-              >
-                Password
-              </FormControlLabelText>
-            </FormControlLabel>
-            <Input>
-              <InputField
-                autoComplete="current-password"
-                onBlur={onBlur}
-                onChangeText={onChange}
-                secureTextEntry
-                style={textStyle('body-md')}
-                testID="sign-in-password"
-                value={value}
-              />
-            </Input>
-            <FormControlError>
-              <FormControlErrorText style={textStyle('body-sm')}>
-                {errors.password?.message}
-              </FormControlErrorText>
-            </FormControlError>
-          </FormControl>
-        )}
-      />
-
-      {errors.root ? (
-        <Text className="text-destructive" style={textStyle('body-md')}>
-          {errors.root.message}
-        </Text>
-      ) : null}
-
-      <Button
-        isDisabled={isSubmitting}
-        onPress={onSubmit}
-        testID="sign-in-submit"
-      >
-        {isSubmitting ? <ButtonSpinner /> : null}
-        <ButtonText style={textStyle('label-lg')}>Sign in</ButtonText>
-      </Button>
-
-      <Box className="rounded-md border border-border bg-surface p-3">
+      {/* ── Hero Trust Card (Stitch 1.1) ─────────────────────────── */}
+      <Box className="rounded-2xl border border-outline-variant bg-surface p-5 shadow-sm">
         <VStack className="gap-2">
-          <Text className="text-foreground" style={textStyle('label-md')}>
-            Entrada Biométrica Rápida (Passkey)
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            className="rounded-md border border-outline bg-surface-muted px-3 py-2"
-            onPress={() => setPasskeyNoticeVisible(true)}
-            testID="sign-in-passkey-button"
-          >
-            <Text className="text-primary" style={textStyle('label-md')}>
-              Entrar con Passkey / Huella o FaceID
+          <Box className="self-start rounded-md bg-surface-muted px-2 py-0.5">
+            <Text className="text-secondary" style={textStyle('label-sm')}>
+              Comunidad Verificada
             </Text>
-          </Pressable>
-          {passkeyNoticeVisible ? (
-            <Box
-              className="rounded-sm border border-warning-border bg-warning p-2"
-              testID="passkey-preview-notice"
-            >
-              <Text
-                className="text-warning-foreground"
-                style={textStyle('body-sm')}
-              >
-                Vista previa T15: La ceremonia nativa de Passkey se integra en T16. Usa tus credenciales abajo.
+          </Box>
+          <Heading style={TITLE_STYLE}>Acceso Seguro P2P</Heading>
+          <Text className="text-muted-foreground" style={textStyle('body-sm')}>
+            Intercambio presencial de divisas y efectivo en puntos públicos vigilados de Ciudad Ojeda.
+          </Text>
+
+          <Box className="mt-2 flex-row items-center justify-between border-t border-outline-variant pt-3">
+            <Box className="flex-row items-center gap-1">
+              <Text className="text-secondary" style={textStyle('label-sm')}>✓</Text>
+              <Text className="text-foreground" style={textStyle('label-sm')}>
+                Cifrado Local
               </Text>
             </Box>
-          ) : null}
+            <Box className="h-1 w-1 rounded-full bg-outline" />
+            <Box className="flex-row items-center gap-1">
+              <Text className="text-primary" style={textStyle('label-sm')}>📍</Text>
+              <Text className="text-foreground" style={textStyle('label-sm')}>
+                Puntos Céntricos
+              </Text>
+            </Box>
+            <Box className="h-1 w-1 rounded-full bg-outline" />
+            <Box className="flex-row items-center gap-1">
+              <Text className="text-secondary" style={textStyle('label-sm')}>🛡</Text>
+              <Text className="text-foreground" style={textStyle('label-sm')}>
+                Sin Custodia
+              </Text>
+            </Box>
+          </Box>
         </VStack>
       </Box>
 
-      <Box className="rounded-md border border-border bg-surface-muted p-3">
+      {/* ── Authentication Card ───────────────────────────────────── */}
+      <Box className="rounded-2xl border border-outline-variant bg-surface p-5 shadow-sm">
+        <VStack className="gap-4">
+          {/* Quick Biometrics / Passkey */}
+          <VStack className="gap-1.5">
+            <Text className="text-foreground" style={textStyle('label-md')}>
+              Entrada Biométrica Rápida (Passkey)
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              className="min-h-[48px] flex-row items-center justify-center gap-2 rounded-xl border border-outline bg-surface-muted px-4 py-2.5 active:bg-accent"
+              onPress={() => setPasskeyNoticeVisible(true)}
+              testID="sign-in-passkey-button"
+            >
+              <Text className="text-primary" style={textStyle('label-md')}>
+                🔑 Entrar con Passkey / Huella o FaceID
+              </Text>
+            </Pressable>
+            {passkeyNoticeVisible ? (
+              <Box
+                className="mt-1 rounded-lg border border-warning-border bg-warning p-2.5"
+                testID="passkey-preview-notice"
+              >
+                <Text
+                  className="text-warning-foreground"
+                  style={textStyle('body-sm')}
+                >
+                  Vista previa T15: La ceremonia nativa de Passkey se integra en T16. Usa tus credenciales abajo.
+                </Text>
+              </Box>
+            ) : null}
+          </VStack>
+
+          {/* Divider */}
+          <Box className="relative my-1 flex-row items-center justify-center">
+            <Box className="h-[1px] flex-1 bg-outline-variant" />
+            <Text
+              className="bg-surface px-3 text-muted-foreground"
+              style={textStyle('label-sm')}
+            >
+              o ingresa con tus credenciales
+            </Text>
+            <Box className="h-[1px] flex-1 bg-outline-variant" />
+          </Box>
+
+          {/* Form Fields */}
+          <Controller
+            control={control}
+            name="identifier"
+            rules={{ required: 'Enter your username or email' }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <FormControl isInvalid={Boolean(errors.identifier)}>
+                <FormControlLabel>
+                  <FormControlLabelText
+                    className="text-foreground"
+                    style={textStyle('label-md')}
+                  >
+                    Username or email
+                  </FormControlLabelText>
+                </FormControlLabel>
+                <Input className="min-h-[48px] rounded-xl bg-surface-muted border-outline">
+                  <InputField
+                    autoCapitalize="none"
+                    autoComplete="username"
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    placeholder="ej. usuario_ojeda o tu@correo.com"
+                    style={textStyle('body-md')}
+                    testID="sign-in-identifier"
+                    value={value}
+                  />
+                </Input>
+                <FormControlError>
+                  <FormControlErrorText style={textStyle('body-sm')}>
+                    {errors.identifier?.message}
+                  </FormControlErrorText>
+                </FormControlError>
+              </FormControl>
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="password"
+            rules={{ required: 'Enter your password' }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <FormControl isInvalid={Boolean(errors.password)}>
+                <FormControlLabel>
+                  <FormControlLabelText
+                    className="text-foreground"
+                    style={textStyle('label-md')}
+                  >
+                    Password
+                  </FormControlLabelText>
+                </FormControlLabel>
+                <Input className="min-h-[48px] rounded-xl bg-surface-muted border-outline">
+                  <InputField
+                    autoComplete="current-password"
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    placeholder="Ingresa tu contraseña"
+                    secureTextEntry
+                    style={textStyle('body-md')}
+                    testID="sign-in-password"
+                    value={value}
+                  />
+                </Input>
+                <FormControlError>
+                  <FormControlErrorText style={textStyle('body-sm')}>
+                    {errors.password?.message}
+                  </FormControlErrorText>
+                </FormControlError>
+              </FormControl>
+            )}
+          />
+
+          {errors.root ? (
+            <Text className="text-destructive" style={textStyle('body-md')}>
+              {errors.root.message}
+            </Text>
+          ) : null}
+
+          <Button
+            className="min-h-[50px] w-full rounded-xl bg-primary shadow-sm active:bg-primary/90"
+            isDisabled={isSubmitting}
+            onPress={onSubmit}
+            testID="sign-in-submit"
+          >
+            {isSubmitting ? <ButtonSpinner /> : null}
+            <ButtonText style={textStyle('label-lg')}>
+              Sign in →
+            </ButtonText>
+          </Button>
+        </VStack>
+      </Box>
+
+      {/* ── Civic Privacy Notice ──────────────────────────────────── */}
+      <Box className="rounded-xl border border-warning-border bg-warning p-4 shadow-xs">
         <VStack className="gap-1">
-          <Text className="text-foreground" style={textStyle('label-sm')}>
-            Compromiso de Privacidad Local
-          </Text>
+          <Box className="flex-row items-center gap-1.5">
+            <Text className="text-warning-foreground" style={textStyle('label-sm')}>
+              🛡
+            </Text>
+            <Text
+              className="text-warning-foreground font-semibold"
+              style={textStyle('label-md')}
+            >
+              Compromiso de Privacidad Local
+            </Text>
+          </Box>
           <Text
-            className="text-muted-foreground"
+            className="text-warning-foreground/90"
             style={textStyle('body-sm')}
           >
-            Tus datos de contacto están protegidos y TUDOLAR no custodia fondos.
+            Tus datos de contacto están protegidos y TUDOLAR no custodia fondos. Todos los acuerdos se realizan en puntos públicos de Ciudad Ojeda.
           </Text>
         </VStack>
       </Box>
 
+      {/* ── Guest Explore Escape ──────────────────────────────────── */}
       <Pressable
         accessibilityRole="button"
-        className="items-center py-1"
+        className="min-h-[48px] items-center justify-center rounded-xl border border-outline bg-surface p-3.5 shadow-xs active:bg-surface-muted"
+        onPress={() => router.push('/home')}
+        testID="sign-in-guest-browse"
+      >
+        <Text className="text-primary font-semibold" style={textStyle('label-md')}>
+          Explorar ofertas de Ciudad Ojeda como invitado →
+        </Text>
+      </Pressable>
+
+      {/* ── Link to Register ──────────────────────────────────────── */}
+      <Pressable
+        accessibilityRole="button"
+        className="items-center py-2"
         onPress={() => router.push('/register')}
         testID="sign-in-go-to-register"
       >

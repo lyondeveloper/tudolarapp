@@ -4,7 +4,6 @@ import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Box } from '@/components/ui/box';
-import { Button, ButtonText } from '@/components/ui/button';
 import { Heading } from '@/components/ui/heading';
 import { Pressable } from '@/components/ui/pressable';
 import { Spinner } from '@/components/ui/spinner';
@@ -21,8 +20,8 @@ import {
   type CanonicalPairId,
 } from '@/features/marketplace/domain/catalog';
 import { OFFERS_PREVIEW } from '@/features/marketplace/domain/preview-data';
+import { RequireAuthenticated } from '@/features/session/session-gate';
 import { useCurrentUserQuery } from '@/services/api';
-import { useAppSelector } from '@/store/hooks';
 import { textStyle } from '@/theme/typography';
 
 const TITLE_STYLE = textStyle('headline-lg-mobile') as ComponentProps<
@@ -43,44 +42,37 @@ const FILTER_OPTIONS: readonly {
 /**
  * Stitch 2.1 — Descubrimiento de Ofertas - Mercado Ojeda.
  *
- * Renders the Ciudad Ojeda marketplace discovery feed, deterministic pair
- * filter chips, list/map view switcher, P2P offer cards, permanent non-custody
- * notice, and bottom dock for both authenticated and guest users.
+ * Renders the clean Ciudad Ojeda marketplace discovery feed for authenticated
+ * users, with a modal-driven pair filter, P2P offer cards, non-custody civic
+ * disclaimer, and anchored bottom dock.
  */
 export default function HomeScreen() {
   const router = useRouter();
-  const sessionStatus = useAppSelector((state) => state.session.status);
-  const isAuthenticated = sessionStatus === 'authenticated';
-
-  const {
-    data: user,
-    isLoading,
-    isError,
-  } = useCurrentUserQuery(undefined, { skip: !isAuthenticated });
+  const { data: user, isLoading, isError } = useCurrentUserQuery();
 
   const [selectedPair, setSelectedPair] = useState<CanonicalPairId | 'ALL'>(
     'ALL',
   );
-  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const identity = user?.username ?? user?.email ?? null;
   const visibleOffers = filterOffers(OFFERS_PREVIEW, { pairId: selectedPair });
 
   return (
-    <Box className="flex-1 bg-background">
-      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
-        <ScrollView
-          contentContainerStyle={{
-            paddingHorizontal: 16,
-            paddingTop: 12,
-            paddingBottom: 24,
-          }}
-          showsVerticalScrollIndicator={false}
-          style={{ flex: 1 }}
-        >
-          <VStack className="w-full gap-4">
-            {/* ── User / Guest Status Header ────────────────────────── */}
-            {isAuthenticated ? (
+    <RequireAuthenticated>
+      <Box className="flex-1 bg-background">
+        <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+          <ScrollView
+            contentContainerStyle={{
+              paddingHorizontal: 16,
+              paddingTop: 12,
+              paddingBottom: 24,
+            }}
+            showsVerticalScrollIndicator={false}
+            style={{ flex: 1 }}
+          >
+            <VStack className="w-full gap-4">
+              {/* ── User Status Header ────────────────────────────────── */}
               <Box className="flex-row items-center justify-between rounded-2xl border border-outline-variant bg-surface p-4 shadow-sm">
                 <VStack className="flex-1 gap-1">
                   <Box className="flex-row items-center gap-2">
@@ -126,61 +118,46 @@ export default function HomeScreen() {
                   ) : null}
                 </VStack>
               </Box>
-            ) : (
-              <Box className="rounded-2xl border border-outline-variant bg-surface p-4 shadow-sm">
-                <VStack className="gap-2">
-                  <Box className="flex-row items-center justify-between">
-                    <Box className="flex-row items-center gap-2">
-                      <Box className="h-2 w-2 rounded-full bg-secondary" />
-                      <Text
-                        className="text-foreground font-semibold"
-                        style={textStyle('label-md')}
-                      >
-                        Modo Invitado • Ciudad Ojeda
-                      </Text>
-                    </Box>
-                    <Box className="rounded-full bg-surface-muted px-2 py-0.5">
-                      <Text
-                        className="text-muted-foreground"
-                        style={textStyle('label-sm')}
-                      >
-                        Vista pública
-                      </Text>
-                    </Box>
-                  </Box>
-                  <Text
-                    className="text-muted-foreground"
-                    style={textStyle('body-sm')}
-                  >
-                    Estás explorando el mercado local. Inicia sesión para publicar ofertas o iniciar chats privados.
-                  </Text>
-                  <Button
-                    className="mt-1 min-h-[44px] rounded-xl bg-primary"
-                    onPress={() => router.push('/sign-in')}
-                    testID="home-guest-sign-in"
-                  >
-                    <ButtonText style={textStyle('label-md')}>
-                      Iniciar sesión / Registrarse →
-                    </ButtonText>
-                  </Button>
-                </VStack>
-              </Box>
-            )}
 
-            {/* ── Active Market Node Banner ─────────────────────────── */}
-            <MarketNodeBanner />
+              {/* ── Active Market Node Banner ─────────────────────────── */}
+              <MarketNodeBanner />
 
-            {/* ── Filter Controls ───────────────────────────────────── */}
-            <VStack className="gap-2">
-              <Box className="flex-row items-center justify-between">
-                <Text
-                  className="text-foreground"
-                  style={textStyle('label-md')}
-                >
-                  Filtrar por par canónico (Radio &lt; 5 km)
-                </Text>
+              {/* ── Search & Filter Trigger Bar ───────────────────────── */}
+              <Box className="flex-row items-center gap-2">
                 <Pressable
                   accessibilityRole="button"
+                  className="flex-1 flex-row items-center justify-between rounded-xl border border-outline bg-surface px-4 py-3 shadow-xs active:bg-surface-muted"
+                  onPress={() => setIsFilterOpen(true)}
+                  testID="home-filter-trigger"
+                >
+                  <Box className="flex-row items-center gap-2">
+                    <Text style={textStyle('label-md')}>🔍</Text>
+                    <Text
+                      className={
+                        selectedPair === 'ALL'
+                          ? 'text-muted-foreground'
+                          : 'text-primary font-semibold'
+                      }
+                      style={textStyle('label-md')}
+                    >
+                      {selectedPair === 'ALL'
+                        ? 'Filtrar por par canónico...'
+                        : `Filtro: ${CANONICAL_PAIRS[selectedPair].shortLabel}`}
+                    </Text>
+                  </Box>
+                  <Box className="rounded-md bg-surface-muted px-2 py-0.5">
+                    <Text
+                      className="text-primary font-medium"
+                      style={textStyle('label-sm')}
+                    >
+                      {selectedPair === 'ALL' ? 'Filtros ⚙️' : 'Cambiar'}
+                    </Text>
+                  </Box>
+                </Pressable>
+
+                <Pressable
+                  accessibilityRole="button"
+                  className="rounded-xl border border-outline bg-surface p-3 shadow-xs active:bg-surface-muted"
                   onPress={() => router.push('/search')}
                   testID="home-open-search"
                 >
@@ -188,142 +165,145 @@ export default function HomeScreen() {
                     className="text-primary font-semibold"
                     style={textStyle('label-sm')}
                   >
-                    Búsqueda avanzada
+                    Avanzada
                   </Text>
                 </Pressable>
               </Box>
 
-              <Box className="flex-row flex-wrap gap-1.5">
-                {FILTER_OPTIONS.map((option) => {
-                  const active = selectedPair === option.id;
-                  return (
+              {/* ── Counter & Active Filter Reset ─────────────────────── */}
+              <Box className="flex-row items-center justify-between">
+                <Text
+                  className="text-muted-foreground"
+                  style={textStyle('label-md')}
+                >
+                  {`${visibleOffers.length} ofertas disponibles hoy en Ciudad Ojeda`}
+                </Text>
+
+                {selectedPair !== 'ALL' ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => setSelectedPair('ALL')}
+                    testID="home-filter-clear"
+                  >
+                    <Text
+                      className="text-primary font-medium"
+                      style={textStyle('label-sm')}
+                    >
+                      Limpiar filtro
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </Box>
+
+              {/* ── Offers Feed ───────────────────────────────────────── */}
+              <VStack className="gap-3">
+                {visibleOffers.map((offer) => (
+                  <OfferCard
+                    key={offer.id}
+                    offer={offer}
+                    onSelect={(offerId) => router.push(`/offers/${offerId}`)}
+                  />
+                ))}
+              </VStack>
+
+              {/* ── Civic Non-Custody Notice ──────────────────────────── */}
+              <CivicNoticeBanner
+                body="TUDOLAR conecta vecinos en Ciudad Ojeda sin custodiar dinero ni cobrar comisiones por intercambio. Todo acuerdo es de mutuo consentimiento en sitios públicos vigilados y horario diurno."
+                testID="home-civic-disclaimer"
+                title="Compromiso Comunitario y Cero Custodia"
+              />
+            </VStack>
+          </ScrollView>
+
+          {/* ── Filter Modal / Bottom Sheet ─────────────────────────── */}
+          {isFilterOpen ? (
+            <Box
+              className="absolute inset-0 z-50 justify-end bg-black/50"
+              testID="filter-modal-overlay"
+            >
+              <Pressable
+                className="flex-1"
+                onPress={() => setIsFilterOpen(false)}
+              />
+              <Box
+                className="rounded-t-3xl border-t border-outline bg-surface p-5 shadow-lg"
+                testID="filter-modal-content"
+              >
+                <VStack className="gap-4">
+                  <Box className="flex-row items-center justify-between">
+                    <Heading style={textStyle('headline-sm')}>
+                      Filtrar Ofertas
+                    </Heading>
                     <Pressable
                       accessibilityRole="button"
-                      className={
-                        active
-                          ? 'rounded-xl bg-primary px-3.5 py-2 shadow-xs'
-                          : 'rounded-xl border border-outline-variant bg-surface px-3.5 py-2'
-                      }
-                      key={option.id}
-                      onPress={() => setSelectedPair(option.id)}
-                      testID={`home-filter-${option.id}`}
+                      onPress={() => setIsFilterOpen(false)}
+                      testID="filter-modal-close"
                     >
                       <Text
-                        className={
-                          active
-                            ? 'text-primary-foreground font-semibold'
-                            : 'text-foreground'
-                        }
-                        style={textStyle('label-sm')}
+                        className="text-muted-foreground font-bold"
+                        style={textStyle('headline-sm')}
                       >
-                        {option.label}
+                        ✕
                       </Text>
                     </Pressable>
-                  );
-                })}
-              </Box>
-            </VStack>
+                  </Box>
 
-            {/* ── Counter & View Mode Switcher ──────────────────────── */}
-            <Box className="flex-row items-center justify-between">
-              <Text
-                className="text-muted-foreground"
-                style={textStyle('label-md')}
-              >
-                {`${visibleOffers.length} ofertas disponibles hoy en Ciudad Ojeda`}
-              </Text>
-
-              <Box className="flex-row gap-1 rounded-lg border border-outline-variant bg-surface p-0.5">
-                <Pressable
-                  accessibilityRole="button"
-                  className={
-                    viewMode === 'list'
-                      ? 'rounded-md bg-primary px-2.5 py-1'
-                      : 'rounded-md px-2.5 py-1'
-                  }
-                  onPress={() => setViewMode('list')}
-                  testID="home-view-list"
-                >
-                  <Text
-                    className={
-                      viewMode === 'list'
-                        ? 'text-primary-foreground font-semibold'
-                        : 'text-foreground'
-                    }
-                    style={textStyle('label-sm')}
-                  >
-                    Lista
-                  </Text>
-                </Pressable>
-                <Pressable
-                  accessibilityRole="button"
-                  className={
-                    viewMode === 'map'
-                      ? 'rounded-md bg-primary px-2.5 py-1'
-                      : 'rounded-md px-2.5 py-1'
-                  }
-                  onPress={() => setViewMode('map')}
-                  testID="home-view-map"
-                >
-                  <Text
-                    className={
-                      viewMode === 'map'
-                        ? 'text-primary-foreground font-semibold'
-                        : 'text-foreground'
-                    }
-                    style={textStyle('label-sm')}
-                  >
-                    Mapa Ojeda
-                  </Text>
-                </Pressable>
-              </Box>
-            </Box>
-
-            {viewMode === 'map' ? (
-              <Box
-                className="rounded-2xl border border-outline-variant bg-surface p-4 shadow-sm"
-                testID="home-map-preview"
-              >
-                <VStack className="gap-1">
-                  <Text
-                    className="text-foreground"
-                    style={textStyle('headline-sm')}
-                  >
-                    Corredores Seguros de Ciudad Ojeda
-                  </Text>
                   <Text
                     className="text-muted-foreground"
                     style={textStyle('body-sm')}
                   >
-                    Vista previa geocercada del Municipio Lagunillas (Radio por defecto 5 km): CC Ojeda Mall, Plaza Bolívar y Sector Las Morochas.
+                    Selecciona un par canónico para filtrar las ofertas disponibles en Ciudad Ojeda.
                   </Text>
+
+                  <VStack className="gap-2">
+                    {FILTER_OPTIONS.map((option) => {
+                      const active = selectedPair === option.id;
+                      return (
+                        <Pressable
+                          accessibilityRole="button"
+                          className={
+                            active
+                              ? 'flex-row items-center justify-between rounded-xl bg-primary px-4 py-3 shadow-xs'
+                              : 'flex-row items-center justify-between rounded-xl border border-outline bg-surface-muted px-4 py-3'
+                          }
+                          key={option.id}
+                          onPress={() => {
+                            setSelectedPair(option.id);
+                            setIsFilterOpen(false);
+                          }}
+                          testID={`home-filter-${option.id}`}
+                        >
+                          <Text
+                            className={
+                              active
+                                ? 'text-primary-foreground font-semibold'
+                                : 'text-foreground'
+                            }
+                            style={textStyle('label-md')}
+                          >
+                            {option.label}
+                          </Text>
+                          {active ? (
+                            <Text
+                              className="text-primary-foreground font-bold"
+                              style={textStyle('label-md')}
+                            >
+                              ✓
+                            </Text>
+                          ) : null}
+                        </Pressable>
+                      );
+                    })}
+                  </VStack>
                 </VStack>
               </Box>
-            ) : null}
+            </Box>
+          ) : null}
 
-            {/* ── Offers Feed ───────────────────────────────────────── */}
-            <VStack className="gap-3">
-              {visibleOffers.map((offer) => (
-                <OfferCard
-                  key={offer.id}
-                  offer={offer}
-                  onSelect={(offerId) => router.push(`/offers/${offerId}`)}
-                />
-              ))}
-            </VStack>
-
-            {/* ── Civic Non-Custody Notice ──────────────────────────── */}
-            <CivicNoticeBanner
-              body="TUDOLAR conecta vecinos en Ciudad Ojeda sin custodiar dinero ni cobrar comisiones por intercambio. Todo acuerdo es de mutuo consentimiento en sitios públicos vigilados y horario diurno."
-              testID="home-civic-disclaimer"
-              title="Compromiso Comunitario y Cero Custodia"
-            />
-          </VStack>
-        </ScrollView>
-
-        {/* ── Anchored Mobile Bottom Dock ─────────────────────────── */}
-        <BottomDock activeTab="offers" />
-      </SafeAreaView>
-    </Box>
+          {/* ── Anchored Mobile Bottom Dock ─────────────────────────── */}
+          <BottomDock activeTab="offers" />
+        </SafeAreaView>
+      </Box>
+    </RequireAuthenticated>
   );
 }

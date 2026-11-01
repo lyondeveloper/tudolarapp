@@ -7,17 +7,17 @@ Defines the mobile presentation and interactive workflows derived from the Stitc
 
 ### Requirement: Stitch Civic Trust Exchange screens and bottom dock are navigable
 
-The mobile client SHALL present the Stitch Civic Trust Exchange marketplace discovery feed on `/home` accessible to both guest and authenticated users, with a five-destination bottom navigation dock (`Ofertas`, `Buscar`, `Publicar`, `Acuerdos`, `Perfil`) anchored at the bottom of the viewport, preserving the signed-in user profile summary when authenticated and a welcoming guest banner when unauthenticated.
+The mobile client SHALL present the Stitch Civic Trust Exchange marketplace discovery feed on `/home` only to authenticated users, gating anonymous access via the `<RequireAuthenticated>` session guard to redirect to `/sign-in`, with a clean offer feed, modal-driven filters, and a five-destination bottom navigation dock (`Ofertas`, `Buscar`, `Publicar`, `Acuerdos`, `Perfil`) anchored at the bottom of the viewport, omitting the redundant map view toggle.
 
 #### Scenario: Authenticated home presents marketplace discovery and profile summary
 
 - **WHEN** an authenticated user reaches `/home`
-- **THEN** the screen displays the signed-in user's display name, account identity, and `"Signed in"` indicator alongside the Ciudad Ojeda active market banner, deterministic filter chips, offer cards, non-custody civic disclaimer, and the bottom navigation dock
+- **THEN** the screen displays the signed-in user's display name, account identity, and `"Signed in"` indicator alongside the Ciudad Ojeda active market banner, filter trigger modal, offer cards, non-custody civic disclaimer, and the bottom navigation dock, without rendering the legacy map toggle
 
 #### Scenario: Guest home presents marketplace discovery with guest prompt
 
 - **WHEN** an anonymous user reaches `/home`
-- **THEN** the screen displays the Ciudad Ojeda active market banner, deterministic filter chips, offer cards, non-custody civic disclaimer, and bottom navigation dock with a prompt to sign in for publishing or agreements
+- **THEN** the client redirects the user to `/sign-in` via `<RequireAuthenticated>` and does not render the marketplace discovery feed or any guest prompt
 
 #### Scenario: Bottom navigation dock navigates across core Stitch flows
 
@@ -26,7 +26,7 @@ The mobile client SHALL present the Stitch Civic Trust Exchange marketplace disc
 
 ### Requirement: Sign-in and registration screens reflect the Stitch auth flows
 
-The mobile client SHALL present global identity authentication on `/sign-in` and `/register` decoupled from municipal nodes, featuring civic trust presentation, elevated form controls, passkey quick action, local privacy notice, and navigation between credentials, registration, and guest marketplace exploration.
+The mobile client SHALL present global identity authentication on `/sign-in` and `/register` decoupled from municipal nodes, featuring civic trust presentation, elevated form controls, passkey quick action, local privacy notice, and registration navigation, without guest marketplace bypass.
 
 #### Scenario: Sign-in presents passkey entry card, civic privacy notice, and registration link
 
@@ -36,7 +36,7 @@ The mobile client SHALL present global identity authentication on `/sign-in` and
 #### Scenario: Sign-in presents guest exploration option
 
 - **WHEN** an anonymous user views `/sign-in`
-- **THEN** the screen provides a control to browse the marketplace as a guest (`sign-in-guest-browse`) that navigates to `/home`
+- **THEN** the screen does not provide any guest marketplace browse control (`sign-in-guest-browse`)
 
 #### Scenario: Registration validates required fields and the civic trust pact
 
@@ -91,7 +91,7 @@ The conversation screen (`/chat/[id]`) and post-exchange confirmation screen (`/
 
 ### Requirement: Profile screen displays global account identity and session controls
 
-The mobile client SHALL present a dedicated profile screen on `/profile` displaying account details, verification badges, seller eligibility, active market node selector, and session controls.
+The mobile client SHALL present a dedicated profile screen on `/profile` protected by the `<RequireAuthenticated>` guard, displaying account details, verification badges, seller eligibility, active market node selector, and session controls only to authenticated users.
 
 #### Scenario: Authenticated user inspects profile
 
@@ -101,4 +101,4 @@ The mobile client SHALL present a dedicated profile screen on `/profile` display
 #### Scenario: Guest user views profile screen
 
 - **WHEN** an anonymous user views `/profile`
-- **THEN** the screen displays a guest explanation prompt with clear actions to sign in or register
+- **THEN** the client redirects the user to `/sign-in` through the `<RequireAuthenticated>` guard

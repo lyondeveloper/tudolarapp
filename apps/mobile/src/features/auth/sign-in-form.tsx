@@ -241,18 +241,6 @@ export function SignInForm() {
         </VStack>
       </Box>
 
-      {/* ── Guest Explore Escape ──────────────────────────────────── */}
-      <Pressable
-        accessibilityRole="button"
-        className="min-h-[48px] items-center justify-center rounded-xl border border-outline bg-surface p-3.5 shadow-xs active:bg-surface-muted"
-        onPress={() => router.push('/home')}
-        testID="sign-in-guest-browse"
-      >
-        <Text className="text-primary font-semibold" style={textStyle('label-md')}>
-          Explorar ofertas de Ciudad Ojeda como invitado →
-        </Text>
-      </Pressable>
-
       {/* ── Link to Register ──────────────────────────────────────── */}
       <Pressable
         accessibilityRole="button"

@@ -32,6 +32,15 @@ export interface RegisterRequest {
   password: string;
 }
 
+export interface PhoneVerificationRequest {
+  phoneE164: string;
+}
+
+export interface VerifyPhoneRequest {
+  phoneE164: string;
+  code: string;
+}
+
 export interface MessageResponse {
   message: string;
 }
@@ -109,6 +118,24 @@ export const api = createApi({
       query: () => ({ url: '/auth/sessions/logout', method: 'POST' }),
       invalidatesTags: ['CurrentUser'],
     }),
+    requestPhoneVerification: builder.mutation<
+      MessageResponse,
+      PhoneVerificationRequest
+    >({
+      query: (body) => ({
+        url: '/users/me/phone-verification/challenges',
+        method: 'POST',
+        body,
+      }),
+    }),
+    verifyPhone: builder.mutation<MessageResponse, VerifyPhoneRequest>({
+      query: (body) => ({
+        url: '/users/me/phone-verification/verify',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['CurrentUser'],
+    }),
   }),
 });
 
@@ -119,4 +146,6 @@ export const {
   useRegisterWithPasswordMutation,
   useRefreshSessionMutation,
   useLogoutMutation,
+  useRequestPhoneVerificationMutation,
+  useVerifyPhoneMutation,
 } = api;

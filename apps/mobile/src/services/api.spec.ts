@@ -1,5 +1,29 @@
-import { prepareApiHeaders } from './api';
+import { api, prepareApiHeaders } from './api';
 import type { RootState } from '@/store';
+
+describe('api phone verification endpoints', () => {
+  it('defines requestPhoneVerification mutation endpoint', () => {
+    expect(api.endpoints.requestPhoneVerification).toBeDefined();
+    const endpoint = api.endpoints.requestPhoneVerification;
+    const queryResult = (
+      endpoint as unknown as {
+        initiate: (arg: unknown) => unknown;
+      }
+    ).initiate({ phoneE164: '+584141234567' });
+    expect(queryResult).toBeDefined();
+  });
+
+  it('defines verifyPhone mutation endpoint', () => {
+    expect(api.endpoints.verifyPhone).toBeDefined();
+    const endpoint = api.endpoints.verifyPhone;
+    const queryResult = (
+      endpoint as unknown as {
+        initiate: (arg: unknown) => unknown;
+      }
+    ).initiate({ phoneE164: '+584141234567', code: '123456' });
+    expect(queryResult).toBeDefined();
+  });
+});
 
 describe('prepareApiHeaders', () => {
   it('injects Authorization header when accessToken exists', () => {

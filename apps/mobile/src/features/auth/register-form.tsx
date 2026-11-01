@@ -31,7 +31,7 @@ export function RegisterForm() {
     control,
     errors,
     isSubmitting,
-    submittedPreview,
+    registrationSubmitted,
     frequentSector,
     acceptedCivicPact,
     selectSector,
@@ -311,12 +311,22 @@ export function RegisterForm() {
         )}
       />
 
-      {submittedPreview ? (
+      {registrationSubmitted ? (
         <CivicNoticeBanner
-          body="Vista previa T15: Los endpoints de registro y verificación se integran en T06/T16. Puedes iniciar sesión con la cuenta de demostración."
-          testID="register-preview-confirmation"
-          title="Solicitud de Registro en Modo Vista Previa"
+          body="Hemos recibido tu solicitud de registro. Por favor verifica tu correo electrónico para activar tu cuenta antes de iniciar sesión."
+          testID="register-success-confirmation"
+          title="Registro Recibido • Verifica tu Correo"
         />
+      ) : null}
+
+      {errors.root?.message ? (
+        <FormControl isInvalid>
+          <FormControlError>
+            <FormControlErrorText style={textStyle('body-sm')}>
+              {errors.root.message}
+            </FormControlErrorText>
+          </FormControlError>
+        </FormControl>
       ) : null}
 
       <Button

@@ -57,6 +57,14 @@ export const ERROR_CATALOG: Record<ApiErrorCode, ErrorDescriptor> = {
     status: HttpStatus.CONFLICT,
     message: 'Authentication method is unavailable',
   },
+  [ApiErrorCode.EMAIL_NOT_VERIFIED]: {
+    status: HttpStatus.FORBIDDEN,
+    message: 'Email verification is required before seller onboarding',
+  },
+  [ApiErrorCode.SELLER_NOT_ELIGIBLE]: {
+    status: HttpStatus.FORBIDDEN,
+    message: 'The seller is not eligible to publish offers',
+  },
   [ApiErrorCode.VALIDATION_FAILED]: {
     status: HttpStatus.BAD_REQUEST,
     message: 'Request validation failed',

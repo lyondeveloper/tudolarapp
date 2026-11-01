@@ -25,6 +25,30 @@ describe('api phone verification endpoints', () => {
   });
 });
 
+describe('api seller eligibility endpoints', () => {
+  it('defines sellerEligibility query endpoint', () => {
+    expect(api.endpoints.sellerEligibility).toBeDefined();
+    const endpoint = api.endpoints.sellerEligibility;
+    const queryResult = (
+      endpoint as unknown as {
+        initiate: () => unknown;
+      }
+    ).initiate();
+    expect(queryResult).toBeDefined();
+  });
+
+  it('defines onboardSeller mutation endpoint', () => {
+    expect(api.endpoints.onboardSeller).toBeDefined();
+    const endpoint = api.endpoints.onboardSeller;
+    const queryResult = (
+      endpoint as unknown as {
+        initiate: () => unknown;
+      }
+    ).initiate();
+    expect(queryResult).toBeDefined();
+  });
+});
+
 describe('prepareApiHeaders', () => {
   it('injects Authorization header when accessToken exists', () => {
     const headers = new Headers();

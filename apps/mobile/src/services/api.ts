@@ -41,6 +41,18 @@ export interface VerifyPhoneRequest {
   code: string;
 }
 
+export type SellerEligibilityState =
+  | 'none'
+  | 'contact_verified'
+  | 'eligible'
+  | 'suspended'
+  | 'rejected';
+
+export interface SellerEligibilityResponse {
+  sellerId: string;
+  state: SellerEligibilityState;
+}
+
 export interface MessageResponse {
   message: string;
 }
@@ -88,7 +100,7 @@ export const api = createApi({
     baseUrl: apiBaseUrl(),
     prepareHeaders: prepareApiHeaders,
   }),
-  tagTypes: ['CurrentUser'],
+  tagTypes: ['CurrentUser', 'SellerEligibility'],
   endpoints: (builder) => ({
     health: builder.query<HealthResponse, void>({
       query: () => '/health',
@@ -136,6 +148,14 @@ export const api = createApi({
       }),
       invalidatesTags: ['CurrentUser'],
     }),
+    sellerEligibility: builder.query<SellerEligibilityResponse, void>({
+      query: () => '/sellers/me/eligibility',
+      providesTags: ['SellerEligibility'],
+    }),
+    onboardSeller: builder.mutation<SellerEligibilityResponse, void>({
+      query: () => ({ url: '/sellers/onboard', method: 'POST' }),
+      invalidatesTags: ['SellerEligibility'],
+    }),
   }),
 });
 
@@ -148,4 +168,6 @@ export const {
   useLogoutMutation,
   useRequestPhoneVerificationMutation,
   useVerifyPhoneMutation,
+  useSellerEligibilityQuery,
+  useOnboardSellerMutation,
 } = api;

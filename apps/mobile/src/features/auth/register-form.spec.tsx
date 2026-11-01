@@ -1,20 +1,38 @@
+import { configureStore } from '@reduxjs/toolkit';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { Provider } from 'react-redux';
 
+import { sessionReducer } from '@/features/session/session-slice';
 import { RegisterForm } from './register-form';
 
 const mockReplace = jest.fn();
+const mockRegister = jest.fn();
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ replace: mockReplace, push: mockReplace }),
 }));
 
+jest.mock('@/services/api', () => ({
+  useRegisterWithPasswordMutation: () => [mockRegister],
+}));
+
 describe('RegisterForm (Stitch 1.2 Registro y Verificación)', () => {
   beforeEach(() => {
     mockReplace.mockReset();
+    mockRegister.mockReset();
+    mockRegister.mockReturnValue({
+      unwrap: jest.fn().mockResolvedValue({ message: 'Registration accepted' }),
+    });
   });
 
   it('validates required fields and the 3-point civic trust pact without requiring a Venezuelan Cédula (ADR-0013)', async () => {
-    await render(<RegisterForm />);
+    const store = configureStore({ reducer: { session: sessionReducer } });
+
+    await render(
+      <Provider store={store}>
+        <RegisterForm />
+      </Provider>,
+    );
 
     expect(screen.getByText('Datos y Verificación Cívica')).toBeTruthy();
     expect(screen.getByText('Pacto de Confianza Ojeda')).toBeTruthy();
@@ -53,7 +71,13 @@ describe('RegisterForm (Stitch 1.2 Registro y Verificación)', () => {
     await fireEvent.press(screen.getByTestId('register-submit'));
 
     await waitFor(() => {
-      expect(screen.getByTestId('register-preview-confirmation')).toBeTruthy();
+      expect(mockRegister).toHaveBeenCalledWith({
+        displayName: 'María Pérez',
+        username: 'mariaperez',
+        email: 'maria@tudolar.local',
+        password: 'clave-segura-123',
+      });
+      expect(screen.getByTestId('register-success-confirmation')).toBeTruthy();
     });
   });
 });

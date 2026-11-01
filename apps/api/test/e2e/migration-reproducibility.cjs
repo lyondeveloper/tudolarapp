@@ -34,6 +34,7 @@ const EXPECTED_CHECK_CONSTRAINTS = [
   'offer_terms_versions_version_positive_check',
   'passkey_signature_counter_nonnegative_check',
   'phone_verification_attempts_nonnegative_check',
+  'seller_eligibilities_state_check',
   'users_account_status_check',
 ];
 

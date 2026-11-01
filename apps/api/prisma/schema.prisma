@@ -44,6 +44,7 @@ model User {
   authChallenges     AuthChallenge[]
   emailActionTokens  EmailActionToken[]
   phoneChallenges    PhoneVerificationChallenge[]
+  sellerEligibility  SellerEligibility?
 
   @@unique([usernameNormalized], map: "users_username_normalized_uq", where: raw("username_normalized IS NOT NULL"))
   @@unique([emailNormalized], map: "users_email_normalized_uq", where: raw("email_normalized IS NOT NULL"))
@@ -165,4 +166,15 @@ model Market {
 
   @@index([boundary], type: Gist, map: "markets_boundary_gist_idx")
   @@map("markets")
+}
+
+model SellerEligibility {
+  userId    String   @id @map("user_id") @db.Uuid
+  state     String   @default("none") @db.VarChar(32)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("seller_eligibilities")
 }

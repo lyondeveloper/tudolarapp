@@ -40,15 +40,24 @@ describe('SignInForm (Stitch 1.1 & Passkeys)', () => {
     );
 
     expect(screen.getByText(/Nodo Activo: Ciudad Ojeda/i)).toBeTruthy();
+    expect(screen.getByText(/Comunidad Verificada/i)).toBeTruthy();
+    expect(screen.getByText(/Cifrado Local/i)).toBeTruthy();
+    expect(screen.getByText(/Puntos Céntricos/i)).toBeTruthy();
+    expect(screen.getAllByText(/Sin Custodia/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByTestId('sign-in-passkey-button')).toBeTruthy();
     expect(screen.getByTestId('sign-in-identifier')).toBeTruthy();
     expect(screen.getByTestId('sign-in-password')).toBeTruthy();
     expect(screen.getByTestId('sign-in-submit')).toBeTruthy();
     expect(screen.getByText(/Compromiso de Privacidad Local/i)).toBeTruthy();
+    expect(screen.getByTestId('sign-in-guest-browse')).toBeTruthy();
 
     // Tapping passkey shows preview notice until T16 native WebAuthn wiring lands
     await fireEvent.press(screen.getByTestId('sign-in-passkey-button'));
     expect(screen.getByTestId('passkey-preview-notice')).toBeTruthy();
+
+    // Tapping guest browse link routes to /home
+    await fireEvent.press(screen.getByTestId('sign-in-guest-browse'));
+    expect(mockPush).toHaveBeenCalledWith('/home');
 
     // Tapping registration link routes to /register
     await fireEvent.press(screen.getByTestId('sign-in-go-to-register'));

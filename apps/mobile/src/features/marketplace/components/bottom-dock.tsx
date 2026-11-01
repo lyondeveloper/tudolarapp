@@ -35,7 +35,7 @@ export function BottomDock({ activeTab }: BottomDockProps) {
 
   return (
     <Box
-      className="w-full flex-row items-center justify-around border-y border-outline bg-surface px-2 py-2.5"
+      className="w-full flex-row items-center justify-around border-t border-outline-variant bg-surface px-3 py-3 shadow-md"
       testID="stitch-bottom-dock"
     >
       {DOCK_ITEMS.map((item) => {
@@ -46,8 +46,8 @@ export function BottomDock({ activeTab }: BottomDockProps) {
             accessibilityState={{ selected: isActive }}
             className={
               isActive
-                ? 'rounded-md bg-primary px-3 py-1.5'
-                : 'rounded-md bg-surface-muted px-3 py-1.5'
+                ? 'min-w-[72px] items-center rounded-xl bg-primary px-3 py-2 shadow-xs'
+                : 'min-w-[72px] items-center rounded-xl bg-surface-muted px-3 py-2 active:bg-accent'
             }
             key={item.id}
             onPress={() => router.push(item.href)}
@@ -55,7 +55,9 @@ export function BottomDock({ activeTab }: BottomDockProps) {
           >
             <Text
               className={
-                isActive ? 'text-primary-foreground' : 'text-muted-foreground'
+                isActive
+                  ? 'text-primary-foreground font-semibold'
+                  : 'text-muted-foreground'
               }
               style={textStyle('label-md')}
             >

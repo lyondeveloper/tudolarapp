@@ -20,10 +20,12 @@ export interface SearchAmount {
   readonly asset: Asset;
 }
 
-/** An optional location hint and radius, in kilometers (ADR-0017). */
+/** An optional location hint, coordinates, and radius in kilometers (ADR-0017). */
 export interface SearchLocation {
   readonly hintText: string | null;
   readonly radiusKm: number | null;
+  readonly latitude?: number | null;
+  readonly longitude?: number | null;
 }
 
 /** Per-field parser confidence, all zero when nothing was parsed. */

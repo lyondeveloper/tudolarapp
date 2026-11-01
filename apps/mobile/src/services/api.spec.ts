@@ -49,6 +49,24 @@ describe('api seller eligibility endpoints', () => {
   });
 });
 
+describe('api search offers endpoints', () => {
+  it('defines searchOffers query endpoint', () => {
+    expect(api.endpoints.searchOffers).toBeDefined();
+    const endpoint = api.endpoints.searchOffers;
+    const queryResult = (
+      endpoint as unknown as {
+        initiate: (arg: unknown) => unknown;
+      }
+    ).initiate({
+      pairId: 'VES_USDT',
+      latitude: 10.1969,
+      longitude: -71.3081,
+      radiusKm: 5,
+    });
+    expect(queryResult).toBeDefined();
+  });
+});
+
 describe('prepareApiHeaders', () => {
   it('injects Authorization header when accessToken exists', () => {
     const headers = new Headers();

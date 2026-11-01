@@ -103,6 +103,10 @@ export interface SafeCorridor {
   sector: string;
   scheduleLabel: string;
   securityNotes: readonly string[];
+  location: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 export const CIUDAD_OJEDA_CORRIDORS: readonly SafeCorridor[] = [
@@ -112,6 +116,10 @@ export const CIUDAD_OJEDA_CORRIDORS: readonly SafeCorridor[] = [
     sector: 'Corredor Intercomunal',
     scheduleLabel: 'Lunes a Sábado, 9:00 AM – 4:00 PM',
     securityNotes: ['Circuito Cerrado', 'Zona Iluminada', 'Vigilancia activa'],
+    location: {
+      latitude: 10.1969,
+      longitude: -71.3081,
+    },
   },
   {
     id: 'plaza-bolivar',
@@ -119,6 +127,10 @@ export const CIUDAD_OJEDA_CORRIDORS: readonly SafeCorridor[] = [
     sector: 'Casco Central',
     scheduleLabel: 'Lunes a Sábado, 8:30 AM – 4:00 PM',
     securityNotes: ['Área bancaria', 'Alta presencia peatonal'],
+    location: {
+      latitude: 10.201,
+      longitude: -71.312,
+    },
   },
   {
     id: 'las-morochas',
@@ -126,6 +138,10 @@ export const CIUDAD_OJEDA_CORRIDORS: readonly SafeCorridor[] = [
     sector: 'Las Morochas',
     scheduleLabel: 'Lunes a Sábado, 9:00 AM – 4:00 PM',
     securityNotes: ['Corredor comercial', 'Frente a farmacia principal'],
+    location: {
+      latitude: 10.185,
+      longitude: -71.295,
+    },
   },
   {
     id: 'tamare-campo-lindo',
@@ -133,6 +149,10 @@ export const CIUDAD_OJEDA_CORRIDORS: readonly SafeCorridor[] = [
     sector: 'Norte Lagunillas',
     scheduleLabel: 'Lunes a Viernes, 9:00 AM – 3:30 PM',
     securityNotes: ['Punto diurno visible'],
+    location: {
+      latitude: 10.22,
+      longitude: -71.325,
+    },
   },
 ] as const;
 

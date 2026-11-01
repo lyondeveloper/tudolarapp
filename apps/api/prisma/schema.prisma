@@ -45,6 +45,7 @@ model User {
   emailActionTokens  EmailActionToken[]
   phoneChallenges    PhoneVerificationChallenge[]
   sellerEligibility  SellerEligibility?
+  offers             Offer[]
 
   @@unique([usernameNormalized], map: "users_username_normalized_uq", where: raw("username_normalized IS NOT NULL"))
   @@unique([emailNormalized], map: "users_email_normalized_uq", where: raw("email_normalized IS NOT NULL"))
@@ -164,8 +165,34 @@ model Market {
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
 
+  offers Offer[]
+
   @@index([boundary], type: Gist, map: "markets_boundary_gist_idx")
   @@map("markets")
+}
+
+model Offer {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  marketId              String   @map("market_id") @db.VarChar(64)
+  sellerId              String   @map("seller_id") @db.Uuid
+  status                String   @default("active") @db.VarChar(32)
+  description           String   @db.Text
+  details               String?  @db.Text
+  currentTermsVersionId String?  @map("current_terms_version_id") @db.Uuid
+  initialAmount         Decimal  @map("initial_amount") @db.Decimal(24, 6)
+  reservedAmount        Decimal  @default(0) @map("reserved_amount") @db.Decimal(24, 6)
+  completedAmount       Decimal  @default(0) @map("completed_amount") @db.Decimal(24, 6)
+  location              Unsupported("geometry(Point, 4326)")
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  market Market @relation(fields: [marketId], references: [id], onDelete: Restrict)
+  seller User   @relation(fields: [sellerId], references: [id], onDelete: Restrict)
+
+  @@index([marketId, status], map: "offers_market_id_status_idx")
+  @@index([sellerId], map: "offers_seller_id_idx")
+  @@index([location], type: Gist, map: "offers_location_gist_idx")
+  @@map("offers")
 }
 
 model SellerEligibility {

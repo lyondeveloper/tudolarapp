@@ -131,4 +131,13 @@ export class Money {
     }
     return new Money(this.asset, this.minorUnits + other.minorUnits);
   }
+
+  subtract(other: Money): Money {
+    if (other.asset !== this.asset) {
+      throw new MoneyError(
+        `Cannot subtract ${other.asset} from ${this.asset}: assets must match`,
+      );
+    }
+    return new Money(this.asset, this.minorUnits - other.minorUnits);
+  }
 }

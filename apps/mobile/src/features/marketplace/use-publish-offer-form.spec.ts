@@ -2,7 +2,23 @@ import { act, renderHook } from '@testing-library/react-native';
 
 import { usePublishOfferForm } from './use-publish-offer-form';
 
+const mockPublishOffer = jest.fn();
+
+jest.mock('@/services/api', () => ({
+  usePublishOfferMutation: () => [
+    mockPublishOffer,
+    { isLoading: false, error: null },
+  ],
+}));
+
 describe('usePublishOfferForm (Stitch 4.1 & ADR-0008, ADR-0009, ADR-0010, ADR-0018)', () => {
+  beforeEach(() => {
+    mockPublishOffer.mockReset();
+    mockPublishOffer.mockReturnValue({
+      unwrap: jest.fn().mockResolvedValue({ id: 'offer-123' }),
+    });
+  });
+
   it('initializes with a canonical pair, computes bolivar equivalence in tabular format, and validates margin and limits', async () => {
     const { result } = await renderHook(() => usePublishOfferForm());
 
@@ -34,5 +50,12 @@ describe('usePublishOfferForm (Stitch 4.1 & ADR-0008, ADR-0009, ADR-0010, ADR-00
     });
 
     expect(result.current.submittedPreview).toBe(true);
+    expect(mockPublishOffer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pairId: 'VES_USD_CASH',
+        minAmount: '20',
+        maxAmount: '250',
+      }),
+    );
   });
 });

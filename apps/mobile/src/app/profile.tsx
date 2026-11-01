@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Box } from '@/components/ui/box';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Heading } from '@/components/ui/heading';
+import { Input, InputField } from '@/components/ui/input';
 import { Pressable } from '@/components/ui/pressable';
 import { Spinner } from '@/components/ui/spinner';
 import { Text } from '@/components/ui/text';
@@ -43,6 +44,32 @@ export default function ProfileScreen() {
 
   const [logoutMutation, { isLoading: isLoggingOut }] = useLogoutMutation();
   const [nodeModalVisible, setNodeModalVisible] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedDisplayName, setEditedDisplayName] = useState('');
+  const [editedPhone, setEditedPhone] = useState('');
+  const [localUserOverrides, setLocalUserOverrides] = useState<{
+    displayName?: string;
+    phoneNumber?: string;
+  }>({});
+
+  const currentDisplayName =
+    localUserOverrides.displayName ?? user?.displayName ?? '';
+  const currentPhoneNumber =
+    localUserOverrides.phoneNumber ?? user?.phoneNumber ?? '';
+
+  const handleOpenEdit = () => {
+    setEditedDisplayName(currentDisplayName);
+    setEditedPhone(currentPhoneNumber);
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = () => {
+    setLocalUserOverrides({
+      displayName: editedDisplayName.trim() || currentDisplayName,
+      phoneNumber: editedPhone.trim() || currentPhoneNumber,
+    });
+    setIsEditing(false);
+  };
 
   const handleLogout = async () => {
     try {
@@ -104,7 +131,7 @@ export default function ProfileScreen() {
                             className="text-primary-foreground font-bold"
                             style={textStyle('headline-md')}
                           >
-                            {user.displayName.charAt(0).toUpperCase()}
+                            {(currentDisplayName || 'U').charAt(0).toUpperCase()}
                           </Text>
                         </Box>
                         <VStack className="flex-1 gap-0.5">
@@ -112,7 +139,7 @@ export default function ProfileScreen() {
                             className="text-foreground font-bold"
                             style={textStyle('headline-sm')}
                           >
-                            {user.displayName}
+                            {currentDisplayName}
                           </Text>
                           {user.username ? (
                             <Text
@@ -153,12 +180,27 @@ export default function ProfileScreen() {
                 {/* ── Contact Details ───────────────────────────────── */}
                 <Box className="rounded-2xl border border-outline-variant bg-surface p-4 shadow-sm">
                   <VStack className="gap-3">
-                    <Text
-                      className="text-foreground font-semibold"
-                      style={textStyle('label-md')}
-                    >
-                      Datos de Contacto y Seguridad
-                    </Text>
+                    <Box className="flex-row items-center justify-between">
+                      <Text
+                        className="text-foreground font-semibold"
+                        style={textStyle('label-md')}
+                      >
+                        Datos de Contacto y Seguridad
+                      </Text>
+                      <Pressable
+                        accessibilityRole="button"
+                        className="rounded-lg border border-outline bg-surface-muted px-2.5 py-1 active:bg-accent"
+                        onPress={handleOpenEdit}
+                        testID="profile-edit-button"
+                      >
+                        <Text
+                          className="text-primary font-semibold"
+                          style={textStyle('label-sm')}
+                        >
+                          Modificar ✏️
+                        </Text>
+                      </Pressable>
+                    </Box>
 
                     <Box className="flex-row items-center justify-between border-b border-outline-variant pb-2">
                       <Text
@@ -186,7 +228,7 @@ export default function ProfileScreen() {
                         className="text-foreground font-medium"
                         style={textStyle('body-md')}
                       >
-                        {user?.phoneNumber ?? 'No verificado'}
+                        {currentPhoneNumber || 'No verificado'}
                       </Text>
                     </Box>
 
@@ -299,6 +341,95 @@ export default function ProfileScreen() {
             </Button>
           </VStack>
         </ScrollView>
+
+        {/* ── Edit Profile Modal / Bottom Sheet ──────────────────── */}
+        {isEditing ? (
+          <Box
+            className="absolute inset-0 z-50 justify-end bg-black/50"
+            testID="profile-edit-modal-overlay"
+          >
+            <Pressable className="flex-1" onPress={() => setIsEditing(false)} />
+            <Box
+              className="rounded-t-3xl border-t border-outline bg-surface p-5 shadow-lg"
+              testID="profile-edit-modal"
+            >
+              <VStack className="gap-4">
+                <Box className="flex-row items-center justify-between">
+                  <Heading style={textStyle('headline-sm')}>
+                    Modificar Perfil
+                  </Heading>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => setIsEditing(false)}
+                    testID="profile-edit-close"
+                  >
+                    <Text
+                      className="text-muted-foreground font-bold"
+                      style={textStyle('headline-sm')}
+                    >
+                      ✕
+                    </Text>
+                  </Pressable>
+                </Box>
+
+                <Text
+                  className="text-muted-foreground"
+                  style={textStyle('body-sm')}
+                >
+                  Actualiza tus datos públicos de perfil y teléfono de contacto para acuerdos.
+                </Text>
+
+                <VStack className="gap-1">
+                  <Text className="text-foreground" style={textStyle('label-md')}>
+                    Nombre y Apellido
+                  </Text>
+                  <Input className="min-h-[46px] rounded-xl border border-outline bg-surface-muted">
+                    <InputField
+                      onChangeText={setEditedDisplayName}
+                      style={textStyle('body-md')}
+                      testID="profile-edit-name-input"
+                      value={editedDisplayName}
+                    />
+                  </Input>
+                </VStack>
+
+                <VStack className="gap-1">
+                  <Text className="text-foreground" style={textStyle('label-md')}>
+                    Teléfono de Contacto
+                  </Text>
+                  <Input className="min-h-[46px] rounded-xl border border-outline bg-surface-muted">
+                    <InputField
+                      keyboardType="phone-pad"
+                      onChangeText={setEditedPhone}
+                      style={textStyle('body-md')}
+                      testID="profile-edit-phone-input"
+                      value={editedPhone}
+                    />
+                  </Input>
+                </VStack>
+
+                <Box className="flex-row gap-2 pt-2">
+                  <Button
+                    className="flex-1 min-h-[46px] rounded-xl border border-outline bg-surface"
+                    onPress={() => setIsEditing(false)}
+                    variant="outline"
+                  >
+                    <ButtonText style={textStyle('label-md')}>Cancelar</ButtonText>
+                  </Button>
+                  <Button
+                    className="flex-1 min-h-[46px] rounded-xl bg-primary"
+                    onPress={handleSaveEdit}
+                    testID="profile-edit-save-button"
+                  >
+                    <ButtonText style={textStyle('label-md')}>
+                      Guardar Cambios
+                    </ButtonText>
+                  </Button>
+                </Box>
+              </VStack>
+            </Box>
+          </Box>
+        ) : null}
 
         {/* ── Bottom Dock (Tab 5: Perfil) ─────────────────────────── */}
         <BottomDock activeTab="profile" />

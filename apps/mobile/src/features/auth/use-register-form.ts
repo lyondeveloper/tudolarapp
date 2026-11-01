@@ -7,7 +7,6 @@ export interface RegisterFormValues {
   username: string;
   email: string;
   phoneNumber: string;
-  frequentSector: string;
   password: string;
   acceptedCivicPact: boolean;
 }
@@ -28,14 +27,11 @@ export function useRegisterForm() {
       username: '',
       email: '',
       phoneNumber: '',
-      frequentSector: 'ojeda-mall',
       password: '',
       acceptedCivicPact: false,
     },
   });
 
-  const frequentSector =
-    useWatch({ control, name: 'frequentSector' }) ?? 'ojeda-mall';
   const acceptedCivicPact =
     useWatch({ control, name: 'acceptedCivicPact' }) ?? false;
 
@@ -61,10 +57,7 @@ export function useRegisterForm() {
     errors,
     isSubmitting,
     registrationSubmitted,
-    frequentSector,
     acceptedCivicPact,
-    selectSector: (sectorId: string) =>
-      setValue('frequentSector', sectorId, { shouldValidate: true }),
     toggleCivicPact: () =>
       setValue('acceptedCivicPact', !acceptedCivicPact, {
         shouldValidate: true,

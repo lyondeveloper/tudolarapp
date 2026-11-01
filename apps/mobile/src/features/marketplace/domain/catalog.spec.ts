@@ -37,12 +37,18 @@ describe('marketplace domain catalog (ADR-0008, ADR-0009, ADR-0010, ADR-0015, AD
     expect(serialized.toLowerCase()).not.toContain('zelle');
   });
 
-  it('requires a meeting when either leg is physical cash (ADR-0009)', () => {
-    expect(CANONICAL_PAIRS.VES_USDT.requiresMeeting).toBe(false);
-    expect(CANONICAL_PAIRS.USDT_VES.requiresMeeting).toBe(false);
+  it('requires a meeting for every MVP pair because every pair has a physical leg (ADR-0009)', () => {
+    expect(CANONICAL_PAIRS.VES_USDT.requiresMeeting).toBe(true);
+    expect(CANONICAL_PAIRS.USDT_VES.requiresMeeting).toBe(true);
     expect(CANONICAL_PAIRS.VES_BANK_TO_VES_CASH.requiresMeeting).toBe(true);
     expect(CANONICAL_PAIRS.VES_USD_CASH.requiresMeeting).toBe(true);
     expect(CANONICAL_PAIRS.USDT_USD_CASH.requiresMeeting).toBe(true);
+  });
+
+  it('formats amounts with asset-aware precision: 2 decimals for fiat, 6 for USDT (ADR-0010)', () => {
+    expect(formatTabularAmount(1234.5, 'VES')).toBe('1.234,50');
+    expect(formatTabularAmount(1234.5678, 'USD')).toBe('1.234,57');
+    expect(formatTabularAmount(12.345678, 'USDT')).toBe('12,345678');
   });
 
   it('calculates receive range for cross-asset pairs and same-asset margin pairs (ADR-0008, ADR-0010)', () => {

@@ -9,11 +9,13 @@ import { REQUEST_ID_HEADER } from './error-envelope';
  */
 @Injectable()
 export class RequestIdMiddleware implements NestMiddleware {
-  use(request: Request, _response: Response, next: NextFunction): void {
+  use(request: Request, response: Response, next: NextFunction): void {
     const header = request.headers[REQUEST_ID_HEADER];
     const value = Array.isArray(header) ? header[0] : header;
-    (request as Request & { requestId?: string }).requestId =
+    const requestId =
       typeof value === 'string' && value.length > 0 ? value : randomUUID();
+    (request as Request & { requestId?: string }).requestId = requestId;
+    response.setHeader(REQUEST_ID_HEADER, requestId);
     next();
   }
 }

@@ -48,7 +48,7 @@ export const CANONICAL_PAIRS: Record<CanonicalPairId, PairDefinition> = {
     receiveAsset: 'USDT',
     giveRail: 'VES_CASH',
     receiveRail: 'USDT_TRANSFER',
-    requiresMeeting: false,
+    requiresMeeting: true,
     sameAsset: false,
   },
   VES_BANK_TO_VES_CASH: {
@@ -81,7 +81,7 @@ export const CANONICAL_PAIRS: Record<CanonicalPairId, PairDefinition> = {
     receiveAsset: 'VES',
     giveRail: 'USDT_TRANSFER',
     receiveRail: 'VES_CASH',
-    requiresMeeting: false,
+    requiresMeeting: true,
     sameAsset: false,
   },
   USDT_USD_CASH: {
@@ -166,13 +166,18 @@ export interface PreviewOffer {
   ctaLabel: string;
 }
 
-export function formatTabularAmount(amount: number): string {
-  const roundedCents = Math.round(amount * 100);
-  const whole = Math.floor(Math.abs(roundedCents) / 100);
-  const cents = Math.abs(roundedCents) % 100;
+export function formatTabularAmount(
+  amount: number,
+  asset: MvpAsset = 'VES',
+): string {
+  const decimals = asset === 'USDT' ? 6 : 2;
+  const multiplier = Math.pow(10, decimals);
+  const roundedUnits = Math.round(amount * multiplier);
+  const whole = Math.floor(Math.abs(roundedUnits) / multiplier);
+  const frac = Math.abs(roundedUnits) % multiplier;
   const wholeStr = String(whole).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  const centsStr = String(cents).padStart(2, '0');
-  return `${amount < 0 ? '-' : ''}${wholeStr},${centsStr}`;
+  const fracStr = String(frac).padStart(decimals, '0');
+  return `${amount < 0 ? '-' : ''}${wholeStr},${fracStr}`;
 }
 
 export interface CalculateReceiveRangeInput {
@@ -195,26 +200,32 @@ export function calculateReceiveRange(
   const pair = CANONICAL_PAIRS[input.pairId];
   const boundedMargin = Math.max(0, Math.min(99.99, input.marginPercent));
   const marginFactor = (100 - boundedMargin) / 100;
+  const decimals = pair.receiveAsset === 'USDT' ? 6 : 2;
+  const multiplier = Math.pow(10, decimals);
 
   if (pair.sameAsset) {
-    const minReceive = Math.round(input.minGiveAmount * marginFactor * 100) / 100;
-    const maxReceive = Math.round(input.maxGiveAmount * marginFactor * 100) / 100;
+    const minReceive =
+      Math.round(input.minGiveAmount * marginFactor * multiplier) / multiplier;
+    const maxReceive =
+      Math.round(input.maxGiveAmount * marginFactor * multiplier) / multiplier;
     return {
-      minReceiveFormatted: formatTabularAmount(minReceive),
-      maxReceiveFormatted: formatTabularAmount(maxReceive),
+      minReceiveFormatted: formatTabularAmount(minReceive, pair.receiveAsset),
+      maxReceiveFormatted: formatTabularAmount(maxReceive, pair.receiveAsset),
       receiveAsset: pair.receiveAsset,
     };
   }
 
   const effectiveRate = input.rate && input.rate > 0 ? input.rate : 0;
   const minReceive =
-    Math.round(input.minGiveAmount * effectiveRate * marginFactor * 100) / 100;
+    Math.round(input.minGiveAmount * effectiveRate * marginFactor * multiplier) /
+    multiplier;
   const maxReceive =
-    Math.round(input.maxGiveAmount * effectiveRate * marginFactor * 100) / 100;
+    Math.round(input.maxGiveAmount * effectiveRate * marginFactor * multiplier) /
+    multiplier;
 
   return {
-    minReceiveFormatted: formatTabularAmount(minReceive),
-    maxReceiveFormatted: formatTabularAmount(maxReceive),
+    minReceiveFormatted: formatTabularAmount(minReceive, pair.receiveAsset),
+    maxReceiveFormatted: formatTabularAmount(maxReceive, pair.receiveAsset),
     receiveAsset: pair.receiveAsset,
   };
 }

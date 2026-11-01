@@ -22,6 +22,7 @@ const EXPECTED_CHECK_CONSTRAINTS = [
   'auth_challenges_purpose_check',
   'auth_sessions_expiry_check',
   'email_action_tokens_purpose_check',
+  'markets_boundary_srid_check',
   'offer_terms_versions_amount_range_check',
   'offer_terms_versions_give_amount_positive_check',
   'offer_terms_versions_margin_pct_check',

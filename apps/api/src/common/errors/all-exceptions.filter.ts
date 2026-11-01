@@ -60,6 +60,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = context.getResponse<Response>();
     const request = context.getRequest<Request>();
 
+    if (response.headersSent) {
+      return;
+    }
+
     const described = this.describe(exception);
     const descriptor = ERROR_CATALOG[described.code];
 

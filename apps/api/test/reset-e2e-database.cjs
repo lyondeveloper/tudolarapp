@@ -14,8 +14,9 @@ const { Client } = require('pg');
  *   - `_prisma_migrations` is the migration ledger; truncating it would make the
  *     next `migrate deploy` replay migrations that already ran.
  *   - `spatial_ref_sys` is PostGIS reference data, not application data.
+ *   - `markets` contains reference geographic service scopes seeded during migration.
  */
-const PRESERVED_TABLES = ['_prisma_migrations', 'spatial_ref_sys'];
+const PRESERVED_TABLES = ['_prisma_migrations', 'spatial_ref_sys', 'markets'];
 
 async function resetDatabase(connectionString) {
   const client = new Client({ connectionString });

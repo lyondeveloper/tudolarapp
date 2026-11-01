@@ -15,6 +15,7 @@ const mockLogout = jest.fn();
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: mockPush, replace: mockPush }),
+  Redirect: () => null,
 }));
 
 jest.mock('@/services/api', () => ({
@@ -83,7 +84,7 @@ describe('ProfileScreen', () => {
     expect(mockLogout).toHaveBeenCalled();
   });
 
-  it('renders guest welcome prompt and sign-in button when unauthenticated', async () => {
+  it('blocks unauthenticated visitors with RequireAuthenticated and does not render profile or guest prompt', async () => {
     const store = configureStore({
       reducer: { session: sessionReducer, market: marketReducer },
     });
@@ -95,11 +96,9 @@ describe('ProfileScreen', () => {
       </Provider>,
     );
 
-    expect(screen.getByText(/Modo Invitado/i)).toBeTruthy();
-    expect(screen.getByTestId('profile-guest-sign-in')).toBeTruthy();
-    expect(screen.getByTestId('stitch-bottom-dock')).toBeTruthy();
-
-    await fireEvent.press(screen.getByTestId('profile-guest-sign-in'));
-    expect(mockPush).toHaveBeenCalledWith('/sign-in');
+    expect(screen.queryByText(/Modo Invitado/i)).toBeNull();
+    expect(screen.queryByTestId('profile-guest-sign-in')).toBeNull();
+    expect(screen.queryByText('Carlos Mendoza')).toBeNull();
+    expect(screen.queryByTestId('profile-logout-button')).toBeNull();
   });
 });

@@ -39,7 +39,7 @@ describe('HomeScreen (Stitch 2.1 Descubrimiento de Ofertas - Mercado Ojeda)', ()
     mockPush.mockReset();
   });
 
-  it('renders the signed-in profile header, Ciudad Ojeda market banner, deterministic filter chips, offer cards, civic disclaimer, and bottom dock without forbidden labels', async () => {
+  it('renders the signed-in profile header, Ciudad Ojeda market banner, modal filter trigger, offer cards, civic disclaimer, and bottom dock without map toggle', async () => {
     const store = configureStore({ reducer: { session: sessionReducer } });
     store.dispatch(sessionEstablished({ accessToken: 'access-token' }));
 
@@ -63,13 +63,25 @@ describe('HomeScreen (Stitch 2.1 Descubrimiento de Ofertas - Mercado Ojeda)', ()
       screen.getByText('Compromiso Comunitario y Cero Custodia'),
     ).toBeTruthy();
 
-    // Filter chip interaction
+    // Map toggle is omitted from the clean home feed
+    expect(screen.queryByTestId('home-view-map')).toBeNull();
+    expect(screen.queryByTestId('home-view-list')).toBeNull();
+
+    // Filter modal trigger & selection
+    expect(screen.getByTestId('home-filter-trigger')).toBeTruthy();
+    await fireEvent.press(screen.getByTestId('home-filter-trigger'));
+    expect(screen.getByTestId('filter-modal-content')).toBeTruthy();
+
     await fireEvent.press(screen.getByTestId('home-filter-USDT_USD_CASH'));
     expect(screen.queryByText('Carlos M.')).toBeNull();
     expect(screen.getByText('Inversiones Ojeda P2P')).toBeTruthy();
 
-    // Tapping an offer card navigates to /offers/[id]
+    // Reset filter
+    await fireEvent.press(screen.getByTestId('home-filter-trigger'));
     await fireEvent.press(screen.getByTestId('home-filter-ALL'));
+    expect(screen.getByText('Carlos M.')).toBeTruthy();
+
+    // Tapping an offer card navigates to /offers/[id]
     await fireEvent.press(screen.getByTestId('offer-card-td-892'));
     expect(mockPush).toHaveBeenCalledWith('/offers/td-892');
 
@@ -82,7 +94,7 @@ describe('HomeScreen (Stitch 2.1 Descubrimiento de Ofertas - Mercado Ojeda)', ()
     expect(screen.queryByText('Explore')).toBeNull();
   });
 
-  it('renders marketplace discovery feed for unauthenticated guest users with guest prompt and sign-in button', async () => {
+  it('blocks unauthenticated visitors with RequireAuthenticated and does not render marketplace feed or guest prompt', async () => {
     const store = configureStore({ reducer: { session: sessionReducer } });
 
     await render(
@@ -91,13 +103,10 @@ describe('HomeScreen (Stitch 2.1 Descubrimiento de Ofertas - Mercado Ojeda)', ()
       </Provider>,
     );
 
-    expect(screen.getByText('Mercado Activo: Ciudad Ojeda')).toBeTruthy();
-    expect(screen.getByText(/Modo Invitado/i)).toBeTruthy();
-    expect(screen.getByTestId('home-guest-sign-in')).toBeTruthy();
-    expect(screen.getByText('Carlos M.')).toBeTruthy();
-    expect(screen.getByTestId('stitch-bottom-dock')).toBeTruthy();
-
-    await fireEvent.press(screen.getByTestId('home-guest-sign-in'));
-    expect(mockPush).toHaveBeenCalledWith('/sign-in');
+    // Guest prompt and marketplace content are not rendered for anonymous users
+    expect(screen.queryByText(/Modo Invitado/i)).toBeNull();
+    expect(screen.queryByTestId('home-guest-sign-in')).toBeNull();
+    expect(screen.queryByText('Carlos M.')).toBeNull();
+    expect(screen.queryByText('Mercado Activo: Ciudad Ojeda')).toBeNull();
   });
 });

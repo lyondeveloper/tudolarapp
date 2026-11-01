@@ -11,6 +11,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { BottomDock } from '@/features/marketplace/components/bottom-dock';
+import { RequireAuthenticated } from '@/features/session/session-gate';
 import { sessionCleared } from '@/features/session/session-slice';
 import {
   useCurrentUserQuery,
@@ -57,7 +58,8 @@ export default function ProfileScreen() {
   const isSellerEligible = eligibility?.state === 'eligible';
 
   return (
-    <Box className="flex-1 bg-background">
+    <RequireAuthenticated>
+      <Box className="flex-1 bg-background">
       <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
         <ScrollView
           contentContainerStyle={{
@@ -90,10 +92,8 @@ export default function ProfileScreen() {
               </Box>
             </Box>
 
-            {isAuthenticated ? (
-              <>
-                {/* ── User Overview Card ────────────────────────────── */}
-                <Box className="rounded-2xl border border-outline-variant bg-surface p-5 shadow-sm">
+            {/* ── User Overview Card ──────────────────────────────── */}
+            <Box className="rounded-2xl border border-outline-variant bg-surface p-5 shadow-sm">
                   {userLoading ? (
                     <Spinner />
                   ) : user ? (
@@ -220,38 +220,6 @@ export default function ProfileScreen() {
                     </Box>
                   </VStack>
                 </Box>
-              </>
-            ) : (
-              /* ── Guest View ───────────────────────────────────────── */
-              <Box className="rounded-2xl border border-outline-variant bg-surface p-5 shadow-sm">
-                <VStack className="gap-3">
-                  <Box className="flex-row items-center gap-2">
-                    <Box className="h-2.5 w-2.5 rounded-full bg-secondary" />
-                    <Text
-                      className="text-foreground font-bold"
-                      style={textStyle('headline-sm')}
-                    >
-                      Modo Invitado
-                    </Text>
-                  </Box>
-                  <Text
-                    className="text-muted-foreground"
-                    style={textStyle('body-sm')}
-                  >
-                    Tu cuenta de TUDOLAR es global. Inicia sesión o regístrate para publicar tus ofertas, gestionar acuerdos y verificar tus puntos de contacto.
-                  </Text>
-                  <Button
-                    className="min-h-[48px] rounded-xl bg-primary"
-                    onPress={() => router.push('/sign-in')}
-                    testID="profile-guest-sign-in"
-                  >
-                    <ButtonText style={textStyle('label-lg')}>
-                      Iniciar Sesión / Registrarse →
-                    </ButtonText>
-                  </Button>
-                </VStack>
-              </Box>
-            )}
 
             {/* ── Active Market Node Switcher ────────────────────────── */}
             <Box className="rounded-2xl border border-outline-variant bg-surface p-4 shadow-sm">
@@ -315,22 +283,20 @@ export default function ProfileScreen() {
             </Box>
 
             {/* ── Logout Action ─────────────────────────────────────── */}
-            {isAuthenticated ? (
-              <Button
-                className="min-h-[48px] rounded-xl border border-destructive bg-surface"
-                isDisabled={isLoggingOut}
-                onPress={handleLogout}
-                testID="profile-logout-button"
-                variant="outline"
+            <Button
+              className="min-h-[48px] rounded-xl border border-destructive bg-surface"
+              isDisabled={isLoggingOut}
+              onPress={handleLogout}
+              testID="profile-logout-button"
+              variant="outline"
+            >
+              <ButtonText
+                className="text-destructive font-semibold"
+                style={textStyle('label-md')}
               >
-                <ButtonText
-                  className="text-destructive font-semibold"
-                  style={textStyle('label-md')}
-                >
-                  Cerrar Sesión
-                </ButtonText>
-              </Button>
-            ) : null}
+                Cerrar Sesión
+              </ButtonText>
+            </Button>
           </VStack>
         </ScrollView>
 
@@ -338,5 +304,6 @@ export default function ProfileScreen() {
         <BottomDock activeTab="profile" />
       </SafeAreaView>
     </Box>
+  </RequireAuthenticated>
   );
 }

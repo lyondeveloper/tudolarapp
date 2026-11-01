@@ -53,6 +53,47 @@ export interface SellerEligibilityResponse {
   state: SellerEligibilityState;
 }
 
+export interface PublishOfferRequest {
+  pairId: string;
+  initialAmount: string;
+  giveAmount: string;
+  receiveAmount: string;
+  minAmount: string;
+  maxAmount: string;
+  rate?: string | null;
+  marginPct: string;
+  description: string;
+  details?: string | null;
+  location: {
+    latitude: number;
+    longitude: number;
+  };
+  expiresAt?: string;
+}
+
+export interface PublishOfferResponse {
+  id: string;
+  pairId: string;
+  currentTermsVersionId: string;
+  status: string;
+  description: string;
+  details: string | null;
+  location: {
+    latitude: number;
+    longitude: number;
+  };
+  terms: {
+    version: number;
+    giveAmount: string;
+    receiveAmount: string;
+    rate: string | null;
+    marginPct: string;
+    minAmount: string;
+    maxAmount: string;
+    expiresAt: string;
+  };
+}
+
 export interface MessageResponse {
   message: string;
 }
@@ -100,7 +141,7 @@ export const api = createApi({
     baseUrl: apiBaseUrl(),
     prepareHeaders: prepareApiHeaders,
   }),
-  tagTypes: ['CurrentUser', 'SellerEligibility'],
+  tagTypes: ['CurrentUser', 'SellerEligibility', 'Offers'],
   endpoints: (builder) => ({
     health: builder.query<HealthResponse, void>({
       query: () => '/health',
@@ -156,6 +197,14 @@ export const api = createApi({
       query: () => ({ url: '/sellers/onboard', method: 'POST' }),
       invalidatesTags: ['SellerEligibility'],
     }),
+    publishOffer: builder.mutation<PublishOfferResponse, PublishOfferRequest>({
+      query: (body) => ({
+        url: '/offers',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Offers'],
+    }),
   }),
 });
 
@@ -170,4 +219,5 @@ export const {
   useVerifyPhoneMutation,
   useSellerEligibilityQuery,
   useOnboardSellerMutation,
+  usePublishOfferMutation,
 } = api;

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-
+import { usePublishOfferMutation } from '@/services/api';
 import {
   CANONICAL_PAIRS,
+  CIUDAD_OJEDA_CORRIDORS,
   calculateReceiveRange,
   validateOfferDraft,
   type CanonicalPairId,
@@ -31,7 +32,10 @@ const DEFAULT_PUBLISH_VALUES: PublishOfferFormValues = {
 };
 
 export function usePublishOfferForm() {
+  const [publishOffer, { isLoading: isPublishing, error: publishApiError }] =
+    usePublishOfferMutation();
   const [submittedPreview, setSubmittedPreview] = useState(false);
+  const [publishSuccess, setPublishSuccess] = useState(false);
   const [validationErrors, setValidationErrors] = useState<
     OfferDraftValidationResult['errors']
   >({});
@@ -92,6 +96,30 @@ export function usePublishOfferForm() {
     setValidationErrors(check.errors);
     if (check.valid) {
       setSubmittedPreview(true);
+      const corridor =
+        CIUDAD_OJEDA_CORRIDORS.find((c) => c.id === values.corridorId) ??
+        CIUDAD_OJEDA_CORRIDORS[0];
+
+      try {
+        await publishOffer({
+          pairId: values.pairId,
+          initialAmount: String(parsedMax),
+          giveAmount: String(parsedMax),
+          receiveAmount: String(
+            receiveRange.maxReceiveFormatted.replace(/\./g, '').replace(',', '.'),
+          ),
+          minAmount: String(parsedMin),
+          maxAmount: String(parsedMax),
+          rate: pair.sameAsset ? null : String(parsedRate),
+          marginPct: String(parsedMargin),
+          description: `Oferta en ${corridor.name}`,
+          details: `Encuentro en ${corridor.name}. Horario: ${corridor.scheduleLabel}`,
+          location: corridor.location,
+        }).unwrap();
+        setPublishSuccess(true);
+      } catch {
+        // Fall back gracefully when offline or mock mode
+      }
     } else {
       setSubmittedPreview(false);
     }
@@ -104,6 +132,9 @@ export function usePublishOfferForm() {
     receiveRange,
     validationErrors,
     submittedPreview,
+    publishSuccess,
+    isPublishing,
+    publishApiError,
     selectPair: (pairId: CanonicalPairId) => setValue('pairId', pairId),
     setRateText: (text: string) => setValue('rateText', text),
     setMarginText: (text: string) => setValue('marginText', text),

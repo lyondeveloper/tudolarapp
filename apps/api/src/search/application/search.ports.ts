@@ -27,6 +27,7 @@ export interface SearchQueryPort {
   search(
     criteria: SearchCriteria,
     page: PageQuery,
+    marketId: string,
   ): Promise<CursorPage<SearchMatch>>;
 }
 

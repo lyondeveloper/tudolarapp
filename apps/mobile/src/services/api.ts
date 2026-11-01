@@ -94,6 +94,45 @@ export interface PublishOfferResponse {
   };
 }
 
+export interface SearchOffersQueryArgs {
+  pairId?: string;
+  latitude?: number;
+  longitude?: number;
+  radiusKm?: number;
+  amount?: string;
+  cursor?: string;
+  limit?: number;
+}
+
+export interface SearchOfferItemDto {
+  id: string;
+  pairId: string;
+  distanceMeters: number | null;
+  status: string;
+  description: string;
+  details: string | null;
+  location: {
+    latitude: number;
+    longitude: number;
+  };
+  currentTermsVersionId: string;
+  terms: {
+    version: number;
+    giveAmount: string;
+    receiveAmount: string;
+    rate: string | null;
+    marginPct: string;
+    minAmount: string;
+    maxAmount: string;
+    expiresAt: string;
+  };
+}
+
+export interface SearchOffersResponse {
+  items: SearchOfferItemDto[];
+  nextCursor: string | null;
+}
+
 export interface MessageResponse {
   message: string;
 }
@@ -205,6 +244,13 @@ export const api = createApi({
       }),
       invalidatesTags: ['Offers'],
     }),
+    searchOffers: builder.query<SearchOffersResponse, SearchOffersQueryArgs | void>({
+      query: (params) => ({
+        url: '/search/offers',
+        params: params || undefined,
+      }),
+      providesTags: ['Offers'],
+    }),
   }),
 });
 
@@ -220,4 +266,5 @@ export const {
   useSellerEligibilityQuery,
   useOnboardSellerMutation,
   usePublishOfferMutation,
+  useSearchOffersQuery,
 } = api;

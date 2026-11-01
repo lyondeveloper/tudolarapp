@@ -21,10 +21,12 @@ export interface ProximityFilterInput {
 }
 
 /**
- * Production allowlist starts empty because no spatial table exists yet;
- * T04 registers the first spatial table and column when introducing it.
+ * Production allowlist registers the spatial tables and columns permitted
+ * in proximity search queries (AGENTS.md, database/spatial-queries).
  */
-export const PRODUCTION_SPATIAL_ALLOWLIST = createSpatialAllowlist([]);
+export const PRODUCTION_SPATIAL_ALLOWLIST = createSpatialAllowlist([
+  { table: 'offers', geographyColumn: 'location' },
+]);
 
 export function createSpatialAllowlist(
   entries: readonly SpatialColumnRef[],

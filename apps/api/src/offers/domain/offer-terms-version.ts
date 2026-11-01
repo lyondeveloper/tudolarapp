@@ -1,5 +1,6 @@
 import { getPair, type PairId } from '../../catalog/catalog';
 import { MINOR_UNIT_SCALE, type Money } from '../../catalog/money';
+import type { GeoLocation } from './offer';
 
 /**
  * The immutable terms-version contract — pure domain, no infrastructure imports.
@@ -53,6 +54,7 @@ export interface Offer {
   readonly initialAmount: Money;
   readonly reservedAmount: Money;
   readonly completedAmount: Money;
+  readonly location?: GeoLocation;
 }
 
 interface OfferTermsInput {

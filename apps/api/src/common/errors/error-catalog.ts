@@ -69,6 +69,10 @@ export const ERROR_CATALOG: Record<ApiErrorCode, ErrorDescriptor> = {
     status: HttpStatus.BAD_REQUEST,
     message: 'Unknown market',
   },
+  [ApiErrorCode.MARKET_MISMATCH]: {
+    status: HttpStatus.FORBIDDEN,
+    message: 'The requested operation violates market isolation',
+  },
   [ApiErrorCode.INVALID_CURSOR]: {
     status: HttpStatus.BAD_REQUEST,
     message: 'Invalid pagination cursor',

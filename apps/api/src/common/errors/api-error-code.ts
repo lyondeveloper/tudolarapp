@@ -25,6 +25,7 @@ export enum ApiErrorCode {
   // Market context (`X-Market-Id`).
   MARKET_ID_REQUIRED = 'MARKET_ID_REQUIRED',
   MARKET_NOT_FOUND = 'MARKET_NOT_FOUND',
+  MARKET_MISMATCH = 'MARKET_MISMATCH',
 
   // Cursor pagination.
   INVALID_CURSOR = 'INVALID_CURSOR',

@@ -49,6 +49,27 @@ function apiBaseUrl(): string {
 }
 
 /**
+ * Prepares HTTP headers for RTK Query requests.
+ * Attaches Authorization Bearer token when authenticated,
+ * and X-Market-Id when a market is actively selected.
+ */
+export function prepareApiHeaders(
+  headers: Headers,
+  { getState }: { getState: () => unknown }
+): Headers {
+  const state = getState() as RootState;
+  const accessToken = state.session?.accessToken;
+  if (accessToken) {
+    headers.set('Authorization', `Bearer ${accessToken}`);
+  }
+  const activeMarketId = state.market?.activeMarketId;
+  if (activeMarketId) {
+    headers.set('X-Market-Id', activeMarketId);
+  }
+  return headers;
+}
+
+/**
  * One `createApi` slice for the whole API. RTK Query is the only server-state
  * cache in this app; do not add a second one.
  */
@@ -56,13 +77,7 @@ export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
     baseUrl: apiBaseUrl(),
-    prepareHeaders: (headers, { getState }) => {
-      const { accessToken } = (getState() as RootState).session;
-      if (accessToken) {
-        headers.set('Authorization', `Bearer ${accessToken}`);
-      }
-      return headers;
-    },
+    prepareHeaders: prepareApiHeaders,
   }),
   tagTypes: ['CurrentUser'],
   endpoints: (builder) => ({

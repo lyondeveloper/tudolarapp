@@ -1,12 +1,22 @@
 import 'reflect-metadata';
-import { Controller, Get, INestApplication, Req } from '@nestjs/common';
+import {
+  CanActivate,
+  Controller,
+  ExecutionContext,
+  Get,
+  INestApplication,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AllExceptionsFilter } from '../errors/all-exceptions.filter';
 import { ApiErrorCode } from '../errors/api-error-code';
+import { ApplicationError } from '../errors/application-error';
 import { MarketScoped } from './market-scoped.decorator';
+import { MarketContextGuard } from './market-context.guard';
 import { MARKET_CONTEXT_PORT } from './market-context.port';
 
 const KNOWN_MARKET = 'ciudad-ojeda';
@@ -15,11 +25,32 @@ interface MarketScopedRequest {
   marketId?: string;
 }
 
+class DummyAuthGuard implements CanActivate {
+  canActivate(context: ExecutionContext): boolean {
+    const req = context
+      .switchToHttp()
+      .getRequest<{ headers: Record<string, string | undefined> }>();
+    const auth = req.headers['authorization'];
+    if (!auth || !auth.startsWith('Bearer valid-token')) {
+      throw new ApplicationError(ApiErrorCode.UNAUTHORIZED);
+    }
+    return true;
+  }
+}
+
 @Controller('market-context')
 class MarketContextController {
   @Get('offers')
   @MarketScoped()
   listOffers(@Req() req: MarketScopedRequest): { marketId: string | null } {
+    return { marketId: req.marketId ?? null };
+  }
+
+  @Get('protected-offers')
+  @UseGuards(DummyAuthGuard, MarketContextGuard)
+  protectedOffers(@Req() req: MarketScopedRequest): {
+    marketId: string | null;
+  } {
     return { marketId: req.marketId ?? null };
   }
 
@@ -113,5 +144,33 @@ describe('MarketContextGuard', () => {
       .get('/market-context/health')
       .expect(200)
       .expect({ status: 'ok' });
+  });
+
+  it('proves market selection does not bypass authentication', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/market-context/protected-offers')
+      .set('X-Market-Id', KNOWN_MARKET)
+      .expect(401);
+
+    expect(bodyOf(response).error.code).toBe(ApiErrorCode.UNAUTHORIZED);
+  });
+
+  it('proves authentication does not bypass market scoping', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/market-context/protected-offers')
+      .set('Authorization', 'Bearer valid-token')
+      .expect(400);
+
+    expect(bodyOf(response).error.code).toBe(ApiErrorCode.MARKET_ID_REQUIRED);
+  });
+
+  it('succeeds when both authentication and market scope are valid', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/market-context/protected-offers')
+      .set('Authorization', 'Bearer valid-token')
+      .set('X-Market-Id', KNOWN_MARKET)
+      .expect(200);
+
+    expect(response.body).toEqual({ marketId: KNOWN_MARKET });
   });
 });

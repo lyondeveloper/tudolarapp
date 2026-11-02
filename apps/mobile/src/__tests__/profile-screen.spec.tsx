@@ -80,6 +80,21 @@ describe('ProfileScreen', () => {
     expect(screen.getByTestId('profile-logout-button')).toBeTruthy();
     expect(screen.getByTestId('stitch-bottom-dock')).toBeTruthy();
 
+    // Edit profile action & modal
+    expect(screen.getByTestId('profile-edit-button')).toBeTruthy();
+    await fireEvent.press(screen.getByTestId('profile-edit-button'));
+    expect(screen.getByTestId('profile-edit-modal')).toBeTruthy();
+    expect(screen.getByTestId('profile-edit-name-input')).toBeTruthy();
+    expect(screen.getByTestId('profile-edit-phone-input')).toBeTruthy();
+    expect(screen.getByTestId('profile-edit-save-button')).toBeTruthy();
+
+    await fireEvent.changeText(
+      screen.getByTestId('profile-edit-name-input'),
+      'Carlos Mendoza Actualizado',
+    );
+    await fireEvent.press(screen.getByTestId('profile-edit-save-button'));
+    expect(screen.getByText('Carlos Mendoza Actualizado')).toBeTruthy();
+
     await fireEvent.press(screen.getByTestId('profile-logout-button'));
     expect(mockLogout).toHaveBeenCalled();
   });

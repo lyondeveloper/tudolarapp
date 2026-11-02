@@ -37,6 +37,9 @@ describe('RegisterForm (Stitch 1.2 Registro y Verificación)', () => {
     expect(screen.getByText('Datos y Verificación Cívica')).toBeTruthy();
     expect(screen.getByText('Pacto de Confianza Ojeda')).toBeTruthy();
     expect(screen.queryByText(/Cédula de Identidad/i)).toBeNull();
+    // Identity is global: no municipal sector selector during account registration
+    expect(screen.queryByText(/Sector Frecuente en Ciudad Ojeda/i)).toBeNull();
+    expect(screen.queryByTestId('register-sector-corridor-intercomunal')).toBeNull();
 
     // Submit empty form -> validation errors appear
     await fireEvent.press(screen.getByTestId('register-submit'));

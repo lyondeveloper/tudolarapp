@@ -26,7 +26,7 @@ The mobile client SHALL present the Stitch Civic Trust Exchange marketplace disc
 
 ### Requirement: Sign-in and registration screens reflect the Stitch auth flows
 
-The mobile client SHALL present global identity authentication on `/sign-in` and `/register` decoupled from municipal nodes, featuring civic trust presentation, elevated form controls, passkey quick action, local privacy notice, and registration navigation, without guest marketplace bypass.
+The mobile client SHALL present global identity authentication on `/sign-in` and `/register` decoupled from municipal nodes and geographic sectors, featuring civic trust presentation, elevated form controls, passkey quick action, local privacy notice, and registration navigation, without guest marketplace bypass.
 
 #### Scenario: Sign-in presents passkey entry card, civic privacy notice, and registration link
 
@@ -41,7 +41,7 @@ The mobile client SHALL present global identity authentication on `/sign-in` and
 #### Scenario: Registration validates required fields and the civic trust pact
 
 - **WHEN** an anonymous user submits `/register` with missing required fields or without accepting the three-point civic trust pact
-- **THEN** the form prevents submission and renders inline validation messages for each missing requirement
+- **THEN** the form prevents submission, renders inline validation messages for each missing requirement, and omits any municipal node or frequent sector selection
 
 ### Requirement: Marketplace screens enforce ADR pair, reputation, search, and earnings boundaries
 
@@ -91,12 +91,12 @@ The conversation screen (`/chat/[id]`) and post-exchange confirmation screen (`/
 
 ### Requirement: Profile screen displays global account identity and session controls
 
-The mobile client SHALL present a dedicated profile screen on `/profile` protected by the `<RequireAuthenticated>` guard, displaying account details, verification badges, seller eligibility, active market node selector, and session controls only to authenticated users.
+The mobile client SHALL present a dedicated profile screen on `/profile` protected by the `<RequireAuthenticated>` guard, displaying account details, verification badges, seller eligibility, active market node selector, profile modification controls, and session controls only to authenticated users.
 
 #### Scenario: Authenticated user inspects profile
 
 - **WHEN** an authenticated user views `/profile`
-- **THEN** the screen displays the user's display name, username, email verification status, phone verification status, seller eligibility state, active market node switcher, and a sign-out control
+- **THEN** the screen displays the user's display name, username, email verification status, phone verification status, seller eligibility state, active market node switcher, an edit profile action to modify account details, and a sign-out control
 
 #### Scenario: Guest user views profile screen
 

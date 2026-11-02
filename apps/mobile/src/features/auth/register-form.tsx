@@ -17,7 +17,6 @@ import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { CivicNoticeBanner } from '@/features/marketplace/components/civic-notice-banner';
-import { CIUDAD_OJEDA_CORRIDORS } from '@/features/marketplace/domain/catalog';
 import { textStyle } from '@/theme/typography';
 import { useRegisterForm } from './use-register-form';
 
@@ -32,9 +31,7 @@ export function RegisterForm() {
     errors,
     isSubmitting,
     registrationSubmitted,
-    frequentSector,
     acceptedCivicPact,
-    selectSector,
     toggleCivicPact,
     onSubmit,
   } = useRegisterForm();
@@ -186,39 +183,6 @@ export function RegisterForm() {
           </FormControl>
         )}
       />
-
-      <VStack className="gap-1.5">
-        <Text className="text-foreground" style={textStyle('label-md')}>
-          Sector Frecuente en Ciudad Ojeda
-        </Text>
-        <Box className="flex-row flex-wrap gap-1.5">
-          {CIUDAD_OJEDA_CORRIDORS.map((corridor) => {
-            const selected = frequentSector === corridor.id;
-            return (
-              <Pressable
-                accessibilityRole="button"
-                className={
-                  selected
-                    ? 'rounded-md bg-primary px-3 py-1.5'
-                    : 'rounded-md border border-outline bg-surface-muted px-3 py-1.5'
-                }
-                key={corridor.id}
-                onPress={() => selectSector(corridor.id)}
-                testID={`register-sector-${corridor.id}`}
-              >
-                <Text
-                  className={
-                    selected ? 'text-primary-foreground' : 'text-foreground'
-                  }
-                  style={textStyle('label-sm')}
-                >
-                  {corridor.name}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </Box>
-      </VStack>
 
       <Controller
         control={control}
